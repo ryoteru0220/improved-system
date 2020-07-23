@@ -1,3 +1,9 @@
+python-apt (2.0.0ubuntu0.20.04.1) focal; urgency=medium
+
+  * Update mirror lists.
+
+ -- Brian Murray <brian@ubuntu.com>  Thu, 23 Jul 2020 10:43:44 -0700
+
 python-apt (2.0.0) unstable; urgency=medium
 
   [ Valters Jansons ]
