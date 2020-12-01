@@ -1,3 +1,19 @@
+python-apt (2.0.0ubuntu0.20.04.2) focal-security; urgency=high
+
+  * SECURITY UPDATE: various memory and file descriptor leaks (LP: #1899193)
+    - python/arfile.cc, python/generic.h, python/tag.cc, python/tarfile.cc:
+      fix file descriptor and memory leaks
+    - python/apt_instmodule.cc, python/apt_instmodule.h, python/arfile.h:
+      Avoid reference cycle with control,data members in apt_inst.DebFile
+      objects
+    - tests/test_cve_2020_27351.py: Test cases for DebFile (others not easily
+      testable)
+    - CVE-2020-27351
+  * .gitlab-ci.yml: Fix mypy version for CI
+  * data/templates: Update mirror lists
+
+ -- Julian Andres Klode <juliank@ubuntu.com>  Tue, 01 Dec 2020 17:15:01 +0100
+
 python-apt (2.0.0ubuntu0.20.04.1) focal; urgency=medium
 
   * Update mirror lists.
