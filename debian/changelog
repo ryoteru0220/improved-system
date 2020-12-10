@@ -1,3 +1,12 @@
+python-apt (2.0.0ubuntu0.20.04.3) focal-security; urgency=medium
+
+  * REGRESSION UPDATE: Passing a file descriptor to apt_inst.ArFile or
+    apt_inst.DebFile caused a segmentation fault (LP: #1907676)
+    - python/arfile.cc: Fix segmentation fault when opening fd, track
+      lifetime correctly
+
+ -- Marc Deslauriers <marc.deslauriers@ubuntu.com>  Thu, 10 Dec 2020 09:46:50 -0500
+
 python-apt (2.0.0ubuntu0.20.04.2) focal-security; urgency=high
 
   * SECURITY UPDATE: various memory and file descriptor leaks (LP: #1899193)
