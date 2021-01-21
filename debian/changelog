@@ -1,3 +1,9 @@
+python-apt (2.0.0ubuntu0.20.04.4) focal; urgency=medium
+
+  * Update mirror lists 
+
+ -- Julian Andres Klode <juliank@ubuntu.com>  Thu, 21 Jan 2021 16:17:20 +0100
+
 python-apt (2.0.0ubuntu0.20.04.3) focal-security; urgency=medium
 
   * REGRESSION UPDATE: Passing a file descriptor to apt_inst.ArFile or
