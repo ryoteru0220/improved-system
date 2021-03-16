@@ -18,5 +18,5 @@ for (f, i) in cand.file_list:
         print(index.size)
         print(index.is_trusted)
         print(index.exists)
-        print(index.Haspackages)
+        print(index.has_packages)
         print(index.archive_uri("some/path"))
