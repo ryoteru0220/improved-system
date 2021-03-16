@@ -30,6 +30,11 @@ static PyObject *MetaIndexGetIsTrusted(PyObject *Self,void*) {
     return PyBool_FromLong((meta->IsTrusted()));
 }
 
+static PyObject *MetaIndexGetType(PyObject *Self,void*) {
+    metaIndex *meta = GetCpp<metaIndex*>(Self);
+    return CppPyString(meta->GetType());
+}
+
 static PyObject *MetaIndexGetIndexFiles(PyObject *Self,void*) {
     metaIndex *meta = GetCpp<metaIndex*>(Self);
     PyObject *List = PyList_New(0);
@@ -55,6 +60,8 @@ static PyGetSetDef MetaIndexGetSet[] = {
     "A boolean value determining whether the file can be trusted."},
    {"uri",MetaIndexGetURI,0,
     "The uri the meta index is located at."},
+   {"type",MetaIndexGetType,0,
+    "The type of the meta index."},
    {}
 };
 
