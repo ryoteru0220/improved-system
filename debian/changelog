@@ -1,3 +1,10 @@
+python-apt (2.3.0ubuntu1) jammy; urgency=medium
+
+  * Drop references to archive.canonical.com; we should no longer support
+    configuring this as a repository in new releases.  LP: #1959343.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Thu, 27 Jan 2022 14:46:53 -0800
+
 python-apt (2.3.0) unstable; urgency=medium
 
   [ Edmund Blomley ]
