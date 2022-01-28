@@ -35,16 +35,6 @@ _Description: Ubuntu development series
 Suite: devel
 Official: false
 RepositoryType: deb
-BaseURI: http://archive.canonical.com
-MatchURI: archive.canonical.com
-_Description: Canonical Partners
-Component: partner
-_CompDescription: Software packaged by Canonical for their partners
-_CompDescriptionLong: This software is not part of Ubuntu.
-
-Suite: devel
-Official: false
-RepositoryType: deb
 BaseURI: http://extras.ubuntu.com
 MatchURI: extras.ubuntu.com
 _Description: Independent
@@ -160,7 +150,7 @@ _Description: Canonical Partners
 Component: partner
 _CompDescription: Software packaged by Canonical for their partners
 _CompDescriptionLong: This software is not part of Ubuntu.
-X-Version: ge 10.10
+X-Version: le 20.04, ge 10.10
 
 Suite: {series} 
 Official: false

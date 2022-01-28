@@ -43,13 +43,6 @@ deb-src http://ports.ubuntu.com/ubuntu-ports/ hardy-updates multiverse
 # deb http://ports.ubuntu.com/ubuntu-ports/ hardy-backports main restricted universe multiverse
 # deb-src http://ports.ubuntu.com/ubuntu-ports/ hardy-backports main restricted universe multiverse
 
-## Uncomment the following two lines to add software from Canonical's
-## 'partner' repository. This software is not part of Ubuntu, but is
-## offered by Canonical and the respective vendors as a service to Ubuntu
-## users.
-# deb http://archive.canonical.com/ubuntu hardy partner
-# deb-src http://archive.canonical.com/ubuntu hardy partner
-
 deb http://ports.ubuntu.com/ubuntu-ports/ hardy-security main restricted
 deb-src http://ports.ubuntu.com/ubuntu-ports/ hardy-security main restricted
 deb http://ports.ubuntu.com/ubuntu-ports/ hardy-security universe
