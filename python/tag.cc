@@ -117,6 +117,7 @@ void TagFileFree(PyObject *Obj)
    #ifdef ALLOC_DEBUG
    std::cerr << "=== DEALLOCATING " << Obj->ob_type->tp_name << "^ ===\n";
    #endif
+   PyObject_GC_UnTrack(Obj);
    TagFileData *Self = (TagFileData *)Obj;
    Py_CLEAR(Self->Section);
    Self->Object.~pkgTagFile();
