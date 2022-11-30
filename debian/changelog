@@ -13,11 +13,13 @@ python-apt (2.5.0) unstable; urgency=medium
   * apt/progress/base.py: Return False in default cdrom change
   * Code style fixes
   * Mirror list updates
+  * d/t/control: Depend on binutils for ar
+  * Untrack all GC tracked objects before freeing them (LP: #1997036)
 
   [ Steve Langasek ]
   * Drop references to archive.canonical.com (LP: #1959343)
 
- -- Julian Andres Klode <jak@debian.org>  Wed, 30 Nov 2022 16:49:21 +0100
+ -- Julian Andres Klode <jak@debian.org>  Wed, 30 Nov 2022 17:35:59 +0100
 
 python-apt (2.3.0) unstable; urgency=medium
 
