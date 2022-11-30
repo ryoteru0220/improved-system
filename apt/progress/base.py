@@ -141,6 +141,7 @@ class CdromProgress(object):
         Return True once the cdrom has been changed or False to cancel the
         operation.
         """
+        return False
 
     def update(self, text, current):
         # type: (str, int) -> None
