@@ -14,7 +14,6 @@ Build-Depends: apt (>= 1.0.9.4),
                libapt-pkg-dev (>= 1.9.11~),
                python3-all (>= 3.3),
                python3-all-dev (>= 3.3),
-               python3-all-dbg (>= 3.3),
                python3-distutils,
                python3-distutils-extra (>= 2.0),
                python3-setuptools,
@@ -72,7 +71,7 @@ Multi-Arch: allowed
 Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends}, python-apt-common, distro-info-data
 Recommends: lsb-release, iso-codes
 Provides: ${python3:Provides}
-Suggests: python3-apt-dbg, python-apt-doc, apt
+Suggests: python-apt-doc, apt
 Breaks: python-apt (<< 0.7.98+nmu1),
         apt-xapian-index (<< 0.51~),
         kthresher (<= 1.4.0-1)
@@ -89,19 +88,3 @@ Description: Python 3 interface to libapt-pkg
  .
  The included 'aptsources' Python interface provides an abstraction of
  the sources.list configuration on the repository and the distro level.
-
-Package: python3-apt-dbg
-Architecture: any
-Multi-Arch: allowed
-Section: debug
-Breaks: python-apt (<< 0.7.98+nmu1)
-Replaces: python-apt (<< 0.7.98+nmu1)
-Depends: ${python3:Depends}, python3-apt (= ${binary:Version}), ${shlibs:Depends},
-         ${misc:Depends}
-Provides: ${python3:Provides}
-Description: Python 3 interface to libapt-pkg (debug extension)
- The apt_pkg Python 3 interface will provide full access to the internal
- libapt-pkg structures allowing Python 3 programs to easily perform a
- variety of functions.
- .
- This package contains the extension built for the Python debug interpreter.

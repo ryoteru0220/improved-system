@@ -29,16 +29,14 @@ override_dh_auto_install:
 	mkdir -p debian/python-apt-common/usr/share/
 	mv debian/python3-apt/usr/share/locale debian/python-apt-common/usr/share/
 	mv debian/python3-apt/usr/share/python-apt debian/python-apt-common/usr/share/
-	rm -r debian/python3-*/usr/share/locale
-	rm -r debian/python3-*/usr/share/python-apt
-	rmdir debian/python3-*/usr/share
+	rmdir debian/python3-apt/usr/share
 
 override_dh_installdocs:
-	dh_installdocs -p python3-apt -p python3-apt-dbg --link-doc=python3-apt
+	dh_installdocs -p python3-apt --link-doc=python3-apt
 	dh_installdocs --remaining-packages
 
 override_dh_strip:
-	dh_strip -p python3-apt --dbg-package=python3-apt-dbg
+	dh_strip -p python3-apt
 	
 override_dh_compress:
 	dh_compress -X.js -X_static/* -X _sources/* -X_sources/*/* -X.inv
