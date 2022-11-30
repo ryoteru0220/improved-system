@@ -11,4 +11,4 @@ if __name__ == "__main__":
     c = apt.Cache()
     res = c.update(apt.progress.TextFetchProgress())
     print("res: ", res)
-    assert(os.path.exists("/tmp/update-about-to-run"))
+    assert os.path.exists("/tmp/update-about-to-run")

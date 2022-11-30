@@ -214,7 +214,7 @@ class Distribution(object):
             # TRANSLATORS: %s is a country
             return _("Server for %s") % self.countries[country]
         else:
-            return("%s" % server.rstrip("/ "))
+            return "%s" % server.rstrip("/ ")
 
     def get_server_list(self):
         ''' Return a list of used and suggested servers '''
@@ -446,7 +446,7 @@ class DebianDistribution(Distribution):
             return _("Server for %s") % gettext.dgettext(
                 "iso_3166", self.countries[country].rstrip()).rstrip()
         else:
-            return("%s" % server.rstrip("/ "))
+            return "%s" % server.rstrip("/ ")
 
     def get_mirrors(self):
         Distribution.get_mirrors(

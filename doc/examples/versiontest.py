@@ -16,7 +16,7 @@ if len(TestFile) != 1:
 # Go over the file..
 list = open(TestFile[0], "r")
 CurLine = 0
-while(1):
+while True:
     Line = list.readline()
     CurLine = CurLine + 1
     if Line == "":
