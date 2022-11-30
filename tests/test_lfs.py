@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 import unittest
-import hashlib
-import warnings
 
 import apt_pkg
 
