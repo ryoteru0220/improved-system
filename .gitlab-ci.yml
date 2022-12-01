@@ -1,4 +1,4 @@
-image: debian:unstable
+image: ubuntu:jammy
 variables:
   DEBIAN_FRONTEND: noninteractive
 
@@ -6,7 +6,7 @@ typing:
   script:
   - apt update
   - apt install -q -y python3-pip
-  - python3 -m pip install -U mypy
+  - python3 -m pip install -U mypy==0.942
   - env MYPYPATH=$PWD/typehinting/ mypy --strict ./apt
 
 pep8:
