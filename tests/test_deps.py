@@ -16,13 +16,12 @@ import testcommon
 
 
 class TestDependencies(testcommon.TestCase):
-
     def testCheckDep(self):
         """dependencies: Test apt_pkg.CheckDep() for '<' and '>'
 
         The CheckDep function should treat '<' as '<=' and '>' as '>=', for
         compatibility reasons."""
-        if not hasattr(apt_pkg, 'CheckDep'):
+        if not hasattr(apt_pkg, "CheckDep"):
             return
         self.assertFalse(apt_pkg.CheckDep("1", "<", "0"))
         self.assertTrue(apt_pkg.CheckDep("1", "<", "1"))
@@ -114,9 +113,7 @@ class TestDependencies(testcommon.TestCase):
     def test_dstr(self):
         """Test apt.package.BaseDependency.__dstr"""
         dstr = apt.package.BaseDependency._BaseDependency__dstr
-        equal = {"<": {"<<", "<"},
-                 "=": {"==", "="},
-                 ">": {">>", ">"}}
+        equal = {"<": {"<<", "<"}, "=": {"==", "="}, ">": {">>", ">"}}
         operators = ["<<", "<", "<=", "!=", "=", "==", ">=", ">", ">>"]
 
         for a, b in itertools.product(equal.keys(), operators):
@@ -129,7 +126,7 @@ class TestDependencies(testcommon.TestCase):
 
     def testParseDepends(self):
         """dependencies: Test apt_pkg.ParseDepends()."""
-        if not hasattr(apt_pkg, 'ParseDepends'):
+        if not hasattr(apt_pkg, "ParseDepends"):
             return
         # Check that the type of comparison is parsed correctly.
         self.assertEqual("<<", apt_pkg.ParseDepends("p1 (<< 1)")[0][0][2])

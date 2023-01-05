@@ -2,7 +2,7 @@
 set -e
 
 echo "Running pycodestyle test"
-python3 tests/testmanual_pycodestyle.py || \
+black --check . || [ "$IGNORE_BLACK" ] || \
     [ "$IGNORE_PYCODESTYLE" ] || [ "$IGNORE_PEP8" ] 
 
 dpkg-checkbuilddeps -d 'python3-debian, python3-feedparser'

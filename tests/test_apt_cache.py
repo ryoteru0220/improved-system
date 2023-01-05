@@ -20,6 +20,7 @@ import unittest
 
 
 from test_all import get_library_dir
+
 libdir = get_library_dir()
 if libdir:
     sys.path.insert(0, libdir)
@@ -35,8 +36,8 @@ def if_sources_list_is_readable(f):
         if os.access("/etc/apt/sources.list", os.R_OK):
             f(*args, **kwargs)
         else:
-            logging.warning(
-                "skipping '%s' because sources.list is not readable" % f)
+            logging.warning("skipping '%s' because sources.list is not readable" % f)
+
     return wrapper
 
 
@@ -50,7 +51,7 @@ def get_open_file_descriptors():
 
 
 class TestAptCache(testcommon.TestCase):
-    """ test the apt cache """
+    """test the apt cache"""
 
     def setUp(self):
         testcommon.TestCase.setUp(self)
@@ -59,7 +60,7 @@ class TestAptCache(testcommon.TestCase):
 
     @if_sources_list_is_readable
     def test_apt_cache(self):
-        """cache: iterate all packages and all dependencies """
+        """cache: iterate all packages and all dependencies"""
         cache = apt.Cache()
         # number is not meaningful and just need to be "big enough",
         # the important bit is the test against __len__
@@ -78,11 +79,10 @@ class TestAptCache(testcommon.TestCase):
                 # particular, when using compressed indexes, it should not use
                 # tons of seek operations
                 r = pkg.candidate.record
-                self.assertEqual(r['Package'], pkg.shortname)
-                self.assertTrue('Version' in r)
-                self.assertTrue(len(r['Description']) > 0)
-                self.assertTrue(
-                    str(r).startswith('Package: %s\n' % pkg.shortname))
+                self.assertEqual(r["Package"], pkg.shortname)
+                self.assertTrue("Version" in r)
+                self.assertTrue(len(r["Description"]) > 0)
+                self.assertTrue(str(r).startswith("Package: %s\n" % pkg.shortname))
 
     @if_sources_list_is_readable
     def test_cache_close_leak_fd(self):
@@ -115,23 +115,20 @@ class TestAptCache(testcommon.TestCase):
         cache = apt.Cache(rootdir="./data/test-provides/")
         cache.open()
         if len(cache) == 0:
-            logging.warning(
-                "skipping test_get_provided_packages, cache empty?!?")
+            logging.warning("skipping test_get_provided_packages, cache empty?!?")
             return
         # a true virtual pkg
         li = cache.get_providing_packages("mail-transport-agent")
         self.assertTrue(len(li) > 0)
         self.assertTrue("postfix" in [p.name for p in li])
-        self.assertTrue(
-            "mail-transport-agent" in cache["postfix"].candidate.provides)
+        self.assertTrue("mail-transport-agent" in cache["postfix"].candidate.provides)
 
     def test_low_level_pkg_provides(self):
         apt.apt_pkg.config.set("Apt::architecture", "i386")
         # create highlevel cache and get the lowlevel one from it
         highlevel_cache = apt.Cache(rootdir="./data/test-provides")
         if len(highlevel_cache) == 0:
-            logging.warning(
-                "skipping test_log_level_pkg_provides, cache empty?!?")
+            logging.warning("skipping test_log_level_pkg_provides, cache empty?!?")
             return
         # low level cache provides list of the pkg
         cache = highlevel_cache._cache
@@ -152,8 +149,7 @@ class TestAptCache(testcommon.TestCase):
         dpkg_dir = os.path.join(tmpdir, "var", "lib", "dpkg")
         os.makedirs(os.path.join(dpkg_dir, "updates"))
         open(os.path.join(dpkg_dir, "status"), "w").close()
-        apt_pkg.config.set("Dir::State::status",
-                           os.path.join(dpkg_dir, "status"))
+        apt_pkg.config.set("Dir::State::status", os.path.join(dpkg_dir, "status"))
         cache = apt.Cache()
         # test empty
         self.assertFalse(cache.dpkg_journal_dirty)
@@ -204,8 +200,7 @@ class TestAptCache(testcommon.TestCase):
         cache = apt.Cache()
         cache.update(sources_list=sources_list)
         # verify we just got the excpected package file
-        needle_packages = glob.glob(
-            lists_dir + "/*tests_data_test-repo_Packages*")
+        needle_packages = glob.glob(lists_dir + "/*tests_data_test-repo_Packages*")
         self.assertEqual(len(needle_packages), 1)
         # verify that we *only* got the Packages file from a single source
         all_packages = glob.glob(lists_dir + "/*_Packages*")
@@ -216,8 +211,7 @@ class TestAptCache(testcommon.TestCase):
         # now run update again (without the "normal" sources.list that
         # contains test-repo2 and verify that we got the normal sources.list
         cache.update()
-        needle_packages = glob.glob(
-            lists_dir + "/*tests_data_test-repo2_Packages*")
+        needle_packages = glob.glob(lists_dir + "/*tests_data_test-repo2_Packages*")
         self.assertEqual(len(needle_packages), 1)
         all_packages = glob.glob(lists_dir + "/*_Packages*")
         self.assertEqual(needle_packages, all_packages)
@@ -238,8 +232,7 @@ class TestAptCache(testcommon.TestCase):
         li.append(cache["python3"])
         li.append(cache["apt"])
         li.sort()
-        self.assertEqual([p.name for p in li],
-                         ["apt", "intltool", "python3"])
+        self.assertEqual([p.name for p in li], ["apt", "intltool", "python3"])
 
     def test_get_architectures(self):
         main_arch = apt.apt_pkg.config.get("APT::Architecture")
@@ -263,26 +256,21 @@ class TestAptCache(testcommon.TestCase):
         new_ver = new_version._cand
 
         # get candidate
-        self.assertRaises(ValueError, old_depcache.get_candidate_ver,
-                          new_pkg)
-        self.assertRaises(ValueError, new_depcache.get_candidate_ver,
-                         old_pkg)
+        self.assertRaises(ValueError, old_depcache.get_candidate_ver, new_pkg)
+        self.assertRaises(ValueError, new_depcache.get_candidate_ver, old_pkg)
         self.assertEqual(new_ver, new_depcache.get_candidate_ver(new_pkg))
         self.assertEqual(old_package.candidate._cand, old_ver)  # Remap success
-        self.assertEqual(old_package.candidate._cand,
-                         new_depcache.get_candidate_ver(new_pkg))
+        self.assertEqual(
+            old_package.candidate._cand, new_depcache.get_candidate_ver(new_pkg)
+        )
 
         # set candidate
         new_package.candidate = old_version
         old_depcache.set_candidate_ver(old_pkg, old_ver)
-        self.assertRaises(ValueError, old_depcache.set_candidate_ver,
-                          old_pkg, new_ver)
-        self.assertRaises(ValueError, new_depcache.set_candidate_ver,
-                          old_pkg, old_ver)
-        self.assertRaises(ValueError, new_depcache.set_candidate_ver,
-                          old_pkg, new_ver)
-        self.assertRaises(ValueError, new_depcache.set_candidate_ver,
-                          new_pkg, old_ver)
+        self.assertRaises(ValueError, old_depcache.set_candidate_ver, old_pkg, new_ver)
+        self.assertRaises(ValueError, new_depcache.set_candidate_ver, old_pkg, old_ver)
+        self.assertRaises(ValueError, new_depcache.set_candidate_ver, old_pkg, new_ver)
+        self.assertRaises(ValueError, new_depcache.set_candidate_ver, new_pkg, old_ver)
         new_depcache.set_candidate_ver(new_pkg, new_ver)
 
     @staticmethod
@@ -335,7 +323,7 @@ class TestAptCache(testcommon.TestCase):
             self.write_status_file("a")
             apt_pkg.init_system()
             c.open()
-            self.assertEqual(p.id, p_id)        # Could not be remapped
+            self.assertEqual(p.id, p_id)  # Could not be remapped
             self.assertRaises(apt_pkg.CacheMismatchError, p.mark_delete)
 
     def test_apt_cache_reopen_is_safe_swap(self):

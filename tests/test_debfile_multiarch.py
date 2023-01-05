@@ -11,6 +11,7 @@ import unittest
 
 from test_all import get_library_dir
 import sys
+
 libdir = get_library_dir()
 if libdir:
     sys.path.insert(0, libdir)
@@ -22,19 +23,18 @@ import testcommon
 
 
 class TestDebfileMultiarch(testcommon.TestCase):
-    """ test the multiarch debfile """
+    """test the multiarch debfile"""
 
     def test_multiarch_deb_check(self):
         if apt_pkg.get_architectures() != ["amd64", "i386"]:
             # TODO: use unittest.skip
-            #logging.warning("skipping test because running on a "
+            # logging.warning("skipping test because running on a "
             #                "non-multiarch system")
             return
-        deb = apt.debfile.DebPackage(
-            "./data/test_debs/multiarch-test1_i386.deb")
+        deb = apt.debfile.DebPackage("./data/test_debs/multiarch-test1_i386.deb")
         deb.check()
         missing = deb.missing_deps
-        #print missing
+        # print missing
         self.assertFalse("dpkg:i386" in missing)
 
     @unittest.skip("BROKEN, lib3ds-1-3 is m-a now")
@@ -45,17 +45,19 @@ class TestDebfileMultiarch(testcommon.TestCase):
         canary = "lib3ds-1-3"
         if canary not in cache:
             # TODO: use unittest.skip
-            #logging.warning("skipping test because %s is missing" % canary)
+            # logging.warning("skipping test because %s is missing" % canary)
             return
         cache[canary].mark_install()
         deb = apt.debfile.DebPackage(
-            "./data/test_debs/multiarch-test1_i386.deb", cache=cache)
+            "./data/test_debs/multiarch-test1_i386.deb", cache=cache
+        )
         # this deb should now not be installable
         installable = deb.check()
-        #print deb._failure_string
+        # print deb._failure_string
         self.assertFalse(installable)
-        self.assertEqual(deb._failure_string,
-                         "Conflicts with the installed package 'lib3ds-1-3'")
+        self.assertEqual(
+            deb._failure_string, "Conflicts with the installed package 'lib3ds-1-3'"
+        )
 
 
 if __name__ == "__main__":

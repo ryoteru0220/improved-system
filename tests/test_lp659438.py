@@ -46,19 +46,19 @@ class RegressionTestCase(testcommon.TestCase):
         self.chroot_path = chroot_path = tempfile.mkdtemp()
         # Create a damaged status file
         self.cache = apt.cache.Cache(rootdir=chroot_path)
-        with open(apt_pkg.config.find_file("Dir::State::status"),
-                  "a") as status:
-            status.write("""Package: abrowser
+        with open(apt_pkg.config.find_file("Dir::State::status"), "a") as status:
+            status.write(
+                """Package: abrowser
 Status: install reinstreq half-installed
 Priority: optional
 Section: admin
 Version: 3.6.9+build1+nobinonly-0ubuntu1
-Architecture: all""")
+Architecture: all"""
+            )
         sources_list_path = apt_pkg.config.find_file("Dir::Etc::sourcelist")
         repo_path = os.path.abspath("./data/test-repo")
         with open(sources_list_path, "w") as sources_list:
-            sources_list.write("deb [allow-insecure=yes] copy:%s /\n"
-                               % repo_path)
+            sources_list.write("deb [allow-insecure=yes] copy:%s /\n" % repo_path)
         # os.makedirs(os.path.join(chroot_path, "etc/apt/sources.list.d/"))
         self.cache.update(sources_list=sources_list_path)
         self.cache.open()

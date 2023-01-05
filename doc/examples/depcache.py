@@ -27,7 +27,7 @@ print("Marked for install: %s " % depcache.inst_count)
 print("\n\n Reinit")
 depcache.init(progress)
 
-#sys.exit()
+# sys.exit()
 
 
 # get a canidate version
@@ -81,8 +81,11 @@ print("usr_size: %s " % apt_pkg.size_to_str(depcache.usr_size))
 print("deb_size: %s " % apt_pkg.size_to_str(depcache.deb_size))
 
 for pkg in cache.packages:
-    if pkg.current_ver is not None and not depcache.marked_install(pkg) \
-        and depcache.is_upgradable(pkg):
+    if (
+        pkg.current_ver is not None
+        and not depcache.marked_install(pkg)
+        and depcache.is_upgradable(pkg)
+    ):
         print("upgrade didn't upgrade (kept): %s" % pkg.name)
 
 

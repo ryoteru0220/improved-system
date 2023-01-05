@@ -13,6 +13,7 @@ import unittest
 
 from test_all import get_library_dir
 import sys
+
 libdir = get_library_dir()
 if libdir:
     sys.path.insert(0, libdir)
@@ -30,8 +31,8 @@ class RunHelper:
 
 
 class TestInstallProgressExec(testcommon.TestCase):
-    """ test that InstallProgress.run() passes a valid file descriptor to
-        a child process """
+    """test that InstallProgress.run() passes a valid file descriptor to
+    a child process"""
 
     def test_run(self):
         with InstallProgress() as prog:

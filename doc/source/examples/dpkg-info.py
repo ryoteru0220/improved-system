@@ -11,7 +11,7 @@ from apt_inst import DebFile
 def main():
     """Main function."""
     if len(sys.argv) < 3:
-        print('Usage: tool file.deb control-file\n', file=sys.stderr)
+        print("Usage: tool file.deb control-file\n", file=sys.stderr)
         sys.exit(0)
     fobj = open(sys.argv[1])
     try:
@@ -20,5 +20,5 @@ def main():
         fobj.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -14,6 +14,7 @@ import unittest
 
 
 from test_all import get_library_dir
+
 libdir = get_library_dir()
 if libdir:
     sys.path.insert(0, libdir)
@@ -24,7 +25,6 @@ import testcommon
 
 
 class TestSourceRecords(testcommon.TestCase):
-
     def setUp(self):
         testcommon.TestCase.setUp(self)
 
@@ -43,8 +43,9 @@ class TestSourceRecords(testcommon.TestCase):
         apt_pkg.init_config()
 
         # set a local sources.list that does not need the network
-        base_sources = os.path.abspath(os.path.join(rootdir, "etc",
-            "apt", "sources.list"))
+        base_sources = os.path.abspath(
+            os.path.join(rootdir, "etc", "apt", "sources.list")
+        )
         # main sources.list
         sources_list = base_sources
         with open(sources_list, "w") as f:
@@ -75,11 +76,21 @@ class TestSourceRecords(testcommon.TestCase):
         self.assertEqual(type_, "dsc")
         # access using getters
         self.assertTrue(isinstance(f.hashes, apt_pkg.HashStringList))
-        self.assertEqual(str(f.hashes[0]), "SHA512:4b1a3299f2a8b01b0c75db97fd16cb39919949c74d19ea6cf28e1bbd4891d3515b3e2b90b96a64df665cebf6d95409e704e670909ae91fcfe92409ee1339bffc")  # noqa
+        self.assertEqual(
+            str(f.hashes[0]),
+            "SHA512:4b1a3299f2a8b01b0c75db97fd16cb39919949c74d19ea6cf28e1bbd4891d3515b3e2b90b96a64df665cebf6d95409e704e670909ae91fcfe92409ee1339bffc",
+        )  # noqa
         self.assertEqual(str(f.hashes[1]), "Checksum-FileSize:1578")
-        self.assertEqual(str(f.hashes[2]), "SHA256:1c1b2ab5f1ae5496bd50dbb3c30e9b7d181a06c8d02ee8d7e9c35ed6f2a69b5f")  # noqa
-        self.assertEqual(str(f.hashes[3]), "SHA1:c9bf7a920013021dad5fbd898dfd5a79c7a150f9")  # noqa
-        self.assertEqual(str(f.hashes[4]), "MD5Sum:6576a28fe1918ce10bd31543ba545901")  # noqa
+        self.assertEqual(
+            str(f.hashes[2]),
+            "SHA256:1c1b2ab5f1ae5496bd50dbb3c30e9b7d181a06c8d02ee8d7e9c35ed6f2a69b5f",
+        )  # noqa
+        self.assertEqual(
+            str(f.hashes[3]), "SHA1:c9bf7a920013021dad5fbd898dfd5a79c7a150f9"
+        )  # noqa
+        self.assertEqual(
+            str(f.hashes[4]), "MD5Sum:6576a28fe1918ce10bd31543ba545901"
+        )  # noqa
         self.assertEqual(f.size, 1578)
         self.assertEqual(f.path, "dh-autoreconf_16.dsc")
         self.assertEqual(f.type, "dsc")
@@ -92,11 +103,21 @@ class TestSourceRecords(testcommon.TestCase):
         self.assertEqual(type_, "tar")
         # access using getters
         self.assertTrue(isinstance(f.hashes, apt_pkg.HashStringList))
-        self.assertEqual(str(f.hashes[0]), "SHA512:10448dd179ec12bf4310a9a514110a85f56e51893aa36a97ac3a6f8d7ce99d099e62cfdb78e271e2d94431e8832da0f643de821b6643b80e3f0b0f5d682cf9a9")  # noqa
+        self.assertEqual(
+            str(f.hashes[0]),
+            "SHA512:10448dd179ec12bf4310a9a514110a85f56e51893aa36a97ac3a6f8d7ce99d099e62cfdb78e271e2d94431e8832da0f643de821b6643b80e3f0b0f5d682cf9a9",
+        )  # noqa
         self.assertEqual(str(f.hashes[1]), "Checksum-FileSize:7372")  # noqa
-        self.assertEqual(str(f.hashes[2]), "SHA256:5c6a6a362907327bec77a867ff3fd0eceba8015d1b881b48275aff7e4ce0f629")  # noqa
-        self.assertEqual(str(f.hashes[3]), "SHA1:58459600164398ad6807ddd877a6f814c799c62c")  # noqa
-        self.assertEqual(str(f.hashes[4]), "MD5Sum:302c8bf43db02412e3f2197fd0f2ee0f")  # noqa
+        self.assertEqual(
+            str(f.hashes[2]),
+            "SHA256:5c6a6a362907327bec77a867ff3fd0eceba8015d1b881b48275aff7e4ce0f629",
+        )  # noqa
+        self.assertEqual(
+            str(f.hashes[3]), "SHA1:58459600164398ad6807ddd877a6f814c799c62c"
+        )  # noqa
+        self.assertEqual(
+            str(f.hashes[4]), "MD5Sum:302c8bf43db02412e3f2197fd0f2ee0f"
+        )  # noqa
         self.assertEqual(f.size, 7372)
         self.assertEqual(f.path, "dh-autoreconf_16.tar.xz")
         self.assertEqual(f.type, "tar")

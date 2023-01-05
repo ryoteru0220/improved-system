@@ -25,6 +25,7 @@ import apt_pkg
 # import some fancy classes
 from apt.package import Package as Package, Version as Version
 from apt.cache import Cache as Cache, ProblemResolver as ProblemResolver
+
 Cache  # pyflakes
 ProblemResolver  # pyflakes
 Version  # pyflakes
@@ -35,4 +36,4 @@ if "APT" not in apt_pkg.config:
     apt_pkg.init_config()
 apt_pkg.init_system()
 
-__all__ = ['Cache', 'Cdrom', 'Package']
+__all__ = ["Cache", "Cdrom", "Package"]

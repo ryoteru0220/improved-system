@@ -36,7 +36,7 @@ from typing import Optional, Union
 
 import apt_pkg
 
-__all__ = ['AcquireProgress', 'CdromProgress', 'InstallProgress', 'OpProgress']
+__all__ = ["AcquireProgress", "CdromProgress", "InstallProgress", "OpProgress"]
 
 
 class AcquireProgress(object):
@@ -46,8 +46,7 @@ class AcquireProgress(object):
     methods to get something useful.
     """
 
-    current_bytes = current_cps = fetched_bytes = last_bytes = total_bytes \
-                  = 0.0
+    current_bytes = current_cps = fetched_bytes = last_bytes = total_bytes = 0.0
     current_items = elapsed_time = total_items = 0
 
     def done(self, item):
@@ -237,9 +236,17 @@ class InstallProgress(object):
             try:
                 os._exit(obj.do_install(self.write_stream.fileno()))  # type: ignore # noqa
             except AttributeError:
-                os._exit(os.spawnlp(os.P_WAIT, "dpkg", "dpkg", "--status-fd",
-                                    str(self.write_stream.fileno()), "-i",
-                                    obj))  # type: ignore # noqa
+                os._exit(
+                    os.spawnlp(
+                        os.P_WAIT,
+                        "dpkg",
+                        "dpkg",
+                        "--status-fd",
+                        str(self.write_stream.fileno()),
+                        "-i",
+                        obj,  # type: ignore # noqa
+                    )
+                )
             except Exception as e:
                 sys.stderr.write("%s\n" % e)
                 os._exit(apt_pkg.PackageManager.RESULT_FAILED)
@@ -266,18 +273,18 @@ class InstallProgress(object):
 
         pkgname = status = status_str = percent = base = ""
 
-        if line.startswith('pm'):
+        if line.startswith("pm"):
             try:
                 (status, pkgname, percent, status_str) = line.split(":", 3)
             except ValueError:
                 # silently ignore lines that can't be parsed
                 return
-        elif line.startswith('status'):
+        elif line.startswith("status"):
             try:
                 (base, pkgname, status, status_str) = line.split(":", 3)
             except ValueError:
                 (base, pkgname, status) = line.split(":", 2)
-        elif line.startswith('processing'):
+        elif line.startswith("processing"):
             (status, status_str, pkgname) = line.split(":", 2)
             self.processing(pkgname.strip(), status_str.strip())
 
@@ -286,10 +293,10 @@ class InstallProgress(object):
         status_str = status_str.strip()
         status = status.strip()
 
-        if status == 'pmerror' or status == 'error':
+        if status == "pmerror" or status == "error":
             self.error(pkgname, status_str)
-        elif status == 'conffile-prompt' or status == 'pmconffile':
-            match = re.match("\\s*\'(.*)\'\\s*\'(.*)\'.*", status_str)
+        elif status == "conffile-prompt" or status == "pmconffile":
+            match = re.match("\\s*'(.*)'\\s*'(.*)'.*", status_str)
             if match:
                 self.conffile(match.group(1), match.group(2))
         elif status == "pmstatus":
@@ -312,8 +319,7 @@ class InstallProgress(object):
         (pid, res) = (0, 0)
         while True:
             try:
-                select.select([self.status_stream], [], [],
-                              self.select_timeout)
+                select.select([self.status_stream], [], [], self.select_timeout)
             except select.error as error:
                 (errno_, _errstr) = error.args
                 if errno_ != errno.EINTR:

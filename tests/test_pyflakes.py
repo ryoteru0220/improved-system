@@ -12,7 +12,8 @@ class TestPyflakesClean(testcommon.TestCase):
 
     EXCLUDES = ["build", "tests/old", ".pybuild"]
     TOPLEVEL = os.path.normpath(
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+    )
 
     def is_excluded_path(self, path):
         for exclude in self.EXCLUDES:
@@ -39,5 +40,6 @@ class TestPyflakesClean(testcommon.TestCase):
 
 if __name__ == "__main__":
     import logging
+
     logging.basicConfig(level=logging.DEBUG)
     unittest.main()

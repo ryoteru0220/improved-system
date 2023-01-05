@@ -21,6 +21,7 @@ import tempfile
 import unittest
 
 from test_all import get_library_dir
+
 libdir = get_library_dir()
 if libdir:
     sys.path.insert(0, libdir)
@@ -31,11 +32,11 @@ import testcommon
 
 
 class TestOpenMaybeClearSigned(testcommon.TestCase):
-
     def test_open_trivial(self):
         basepath = os.path.dirname(__file__)
         fd = apt_pkg.open_maybe_clear_signed_file(
-            os.path.join(basepath, "./data/test_debs/hello_2.5-1.dsc"))
+            os.path.join(basepath, "./data/test_debs/hello_2.5-1.dsc")
+        )
         with os.fdopen(fd) as f:
             data = f.read()
         self.assertTrue(data.startswith("Format: 1.0\n"))
@@ -43,7 +44,8 @@ class TestOpenMaybeClearSigned(testcommon.TestCase):
     def test_open_normal(self):
         basepath = os.path.dirname(__file__)
         fd = apt_pkg.open_maybe_clear_signed_file(
-            os.path.join(basepath, "./data/misc/foo_Release"))
+            os.path.join(basepath, "./data/misc/foo_Release")
+        )
         with os.fdopen(fd) as f:
             data = f.read()
         self.assertTrue(data.startswith("Origin: Ubuntu\n"))
@@ -54,7 +56,7 @@ class TestOpenMaybeClearSigned(testcommon.TestCase):
 
 
 class TestTagFile(testcommon.TestCase):
-    """ test the apt_pkg.TagFile """
+    """test the apt_pkg.TagFile"""
 
     def setUp(self):
         testcommon.TestCase.setUp(self)
@@ -91,19 +93,17 @@ class TestTagFile(testcommon.TestCase):
         with io.open(packages, "w", encoding="UTF-8") as packages_file:
             print("Maintainer: %s" % value, file=packages_file)
             print("", file=packages_file)
-        if sys.version < '3':
+        if sys.version < "3":
             # In Python 2, test the traditional file interface.
             with open(packages) as packages_file:
                 tagfile = apt_pkg.TagFile(packages_file)
                 tagfile.step()
-                self.assertEqual(
-                    value.encode("UTF-8"), tagfile.section["Maintainer"])
+                self.assertEqual(value.encode("UTF-8"), tagfile.section["Maintainer"])
         with io.open(packages, encoding="UTF-8") as packages_file:
             tagfile = apt_pkg.TagFile(packages_file)
             tagfile.step()
-            if sys.version < '3':
-                self.assertEqual(
-                    value.encode("UTF-8"), tagfile.section["Maintainer"])
+            if sys.version < "3":
+                self.assertEqual(value.encode("UTF-8"), tagfile.section["Maintainer"])
             else:
                 self.assertEqual(value, tagfile.section["Maintainer"])
 
@@ -113,19 +113,19 @@ class TestTagFile(testcommon.TestCase):
         with io.open(packages, "w", encoding="ISO-8859-1") as packages_file:
             print("Maintainer: %s" % value, file=packages_file)
             print("", file=packages_file)
-        if sys.version < '3':
+        if sys.version < "3":
             # In Python 2, test the traditional file interface.
             with open(packages) as packages_file:
                 tagfile = apt_pkg.TagFile(packages_file)
                 tagfile.step()
                 self.assertEqual(
-                    value.encode("ISO-8859-1"), tagfile.section["Maintainer"])
+                    value.encode("ISO-8859-1"), tagfile.section["Maintainer"]
+                )
         with io.open(packages) as packages_file:
             tagfile = apt_pkg.TagFile(packages_file, bytes=True)
             tagfile.step()
-            self.assertEqual(
-                value.encode("ISO-8859-1"), tagfile.section["Maintainer"])
-        if sys.version >= '3':
+            self.assertEqual(value.encode("ISO-8859-1"), tagfile.section["Maintainer"])
+        if sys.version >= "3":
             # In Python 3, TagFile can pick up the encoding of the file
             # object.
             with io.open(packages, encoding="ISO-8859-1") as packages_file:
@@ -142,28 +142,26 @@ class TestTagFile(testcommon.TestCase):
         with io.open(packages, "a", encoding="ISO-8859-1") as packages_file:
             print("Maintainer: %s" % value, file=packages_file)
             print("", file=packages_file)
-        if sys.version < '3':
+        if sys.version < "3":
             # In Python 2, test the traditional file interface.
             with open(packages) as packages_file:
                 tagfile = apt_pkg.TagFile(packages_file)
                 tagfile.step()
-                self.assertEqual(
-                    value.encode("UTF-8"), tagfile.section["Maintainer"])
+                self.assertEqual(value.encode("UTF-8"), tagfile.section["Maintainer"])
                 tagfile.step()
                 self.assertEqual(
-                    value.encode("ISO-8859-1"), tagfile.section["Maintainer"])
+                    value.encode("ISO-8859-1"), tagfile.section["Maintainer"]
+                )
         with io.open(packages) as packages_file:
             tagfile = apt_pkg.TagFile(packages_file, bytes=True)
             tagfile.step()
-            self.assertEqual(
-                value.encode("UTF-8"), tagfile.section["Maintainer"])
+            self.assertEqual(value.encode("UTF-8"), tagfile.section["Maintainer"])
             tagfile.step()
-            self.assertEqual(
-                value.encode("ISO-8859-1"), tagfile.section["Maintainer"])
+            self.assertEqual(value.encode("ISO-8859-1"), tagfile.section["Maintainer"])
 
 
 class TestTagSection(testcommon.TestCase):
-    """ test the apt_pkg.TagFile """
+    """test the apt_pkg.TagFile"""
 
     def setUp(self):
         testcommon.TestCase.setUp(self)
@@ -208,7 +206,7 @@ class TestTagSection(testcommon.TestCase):
         with io.open(outpath, "w") as outfile:
             ts.write(outfile, ["a", "c", "b"], [apt_pkg.TagRewrite("a", "AA")])
         with io.open(outpath) as outfile:
-            self.assertEqual(outfile.read(), u"a: AA\nc: 3\nb: 2\n")
+            self.assertEqual(outfile.read(), "a: AA\nc: 3\nb: 2\n")
 
     def test_write_rename(self):
         ts = apt_pkg.TagSection("a: 1\nb: 2\nc: 3\n")

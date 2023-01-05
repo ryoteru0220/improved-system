@@ -95,14 +95,10 @@ class TestSignedUsable(testcommon.TestCase):
                 os.path.join(self.chroot_path, "var/cache/apt/archives")
             ):
                 if os.path.isfile(
-                    os.path.join(
-                        self.chroot_path, "var/cache/apt/archives", fname
-                    )
+                    os.path.join(self.chroot_path, "var/cache/apt/archives", fname)
                 ):
                     os.unlink(
-                        os.path.join(
-                            self.chroot_path, "var/cache/apt/archives", fname
-                        )
+                        os.path.join(self.chroot_path, "var/cache/apt/archives", fname)
                     )
             self.cache[name].mark_keep()
 
@@ -117,9 +113,7 @@ class TestSignedUsable(testcommon.TestCase):
             ):
                 if fname.endswith(".deb"):
                     os.unlink(
-                        os.path.join(
-                            self.chroot_path, "var/cache/apt/archives", fname
-                        )
+                        os.path.join(self.chroot_path, "var/cache/apt/archives", fname)
                     )
             self.cache[name].mark_keep()
 

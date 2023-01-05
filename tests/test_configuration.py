@@ -17,10 +17,14 @@ class TestConfiguration(testcommon.TestCase):
 
     def test_lp707416(self):
         """configuration: Test empty arguments (LP: #707416)"""
-        self.assertRaises(ValueError, apt_pkg.parse_commandline,
-                          apt_pkg.config, [], [])
-        self.assertRaises(SystemError, apt_pkg.parse_commandline,
-                          apt_pkg.config, [], ["cmd", "--arg0"])
+        self.assertRaises(ValueError, apt_pkg.parse_commandline, apt_pkg.config, [], [])
+        self.assertRaises(
+            SystemError,
+            apt_pkg.parse_commandline,
+            apt_pkg.config,
+            [],
+            ["cmd", "--arg0"],
+        )
 
 
 if __name__ == "__main__":

@@ -81,7 +81,7 @@ class Cdrom(apt_pkg.Cdrom):
             # FIXME: throw exception instead
             return False
         # Get a list of files
-        src = glob.glob(apt_pkg.config.find_dir("Dir::Etc::sourceparts") + '*')
+        src = glob.glob(apt_pkg.config.find_dir("Dir::Etc::sourceparts") + "*")
         src.append(apt_pkg.config.find_file("Dir::Etc::sourcelist"))
         # Check each file
         for fname in src:

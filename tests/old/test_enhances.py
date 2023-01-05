@@ -10,8 +10,7 @@ for pkg in cache:
         for or_list in pkg.installed.enhances:
             for enhances in or_list.or_dependencies:
                 s += " %s" % enhances.name
-                if (enhances.name in cache and
-                        not cache[enhances.name].is_installed):
+                if enhances.name in cache and not cache[enhances.name].is_installed:
                     s += "(*missing*) "
                 s += ","
             print(s[:-1])

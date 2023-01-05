@@ -80,15 +80,18 @@ def _call_apt_key_script(*args, **kwargs):
             # configuration from the chroot to the apt-key script by using
             # a temporary APT_CONFIG file. The apt-key script uses apt-config
             # shell internally
-            conf = tempfile.NamedTemporaryFile(
-                prefix="apt-key", suffix=".conf")
+            conf = tempfile.NamedTemporaryFile(prefix="apt-key", suffix=".conf")
             conf.write(apt_pkg.config.dump().encode("UTF-8"))
             conf.flush()
             env["APT_CONFIG"] = conf.name
-        proc = subprocess.Popen(cmd, env=env, universal_newlines=True,
-                                stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        proc = subprocess.Popen(
+            cmd,
+            env=env,
+            universal_newlines=True,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
 
         stdin = kwargs.get("stdin", None)
 
@@ -99,10 +102,10 @@ def _call_apt_key_script(*args, **kwargs):
                 "The apt-key script failed with return code %s:\n"
                 "%s\n"
                 "stdout: %s\n"
-                "stderr: %s" % (
-                    proc.returncode, " ".join(cmd), output, stderr))
+                "stderr: %s" % (proc.returncode, " ".join(cmd), output, stderr)
+            )
         elif stderr:
-            sys.stderr.write(stderr)    # Forward stderr
+            sys.stderr.write(stderr)  # Forward stderr
 
         return output.strip()
     finally:
@@ -143,8 +146,7 @@ def add_key_from_keyserver(keyid, keyserver):
         # failure to delete non-existing files.
         def onerror(func, path, exc_info):
             # type: (object, str, Tuple[type, Exception, object]) -> None
-            if (isinstance(exc_info[1], OSError) and
-                exc_info[1].errno == errno.ENOENT):
+            if isinstance(exc_info[1], OSError) and exc_info[1].errno == errno.ENOENT:
                 return
             raise
 
@@ -154,27 +156,34 @@ def add_key_from_keyserver(keyid, keyserver):
 def _add_key_from_keyserver(keyid, keyserver, tmp_keyring_dir):
     # type: (str, str, str) -> None
     if len(keyid.replace(" ", "").replace("0x", "")) < (160 / 4):
-        raise AptKeyIDTooShortError(
-            "Only fingerprints (v4, 160bit) are supported")
+        raise AptKeyIDTooShortError("Only fingerprints (v4, 160bit) are supported")
     # create a temp keyring dir
     tmp_secret_keyring = os.path.join(tmp_keyring_dir, "secring.gpg")
     tmp_keyring = os.path.join(tmp_keyring_dir, "pubring.gpg")
     # default options for gpg
     gpg_default_options = [
         "gpg",
-        "--no-default-keyring", "--no-options",
-        "--homedir", tmp_keyring_dir,
+        "--no-default-keyring",
+        "--no-options",
+        "--homedir",
+        tmp_keyring_dir,
     ]
     # download the key to a temp keyring first
-    res = subprocess.call(gpg_default_options + [
-        "--secret-keyring", tmp_secret_keyring,
-        "--keyring", tmp_keyring,
-        "--keyserver", keyserver,
-        "--recv", keyid,
-    ])
+    res = subprocess.call(
+        gpg_default_options
+        + [
+            "--secret-keyring",
+            tmp_secret_keyring,
+            "--keyring",
+            tmp_keyring,
+            "--keyserver",
+            keyserver,
+            "--recv",
+            keyid,
+        ]
+    )
     if res != 0:
-        raise AptKeyError("recv from '%s' failed for '%s'" % (
-            keyserver, keyid))
+        raise AptKeyError("recv from '%s' failed for '%s'" % (keyserver, keyid))
     # FIXME:
     # - with gnupg 1.4.18 the downloaded key is actually checked(!),
     #   i.e. gnupg will not import anything that the server sends
@@ -184,26 +193,35 @@ def _add_key_from_keyserver(keyid, keyserver, tmp_keyring_dir):
     # now export again using the long key id (to ensure that there is
     # really only this one key in our keyring) and not someone MITM us
     tmp_export_keyring = os.path.join(tmp_keyring_dir, "export-keyring.gpg")
-    res = subprocess.call(gpg_default_options + [
-        "--keyring", tmp_keyring,
-        "--output", tmp_export_keyring,
-        "--export", keyid,
-    ])
+    res = subprocess.call(
+        gpg_default_options
+        + [
+            "--keyring",
+            tmp_keyring,
+            "--output",
+            tmp_export_keyring,
+            "--export",
+            keyid,
+        ]
+    )
     if res != 0:
         raise AptKeyError("export of '%s' failed", keyid)
     # now verify the fingerprint, this is probably redundant as we
     # exported by the fingerprint in the previous command but its
     # still good paranoia
     output = subprocess.Popen(
-        gpg_default_options + [
-            "--keyring", tmp_export_keyring,
+        gpg_default_options
+        + [
+            "--keyring",
+            tmp_export_keyring,
             "--fingerprint",
             "--batch",
             "--fixed-list-mode",
             "--with-colons",
         ],
         stdout=subprocess.PIPE,
-        universal_newlines=True).communicate()[0]
+        universal_newlines=True,
+    ).communicate()[0]
     got_fingerprint = None
     for line in output.splitlines():
         if line.startswith("fpr:"):
@@ -217,8 +235,8 @@ def _add_key_from_keyserver(keyid, keyserver, tmp_keyring_dir):
         # make the error match what gnupg >= 1.4.18 will output when
         # it checks the key itself before importing it
         raise AptKeyError(
-            "recv from '%s' failed for '%s'" % (
-                keyserver, signing_key_fingerprint))
+            "recv from '%s' failed for '%s'" % (keyserver, signing_key_fingerprint)
+        )
     # finally add it
     add_key_from_file(tmp_export_keyring)
 
@@ -230,8 +248,7 @@ def add_key(content):
     Keyword arguments:
     content -- the content of the GnuPG public key
     """
-    _call_apt_key_script("adv", "--quiet", "--batch",
-                         "--import", "-", stdin=content)
+    _call_apt_key_script("adv", "--quiet", "--batch", "--import", "-", stdin=content)
 
 
 def remove_key(fingerprint):
@@ -283,8 +300,9 @@ def list_keys():
     """
     # The output of `apt-key list` is difficult to parse since the
     # --with-colons parameter isn't user
-    output = _call_apt_key_script("adv", "--with-colons", "--batch",
-                                  "--fixed-list-mode", "--list-keys")
+    output = _call_apt_key_script(
+        "adv", "--with-colons", "--batch", "--fixed-list-mode", "--list-keys"
+    )
     res = []
     for line in output.split("\n"):
         fields = line.split(":")

@@ -17,11 +17,12 @@ def main():
         i += 1
         src = apt_pkg.SourceRecords()
         if src.lookup(x.name):
-            #print src.package
+            # print src.package
             pass
-        print("\r%i/%i=%.3f%%    " % (
-            i, cache.package_count,
-            (float(i) / float(cache.package_count) * 100)))
+        print(
+            "\r%i/%i=%.3f%%    "
+            % (i, cache.package_count, (float(i) / float(cache.package_count) * 100))
+        )
 
 
 if __name__ == "__main__":

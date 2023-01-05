@@ -60,26 +60,31 @@ class TestHashes(testcommon.TestCase):
 
     def test_bytes(self):
         """hashes: Test apt_pkg.Hashes(bytes)"""
-        self.assertEqual(self.hashes.hashes.find("md5sum").hashvalue,
-                         self.md5)
-        self.assertEqual(self.hashes.hashes.find("md5sum"),
-                         apt_pkg.HashString("MD5Sum", self.md5))
-        self.assertEqual(self.hashes.hashes.find("sha1"),
-                         apt_pkg.HashString("SHA1", self.sha1))
-        self.assertEqual(self.hashes.hashes.find("sha256"),
-                         apt_pkg.HashString("SHA256", self.sha256))
+        self.assertEqual(self.hashes.hashes.find("md5sum").hashvalue, self.md5)
+        self.assertEqual(
+            self.hashes.hashes.find("md5sum"), apt_pkg.HashString("MD5Sum", self.md5)
+        )
+        self.assertEqual(
+            self.hashes.hashes.find("sha1"), apt_pkg.HashString("SHA1", self.sha1)
+        )
+        self.assertEqual(
+            self.hashes.hashes.find("sha256"), apt_pkg.HashString("SHA256", self.sha256)
+        )
         self.assertRaises(KeyError, self.hashes.hashes.find, "md5")
 
     def test_file(self):
         """hashes: Test apt_pkg.Hashes(file)."""
-        self.assertEqual(self.fhashes.hashes.find("md5sum").hashvalue,
-                         self.md5)
-        self.assertEqual(self.fhashes.hashes.find("md5sum"),
-                         apt_pkg.HashString("MD5Sum", self.md5))
-        self.assertEqual(self.fhashes.hashes.find("sha1"),
-                         apt_pkg.HashString("SHA1", self.sha1))
-        self.assertEqual(self.fhashes.hashes.find("sha256"),
-                         apt_pkg.HashString("SHA256", self.sha256))
+        self.assertEqual(self.fhashes.hashes.find("md5sum").hashvalue, self.md5)
+        self.assertEqual(
+            self.fhashes.hashes.find("md5sum"), apt_pkg.HashString("MD5Sum", self.md5)
+        )
+        self.assertEqual(
+            self.fhashes.hashes.find("sha1"), apt_pkg.HashString("SHA1", self.sha1)
+        )
+        self.assertEqual(
+            self.fhashes.hashes.find("sha256"),
+            apt_pkg.HashString("SHA256", self.sha256),
+        )
 
     def test_unicode(self):
         """hashes: Test apt_pkg.Hashes(unicode)."""
@@ -148,10 +153,8 @@ class TestHashStringList(testcommon.TestCase):
 
     def test_append(self):
         """Testing whether append works correctly."""
-        hs1 = apt_pkg.HashString("MD5Sum",
-                                 "a60599e6200b60050d7a30721e3532ed")
-        hs2 = apt_pkg.HashString("SHA1",
-                                 "ef113338e654b1ada807a939ad47b3a67633391b")
+        hs1 = apt_pkg.HashString("MD5Sum", "a60599e6200b60050d7a30721e3532ed")
+        hs2 = apt_pkg.HashString("SHA1", "ef113338e654b1ada807a939ad47b3a67633391b")
 
         hsl = apt_pkg.HashStringList()
         hsl.append(hs1)
@@ -164,10 +167,8 @@ class TestHashStringList(testcommon.TestCase):
 
     def test_find(self):
         """Testing whether append works correctly."""
-        hs1 = apt_pkg.HashString("MD5Sum",
-                                 "a60599e6200b60050d7a30721e3532ed")
-        hs2 = apt_pkg.HashString("SHA1",
-                                 "ef113338e654b1ada807a939ad47b3a67633391b")
+        hs1 = apt_pkg.HashString("MD5Sum", "a60599e6200b60050d7a30721e3532ed")
+        hs2 = apt_pkg.HashString("SHA1", "ef113338e654b1ada807a939ad47b3a67633391b")
 
         hsl = apt_pkg.HashStringList()
         hsl.append(hs1)
@@ -191,8 +192,7 @@ class TestHashStringList(testcommon.TestCase):
 
         self.assertTrue(hsl.verify_file(apt_pkg.__file__))
 
-        md5sum = apt_pkg.HashString("MD5Sum",
-                                    "a60599e6200b60050d7a30721e3532ed")
+        md5sum = apt_pkg.HashString("MD5Sum", "a60599e6200b60050d7a30721e3532ed")
         hsl.append(md5sum)
 
         self.assertFalse(hsl.verify_file(apt_pkg.__file__))

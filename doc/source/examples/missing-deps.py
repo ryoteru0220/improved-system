@@ -15,8 +15,9 @@ def check_version(pkgver):
     """Check the version of the package"""
     missing = []
 
-    for or_group in pkgver.depends_list.get("Pre-Depends", []) + \
-                    pkgver.depends_list.get("Depends", []):
+    for or_group in pkgver.depends_list.get(
+        "Pre-Depends", []
+    ) + pkgver.depends_list.get("Depends", []):
         if not any(dep.all_targets() for dep in or_group):
             # If none of the or-choices can be satisfied, add it to missing
             missing.append(or_group)
@@ -25,8 +26,10 @@ def check_version(pkgver):
         print("Package:", pkgver.parent_pkg.name)
         print("Version:", pkgver.ver_str)
         print("Missing:")
-        print(", ".join(" | ".join(fmt_dep(dep) for dep in or_group))
-                        for or_group in missing)
+        print(
+            ", ".join(" | ".join(fmt_dep(dep) for dep in or_group))
+            for or_group in missing
+        )
         print()
 
 
@@ -42,8 +45,11 @@ def main():
         for version in pkg.version_list:
             # Check every version
             for pfile, _ in version.file_list:
-                if (pfile.origin == "Debian" and pfile.component == "main" and
-                        pfile.archive == "unstable"):
+                if (
+                    pfile.origin == "Debian"
+                    and pfile.component == "main"
+                    and pfile.archive == "unstable"
+                ):
                     # We only want packages from Debian unstable main.
                     check_version(version)
                     break

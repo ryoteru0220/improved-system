@@ -8,11 +8,21 @@ import os.path
 
 
 def Callback(member, data):
-    """ callback for debExtract """
-    print("'%s','%s',%u,%u,%u,%u,%u,%u,%u"
-          % (member.name, member.linkname, member.mode, member.uid,
-             member.gid, member.size, member.mtime, member.major,
-             member.minor))
+    """callback for debExtract"""
+    print(
+        "'%s','%s',%u,%u,%u,%u,%u,%u,%u"
+        % (
+            member.name,
+            member.linkname,
+            member.mode,
+            member.uid,
+            member.gid,
+            member.size,
+            member.mtime,
+            member.major,
+            member.minor,
+        )
+    )
 
 
 if __name__ == "__main__":

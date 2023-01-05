@@ -21,7 +21,7 @@ for i in range(100):
     f.close()
 
 # memleak
-#for i in range(100):
+# for i in range(100):
 #       cache = apt.Cache()
 #       time.sleep(1)
 #       cache = None
@@ -37,8 +37,7 @@ for i in range(100):
     dict = {}
     for pkg in cache.packages:
         if len(pkg.version_list) > 0:
-            dict[pkg.name] = apt.package(cache, depcache,
-                                         records, list, None, pkg)
+            dict[pkg.name] = apt.package(cache, depcache, records, list, None, pkg)
 
     print(cache["apt"])
     time.sleep(1)
