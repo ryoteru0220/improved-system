@@ -244,9 +244,9 @@ class InstallProgress(object):
                         "--status-fd",
                         str(self.write_stream.fileno()),
                         "-i",
-                        obj,
+                        obj,  # type: ignore # noqa
                     )
-                )  # type: ignore # noqa
+                )
             except Exception as e:
                 sys.stderr.write("%s\n" % e)
                 os._exit(apt_pkg.PackageManager.RESULT_FAILED)
