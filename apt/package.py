@@ -33,9 +33,19 @@ from http.client import BadStatusLine
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
-from typing import (Any, Iterable, Iterator, List, Optional, Set,
-                    Tuple, Union, no_type_check, Mapping,
-                    Sequence)
+from typing import (
+    Any,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    no_type_check,
+    Mapping,
+    Sequence,
+)
 
 import apt_pkg
 import apt.progress.text
@@ -47,8 +57,15 @@ from apt.progress.base import (
 
 from apt_pkg import gettext as _
 
-__all__ = ('BaseDependency', 'Dependency', 'Origin', 'Package', 'Record',
-           'Version', 'VersionList')
+__all__ = (
+    "BaseDependency",
+    "Dependency",
+    "Origin",
+    "Package",
+    "Record",
+    "Version",
+    "VersionList",
+)
 
 
 def _file_is_same(path, size, hashes):
@@ -84,12 +101,12 @@ class BaseDependency(object):
             # type: (object) -> bool
             if str.__eq__(self, other):
                 return True
-            elif str.__eq__(self, '<'):
-                return str.__eq__('<<', other)
-            elif str.__eq__(self, '>'):
-                return str.__eq__('>>', other)
-            elif str.__eq__(self, '='):
-                return str.__eq__('==', other)
+            elif str.__eq__(self, "<"):
+                return str.__eq__("<<", other)
+            elif str.__eq__(self, ">"):
+                return str.__eq__(">>", other)
+            elif str.__eq__(self, "="):
+                return str.__eq__("==", other)
             else:
                 return False
 
@@ -104,12 +121,16 @@ class BaseDependency(object):
 
     def __str__(self):
         # type: () -> str
-        return '%s: %s' % (self.rawtype, self.rawstr)
+        return "%s: %s" % (self.rawtype, self.rawstr)
 
     def __repr__(self):
         # type: () -> str
-        return ('<BaseDependency: name:%r relation:%r version:%r rawtype:%r>'
-                % (self.name, self.relation, self.version, self.rawtype))
+        return "<BaseDependency: name:%r relation:%r version:%r rawtype:%r>" % (
+            self.name,
+            self.relation,
+            self.version,
+            self.rawtype,
+        )
 
     @property
     def name(self):
@@ -194,7 +215,7 @@ class BaseDependency(object):
         .. versionadded:: 1.0.0
         """
         if self.version:
-            return '%s %s %s' % (self.name, self.relation_deb, self.version)
+            return "%s %s %s" % (self.name, self.relation_deb, self.version)
         else:
             return self.name
 
@@ -214,7 +235,7 @@ class BaseDependency(object):
     def pre_depend(self):
         # type: () -> bool
         """Whether this is a PreDepends."""
-        return self._dep.dep_type_untranslated == 'PreDepends'
+        return self._dep.dep_type_untranslated == "PreDepends"
 
 
 class Dependency(List[BaseDependency]):
@@ -235,11 +256,11 @@ class Dependency(List[BaseDependency]):
 
     def __str__(self):
         # type: () -> str
-        return '%s: %s' % (self.rawtype, self.rawstr)
+        return "%s: %s" % (self.rawtype, self.rawstr)
 
     def __repr__(self):
         # type: () -> str
-        return '<Dependency: [%s]>' % (', '.join(repr(bd) for bd in self))
+        return "<Dependency: [%s]>" % (", ".join(repr(bd) for bd in self))
 
     @property
     def or_dependencies(self):
@@ -260,7 +281,7 @@ class Dependency(List[BaseDependency]):
 
         .. versionadded:: 1.0.0
         """
-        return ' | '.join(bd.rawstr for bd in self)
+        return " | ".join(bd.rawstr for bd in self)
 
     @property
     def rawtype(self):
@@ -331,10 +352,17 @@ class Origin(object):
 
     def __repr__(self):
         # type: () -> str
-        return ("<Origin component:%r archive:%r origin:%r label:%r "
-                "site:%r isTrusted:%r>") % (self.component, self.archive,
-                                            self.origin, self.label,
-                                            self.site, self.trusted)
+        return (
+            "<Origin component:%r archive:%r origin:%r label:%r "
+            "site:%r isTrusted:%r>"
+        ) % (
+            self.component,
+            self.archive,
+            self.origin,
+            self.label,
+            self.site,
+            self.trusted,
+        )
 
 
 class Record(Mapping[Any, Any]):
@@ -483,12 +511,11 @@ class Version(object):
 
     def __str__(self):
         # type: () -> str
-        return '%s=%s' % (self.package.name, self.version)
+        return "%s=%s" % (self.package.name, self.version)
 
     def __repr__(self):
         # type: () -> str
-        return '<Version: package:%r version:%r>' % (self.package.name,
-                                                     self.version)
+        return "<Version: package:%r version:%r>" % (self.package.name, self.version)
 
     @property
     def _records(self):
@@ -547,7 +574,7 @@ class Version(object):
         .. versionadded:: 1.0.0
         """
         inst_ver = self.package.installed
-        return (inst_ver is not None and inst_ver._cand.id == self._cand.id)
+        return inst_ver is not None and inst_ver._cand.id == self._cand.id
 
     @property
     def version(self):
@@ -584,21 +611,23 @@ class Version(object):
         See http://www.debian.org/doc/debian-policy/ch-controlfields.html
         for more information.
         """
-        desc = ''
+        desc = ""
         records = self._translated_records
         dsc = records.long_desc if records is not None else None
 
         if not dsc:
-            return _("Missing description for '%s'."
-                     "Please report.") % (self.package.name)
+            return _("Missing description for '%s'." "Please report.") % (
+                self.package.name
+            )
 
         try:
             if not isinstance(dsc, str):
                 # Only convert where needed (i.e. Python 2.X)
                 dsc = dsc.decode("utf-8")
         except UnicodeDecodeError as err:
-            return _("Invalid unicode in description for '%s' (%s). "
-                     "Please report.") % (self.package.name, err)
+            return _(
+                "Invalid unicode in description for '%s' (%s). " "Please report."
+            ) % (self.package.name, err)
 
         lines = iter(dsc.split("\n"))
         # Skip the first line, since its a duplication of the summary
@@ -656,7 +685,7 @@ class Version(object):
     def policy_priority(self):
         # type: () -> int
         """Return the internal policy priority as a number.
-           See apt_preferences(5) for more information about what it means.
+        See apt_preferences(5) for more information about what it means.
         """
         return self.package._pcache._depcache.policy.get_priority(self._cand)
 
@@ -696,7 +725,7 @@ class Version(object):
     @property
     def provides(self):
         # type: () -> List[str]
-        """ Return a list of names that this version provides."""
+        """Return a list of names that this version provides."""
         return [p[0] for p in self._cand.provides_list]
 
     @property
@@ -811,8 +840,7 @@ class Version(object):
         except StopIteration:
             return None
 
-    def fetch_binary(self, destdir='', progress=None,
-                     allow_unauthenticated=None):
+    def fetch_binary(self, destdir="", progress=None, allow_unauthenticated=None):
         # type: (str, Optional[AcquireProgress], Optional[bool]) -> str
         """Fetch the binary version of the package.
 
@@ -830,12 +858,13 @@ class Version(object):
         .. versionadded:: 0.7.10
         """
         if allow_unauthenticated is None:
-            allow_unauthenticated = apt_pkg.config.find_b("APT::Get::"
-                                        "AllowUnauthenticated", False)
+            allow_unauthenticated = apt_pkg.config.find_b(
+                "APT::Get::" "AllowUnauthenticated", False
+            )
         base = os.path.basename(self._records.filename)
         destfile = os.path.join(destdir, base)
         if _file_is_same(destfile, self.size, self._records.hashes):
-            logging.debug('Ignoring already existing file: %s' % destfile)
+            logging.debug("Ignoring already existing file: %s" % destfile)
             return os.path.abspath(destfile)
 
         # Verify that the index is actually trusted
@@ -843,30 +872,39 @@ class Version(object):
         index = self.package._pcache._list.find_index(pfile)
 
         if not (allow_unauthenticated or (index and index.is_trusted)):
-            raise UntrustedError("Could not fetch %s %s source package: "
-                                 "Source %r is not trusted" %
-                                 (self.package.name, self.version,
-                                  getattr(index, "describe", "<unkown>")))
+            raise UntrustedError(
+                "Could not fetch %s %s source package: "
+                "Source %r is not trusted"
+                % (
+                    self.package.name,
+                    self.version,
+                    getattr(index, "describe", "<unkown>"),
+                )
+            )
         if not self.uri:
             raise ValueError("No URI for this binary.")
         hashes = self._records.hashes
         if not (allow_unauthenticated or hashes.usable):
-            raise UntrustedError("The item %r could not be fetched: "
-                                     "No trusted hash found." %
-                                     destfile)
+            raise UntrustedError(
+                "The item %r could not be fetched: " "No trusted hash found." % destfile
+            )
         acq = apt_pkg.Acquire(progress or apt.progress.text.AcquireProgress())
-        acqfile = apt_pkg.AcquireFile(acq, self.uri, hashes,
-                                      self.size, base, destfile=destfile)
+        acqfile = apt_pkg.AcquireFile(
+            acq, self.uri, hashes, self.size, base, destfile=destfile
+        )
         acq.run()
 
         if acqfile.status != acqfile.STAT_DONE:
-            raise FetchError("The item %r could not be fetched: %s" %
-                             (acqfile.destfile, acqfile.error_text))
+            raise FetchError(
+                "The item %r could not be fetched: %s"
+                % (acqfile.destfile, acqfile.error_text)
+            )
 
         return os.path.abspath(destfile)
 
-    def fetch_source(self, destdir="", progress=None, unpack=True,
-                     allow_unauthenticated=None):
+    def fetch_source(
+        self, destdir="", progress=None, unpack=True, allow_unauthenticated=None
+    ):
         # type: (str, Optional[AcquireProgress], bool, Optional[bool]) -> str
         """Get the source code of a package.
 
@@ -888,8 +926,9 @@ class Version(object):
         the configuration option `APT::Get::AllowUnauthenticated`.
         """
         if allow_unauthenticated is None:
-            allow_unauthenticated = apt_pkg.config.find_b("APT::Get::"
-                                        "AllowUnauthenticated", False)
+            allow_unauthenticated = apt_pkg.config.find_b(
+                "APT::Get::" "AllowUnauthenticated", False
+            )
 
         src = apt_pkg.SourceRecords()
         acq = apt_pkg.Acquire(progress or apt.progress.text.AcquireProgress())
@@ -907,26 +946,35 @@ class Version(object):
         files = list()
 
         if not (allow_unauthenticated or src.index.is_trusted):
-            raise UntrustedError("Could not fetch %s %s source package: "
-                                 "Source %r is not trusted" %
-                                 (self.package.name, self.version,
-                                  src.index.describe))
+            raise UntrustedError(
+                "Could not fetch %s %s source package: "
+                "Source %r is not trusted"
+                % (self.package.name, self.version, src.index.describe)
+            )
         for fil in src.files:
             base = os.path.basename(fil.path)
             destfile = os.path.join(destdir, base)
-            if fil.type == 'dsc':
+            if fil.type == "dsc":
                 dsc = destfile
             if _file_is_same(destfile, fil.size, fil.hashes):
-                logging.debug('Ignoring already existing file: %s' % destfile)
+                logging.debug("Ignoring already existing file: %s" % destfile)
                 continue
 
             if not (allow_unauthenticated or fil.hashes.usable):
-                raise UntrustedError("The item %r could not be fetched: "
-                                         "No trusted hash found." %
-                                         destfile)
-            files.append(apt_pkg.AcquireFile(acq,
-                            src.index.archive_uri(fil.path),
-                            fil.hashes, fil.size, base, destfile=destfile))
+                raise UntrustedError(
+                    "The item %r could not be fetched: "
+                    "No trusted hash found." % destfile
+                )
+            files.append(
+                apt_pkg.AcquireFile(
+                    acq,
+                    src.index.archive_uri(fil.path),
+                    fil.hashes,
+                    fil.size,
+                    base,
+                    destfile=destfile,
+                )
+            )
         acq.run()
 
         if dsc is None:
@@ -934,11 +982,13 @@ class Version(object):
 
         for item in acq.items:
             if item.status != item.STAT_DONE:
-                raise FetchError("The item %r could not be fetched: %s" %
-                                 (item.destfile, item.error_text))
+                raise FetchError(
+                    "The item %r could not be fetched: %s"
+                    % (item.destfile, item.error_text)
+                )
 
         if unpack:
-            outdir = src.package + '-' + apt_pkg.upstream_version(src.version)
+            outdir = src.package + "-" + apt_pkg.upstream_version(src.version)
             outdir = os.path.join(destdir, outdir)
             subprocess.check_call(["dpkg-source", "-x", dsc, outdir])
             return os.path.abspath(outdir)
@@ -991,11 +1041,11 @@ class VersionList(Sequence[Version]):
 
     def __str__(self):
         # type: () -> str
-        return '[%s]' % (', '.join(str(ver) for ver in self))
+        return "[%s]" % (", ".join(str(ver) for ver in self))
 
     def __repr__(self):
         # type: () -> str
-        return '<VersionList: %r>' % self.keys()
+        return "<VersionList: %r>" % self.keys()
 
     def __iter__(self):
         # type: () -> Iterator[Version]
@@ -1046,10 +1096,10 @@ class Package(object):
 
     def __init__(self, pcache, pkgiter):
         # type: (apt.Cache, apt_pkg.Package) -> None
-        """ Init the Package object """
+        """Init the Package object"""
         self._pkg = pkgiter
-        self._pcache = pcache           # python cache in cache.py
-        self._changelog = ""            # Cached changelog
+        self._pcache = pcache  # python cache in cache.py
+        self._changelog = ""  # Cached changelog
 
     def __str__(self):
         # type: () -> str
@@ -1057,8 +1107,11 @@ class Package(object):
 
     def __repr__(self):
         # type: () -> str
-        return '<Package: name:%r architecture=%r id:%r>' % (
-            self._pkg.name, self._pkg.architecture, self._pkg.id)
+        return "<Package: name:%r architecture=%r id:%r>" % (
+            self._pkg.name,
+            self._pkg.architecture,
+            self._pkg.id,
+        )
 
     def __lt__(self, other):
         # type: (Package) -> bool
@@ -1191,7 +1244,7 @@ class Package(object):
     @property
     def marked_downgrade(self):
         # type: () -> bool
-        """ Package is marked for downgrade """
+        """Package is marked for downgrade"""
         return self._pcache._depcache.marked_downgrade(self._pkg)
 
     @property
@@ -1204,14 +1257,13 @@ class Package(object):
     def is_installed(self):
         # type: () -> bool
         """Return ``True`` if the package is installed."""
-        return (self._pkg.current_ver is not None)
+        return self._pkg.current_ver is not None
 
     @property
     def is_upgradable(self):
         # type: () -> bool
         """Return ``True`` if the package is upgradable."""
-        return (self.is_installed and
-                self._pcache._depcache.is_upgradable(self._pkg))
+        return self.is_installed and self._pcache._depcache.is_upgradable(self._pkg)
 
     @property
     def is_auto_removable(self):
@@ -1222,14 +1274,16 @@ class Package(object):
         another package, and if no packages depend on it anymore, the package
         is no longer required.
         """
-        return ((self.is_installed or self.marked_install) and
-                self._pcache._depcache.is_garbage(self._pkg))
+        return (
+            self.is_installed or self.marked_install
+        ) and self._pcache._depcache.is_garbage(self._pkg)
 
     @property
     def is_auto_installed(self):
         # type: () -> bool
         """Return whether the package is marked as automatically installed."""
         return self._pcache._depcache.is_auto_installed(self._pkg)
+
     # sizes
 
     @property
@@ -1244,7 +1298,7 @@ class Package(object):
             path = "/var/lib/dpkg/info/%s.list" % name
             try:
                 with open(path, "rb") as file_list:
-                    return file_list.read().decode("utf-8").split(u"\n")
+                    return file_list.read().decode("utf-8").split("\n")
             except EnvironmentError:
                 continue
 
@@ -1269,7 +1323,7 @@ class Package(object):
         which if set, prevents the download.
         """
         # Return a cached changelog if available
-        if self._changelog != u"":
+        if self._changelog != "":
             return self._changelog
 
         if not self.candidate:
@@ -1277,13 +1331,17 @@ class Package(object):
 
         if uri is None:
             if self.candidate.origins[0].origin == "Debian":
-                uri = "http://packages.debian.org/changelogs/pool" \
-                      "/%(src_section)s/%(prefix)s/%(src_pkg)s" \
-                      "/%(src_pkg)s_%(src_ver)s/changelog"
+                uri = (
+                    "http://packages.debian.org/changelogs/pool"
+                    "/%(src_section)s/%(prefix)s/%(src_pkg)s"
+                    "/%(src_pkg)s_%(src_ver)s/changelog"
+                )
             elif self.candidate.origins[0].origin == "Ubuntu":
-                uri = "http://changelogs.ubuntu.com/changelogs/pool" \
-                      "/%(src_section)s/%(prefix)s/%(src_pkg)s" \
-                      "/%(src_pkg)s_%(src_ver)s/changelog"
+                uri = (
+                    "http://changelogs.ubuntu.com/changelogs/pool"
+                    "/%(src_section)s/%(prefix)s/%(src_pkg)s"
+                    "/%(src_pkg)s_%(src_ver)s/changelog"
+                )
             else:
                 res = _("The list of changes is not available")
                 if isinstance(res, str):
@@ -1340,10 +1398,12 @@ class Package(object):
             src_ver = "".join(src_ver_split[1:])
         del src_ver_split
 
-        uri = uri % {"src_section": src_section,
-                     "prefix": prefix,
-                     "src_pkg": src_pkg,
-                     "src_ver": src_ver}
+        uri = uri % {
+            "src_section": src_section,
+            "prefix": prefix,
+            "src_pkg": src_pkg,
+            "src_ver": src_ver,
+        }
 
         timeout = socket.getdefaulttimeout()
 
@@ -1356,16 +1416,16 @@ class Package(object):
 
                 # Check if the download was canceled
                 if cancel_lock and cancel_lock.is_set():
-                    return u""
+                    return ""
                 # FIXME: python3.2: Should be closed manually
                 changelog_file = urlopen(uri)
                 # do only get the lines that are new
-                changelog = u""
+                changelog = ""
                 regexp = "^%s \\((.*)\\)(.*)$" % (re.escape(src_pkg))
                 while True:
                     # Check if the download was canceled
                     if cancel_lock and cancel_lock.is_set():
-                        return u""
+                        return ""
                     # Read changelog line by line
                     line_raw = changelog_file.readline()
                     if not line_raw:
@@ -1374,20 +1434,22 @@ class Package(object):
                     # any http header, urllib2 seems to treat it as ascii
                     line = line_raw.decode("utf-8")
 
-                    #print line.encode('utf-8')
+                    # print line.encode('utf-8')
                     match = re.match(regexp, line)
                     if match:
                         # strip epoch from installed version
                         # and from changelog too
-                        installed = getattr(self.installed, 'version', None)
+                        installed = getattr(self.installed, "version", None)
                         if installed and ":" in installed:
                             installed = installed.split(":", 1)[1]
                         changelog_ver = match.group(1)
                         if changelog_ver and ":" in changelog_ver:
                             changelog_ver = changelog_ver.split(":", 1)[1]
 
-                        if (installed and apt_pkg.version_compare(
-                                changelog_ver, installed) <= 0):
+                        if (
+                            installed
+                            and apt_pkg.version_compare(changelog_ver, installed) <= 0
+                        ):
                             break
                     # EOF (shouldn't really happen)
                     changelog += line
@@ -1401,12 +1463,14 @@ class Package(object):
 
             except HTTPError:
                 if self.candidate.origins[0].origin == "Ubuntu":
-                    res = _("The list of changes is not available yet.\n\n"
-                            "Please use "
-                            "http://launchpad.net/ubuntu/+source/%s/"
-                            "%s/+changelog\n"
-                            "until the changes become available or try again "
-                            "later.") % (src_pkg, src_ver)
+                    res = _(
+                        "The list of changes is not available yet.\n\n"
+                        "Please use "
+                        "http://launchpad.net/ubuntu/+source/%s/"
+                        "%s/+changelog\n"
+                        "until the changes become available or try again "
+                        "later."
+                    ) % (src_pkg, src_ver)
                 else:
                     res = _("The list of changes is not available")
                 if isinstance(res, str):
@@ -1414,8 +1478,10 @@ class Package(object):
                 else:
                     return res.decode("utf-8")
             except (IOError, BadStatusLine):
-                res = _("Failed to download the list of changes. \nPlease "
-                        "check your Internet connection.")
+                res = _(
+                    "Failed to download the list of changes. \nPlease "
+                    "check your Internet connection."
+                )
                 if isinstance(res, str):
                     return res
                 else:
@@ -1449,7 +1515,7 @@ class Package(object):
     def has_config_files(self):
         # type: () -> bool
         """Checks whether the package is is the config-files state."""
-        return self. _pkg.current_state == apt_pkg.CURSTATE_CONFIG_FILES
+        return self._pkg.current_state == apt_pkg.CURSTATE_CONFIG_FILES
 
     # depcache actions
 
@@ -1515,8 +1581,10 @@ class Package(object):
             self.mark_auto(auto)
         else:
             # FIXME: we may want to throw a exception here
-            sys.stderr.write(("MarkUpgrade() called on a non-upgradeable pkg: "
-                              "'%s'\n") % self._pkg.name)
+            sys.stderr.write(
+                ("MarkUpgrade() called on a non-upgradeable pkg: " "'%s'\n")
+                % self._pkg.name
+            )
 
     def mark_auto(self, auto=True):
         # type: (bool) -> None
@@ -1546,6 +1614,7 @@ def _test():
     """Self-test."""
     print("Self-test for the Package modul")
     import random
+
     apt_pkg.init()
     progress = apt.progress.text.OpProgress()
     cache = apt.Cache(progress)
@@ -1568,8 +1637,12 @@ def _test():
     print("Dependencies: %s" % pkg.installed.dependencies)
     print("Recommends: %s" % pkg.installed.recommends)
     for dep in pkg.candidate.dependencies:
-        print(",".join("%s (%s) (%s) (%s)" % (o.name, o.version, o.relation,
-                       o.pre_depend) for o in dep.or_dependencies))
+        print(
+            ",".join(
+                "%s (%s) (%s) (%s)" % (o.name, o.version, o.relation, o.pre_depend)
+                for o in dep.or_dependencies
+            )
+        )
     print("arch: %s" % pkg.candidate.architecture)
     print("homepage: %s" % pkg.candidate.homepage)
     print("rec: ", pkg.candidate.record)

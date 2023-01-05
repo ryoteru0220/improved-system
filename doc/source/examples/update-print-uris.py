@@ -20,5 +20,5 @@ def main():
         print(item.desc_uri)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

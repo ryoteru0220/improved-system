@@ -19,20 +19,21 @@ def main():
         i += 1
         records = apt_pkg.PackageRecords(cache)
         if len(pkg.version_list) == 0:
-            #print "no available version, cruft"
+            # print "no available version, cruft"
             continue
         version = depcache.get_candidate_ver(pkg)
         if not version:
             continue
         file, index = version.file_list.pop(0)
         if records.lookup((file, index)):
-            #print records.filename
+            # print records.filename
             x = records.filename
             y = records.long_desc
             pass
-        print("\r%i/%i=%.3f%%    " % (
-            i, cache.package_count,
-            (float(i) / float(cache.package_count) * 100)))
+        print(
+            "\r%i/%i=%.3f%%    "
+            % (i, cache.package_count, (float(i) / float(cache.package_count) * 100))
+        )
 
 
 if __name__ == "__main__":

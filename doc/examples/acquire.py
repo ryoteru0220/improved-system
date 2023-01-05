@@ -7,8 +7,7 @@ import os
 
 def get_file(fetcher, uri, destfile):
     # get the file
-    af = apt_pkg.AcquireFile(fetcher, uri=uri, descr="sample descr",
-                               destfile=destfile)
+    af = apt_pkg.AcquireFile(fetcher, uri=uri, descr="sample descr", destfile=destfile)
     print("desc_uri: %s -> %s" % (af.desc_uri, af.destfile))
     res = fetcher.run()
     if res != fetcher.RESULT_CONTINUE:
@@ -18,9 +17,9 @@ def get_file(fetcher, uri, destfile):
 
 apt_pkg.init()
 
-#apt_pkg.config.set("Debug::pkgDPkgPM","1");
-#apt_pkg.config.set("Debug::pkgPackageManager","1");
-#apt_pkg.config.set("Debug::pkgDPkgProgressReporting","1");
+# apt_pkg.config.set("Debug::pkgDPkgPM","1");
+# apt_pkg.config.set("Debug::pkgPackageManager","1");
+# apt_pkg.config.set("Debug::pkgDPkgProgressReporting","1");
 
 cache = apt_pkg.Cache()
 depcache = apt_pkg.DepCache(cache)
@@ -35,8 +34,7 @@ progress = apt.progress.text.AcquireProgress()
 fetcher = apt_pkg.Acquire(progress)
 pm = apt_pkg.PackageManager(depcache)
 pm.get_archives(fetcher, list, recs)
-print("%s (%s)" % (
-    apt_pkg.size_to_str(fetcher.fetch_needed), fetcher.fetch_needed))
+print("%s (%s)" % (apt_pkg.size_to_str(fetcher.fetch_needed), fetcher.fetch_needed))
 actiongroup = apt_pkg.ActionGroup(depcache)
 for pkg in cache.packages:
     depcache.mark_keep(pkg)
@@ -53,7 +51,7 @@ depcache.mark_install(pkg)
 
 progress = apt.progress.text.AcquireProgress()
 fetcher = apt_pkg.Acquire(progress)
-#fetcher = apt_pkg.Acquire()
+# fetcher = apt_pkg.Acquire()
 pm = apt_pkg.PackageManager(depcache)
 
 print(pm)

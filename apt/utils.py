@@ -37,8 +37,7 @@ def get_maintenance_end_date(release_date, m_months):
     # calc end date
     years = m_months // 12
     months = m_months % 12
-    support_end_year = (release_date.year + years +
-                        (release_date.month + months) // 12)
+    support_end_year = release_date.year + years + (release_date.month + months) // 12
     support_end_month = (release_date.month + months) % 12
     # special case: this happens when e.g. doing 2010-06 + 18 months
     if support_end_month == 0:
@@ -66,7 +65,7 @@ def get_release_date_from_release_file(path):
 
 def get_release_filename_for_pkg(cache, pkgname, label, release):
     # type: (apt.Cache, str, str, str) -> Optional[str]
-    " get the release file that provides this pkg "
+    "get the release file that provides this pkg"
     if pkgname not in cache:
         return None
     pkg = cache[pkgname]
@@ -78,22 +77,24 @@ def get_release_filename_for_pkg(cache, pkgname, label, release):
             continue
         for ver_file, _index in aver.file_list:
             # print verFile
-            if (ver_file.origin == label and
-                    ver_file.label == label and
-                    ver_file.archive == release):
+            if (
+                ver_file.origin == label
+                and ver_file.label == label
+                and ver_file.archive == release
+            ):
                 ver = aver
     if not ver:
         return None
     indexfile = cache._list.find_index(ver.file_list[0][0])
     for metaindex in cache._list.list:
         for m in metaindex.index_files:
-            if (indexfile and
-                    indexfile.describe == m.describe and
-                    indexfile.is_trusted):
+            if indexfile and indexfile.describe == m.describe and indexfile.is_trusted:
                 dirname = apt_pkg.config.find_dir("Dir::State::lists")
-                for relfile in ['InRelease', 'Release']:
-                    name = (apt_pkg.uri_to_filename(metaindex.uri) +
-                            "dists_%s_%s" % (metaindex.dist, relfile))
+                for relfile in ["InRelease", "Release"]:
+                    name = apt_pkg.uri_to_filename(metaindex.uri) + "dists_%s_%s" % (
+                        metaindex.dist,
+                        relfile,
+                    )
                     if os.path.exists(dirname + name):
                         return dirname + name
     return None

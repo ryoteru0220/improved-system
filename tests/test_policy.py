@@ -60,8 +60,9 @@ class TestAptPolicy(testcommon.TestCase):
         return  # TODO: Make tests independent of system state
         cache = apt.Cache()
         pkg = cache["apt"]
-        self.assertTrue(pkg.candidate.policy_priority > 1 and
-                        pkg.candidate.policy_priority < 1001)
+        self.assertTrue(
+            pkg.candidate.policy_priority > 1 and pkg.candidate.policy_priority < 1001
+        )
 
 
 if __name__ == "__main__":

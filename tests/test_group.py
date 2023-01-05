@@ -6,7 +6,6 @@ import testcommon
 
 
 class TestGroup(testcommon.TestCase):
-
     def setUp(self):
         testcommon.TestCase.setUp(self)
         self.cache = apt_pkg.Cache(progress=None)

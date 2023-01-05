@@ -15,8 +15,7 @@ def main():
         print("Usage: %s package.deb outdir\n" % (__file__), file=sys.stderr)
         sys.exit(1)
     if not os.path.exists(sys.argv[2]):
-        print("The directory %s does not exist\n" % (sys.argv[2]),
-              file=sys.stderr)
+        print("The directory %s does not exist\n" % (sys.argv[2]), file=sys.stderr)
         sys.exit(1)
 
     fobj = open(sys.argv[1])

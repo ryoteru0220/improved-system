@@ -12,5 +12,5 @@ from sys import argv
 import os
 
 assert len(argv) == 2
-with os.fdopen(int(argv[1]), 'w') as f:
-    assert f.write('test') == 4
+with os.fdopen(int(argv[1]), "w") as f:
+    assert f.write("test") == 4

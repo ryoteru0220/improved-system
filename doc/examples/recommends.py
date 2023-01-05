@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 
 import apt_pkg
+
 apt_pkg.init()
 
 cache = apt_pkg.Cache()
 
 
 class Wanted:
-
     def __init__(self, name):
         self.name = name
         self.recommended = []
@@ -21,16 +21,14 @@ for package in cache.packages:
     if not current:
         continue
     depends = current.depends_list
-    for (key, attr) in (('Suggests', 'suggested'),
-                        ('Recommends', 'recommended')):
+    for (key, attr) in (("Suggests", "suggested"), ("Recommends", "recommended")):
         list = depends.get(key, [])
         for dependency in list:
             name = dependency[0].target_pkg.name
             dep = cache[name]
             if dep.current_ver:
                 continue
-            getattr(wanted.setdefault(name, Wanted(name)),
-                    attr).append(package.name)
+            getattr(wanted.setdefault(name, Wanted(name)), attr).append(package.name)
 
 ks = list(wanted.keys())
 ks.sort()

@@ -8,7 +8,6 @@ from apt.progress import InstallProgress
 
 
 class TextInstallProgress(InstallProgress):
-
     def __init__(self):
         apt.progress.InstallProgress.__init__(self)
         self.last = 0.0

@@ -15,8 +15,9 @@ class TestCache(testcommon.TestCase):
         apt_cache = apt_pkg.Cache(progress=None)
 
         self.assertRaises(ValueError, apt_pkg.Cache, apt_cache)
-        self.assertRaises(ValueError, apt_pkg.Cache,
-                          apt.progress.base.AcquireProgress())
+        self.assertRaises(
+            ValueError, apt_pkg.Cache, apt.progress.base.AcquireProgress()
+        )
         self.assertRaises(ValueError, apt_pkg.Cache, 0)
 
     def test_proper_invocation(self):

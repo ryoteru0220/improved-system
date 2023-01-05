@@ -9,7 +9,6 @@ import apt.progress.base
 
 
 class TextProgress(apt.progress.base.OpProgress):
-
     def __init__(self):
         self.last = 0.0
 
@@ -26,7 +25,6 @@ class TextProgress(apt.progress.base.OpProgress):
 
 
 class TextFetchProgress(apt.progress.base.AcquireProgress):
-
     def __init__(self):
         pass
 
@@ -37,31 +35,34 @@ class TextFetchProgress(apt.progress.base.AcquireProgress):
         pass
 
     def fail(self, item):
-        print('fail', item)
+        print("fail", item)
 
     def fetch(self, item):
-        print('fetch', item)
+        print("fetch", item)
 
     def ims_hit(self, item):
-        print('ims_hit', item)
+        print("ims_hit", item)
 
     def pulse(self, owner):
-        print("pulse: CPS: %s/s; Bytes: %s/%s; Item: %s/%s" % (
-            apt_pkg.size_to_str(self.current_cps),
-            apt_pkg.size_to_str(self.current_bytes),
-            apt_pkg.size_to_str(self.total_bytes),
-            self.current_items,
-            self.total_items))
+        print(
+            "pulse: CPS: %s/s; Bytes: %s/%s; Item: %s/%s"
+            % (
+                apt_pkg.size_to_str(self.current_cps),
+                apt_pkg.size_to_str(self.current_bytes),
+                apt_pkg.size_to_str(self.total_bytes),
+                self.current_items,
+                self.total_items,
+            )
+        )
         return True
 
     def media_change(self, medium, drive):
         print("Please insert medium %s in drive %s" % (medium, drive))
         sys.stdin.readline()
-        #return False
+        # return False
 
 
 class TextInstallProgress(apt.progress.base.InstallProgress):
-
     def __init__(self):
         apt.progress.base.InstallProgress.__init__(self)
         pass
@@ -82,7 +83,6 @@ class TextInstallProgress(apt.progress.base.InstallProgress):
 
 
 class TextCdromProgress(apt.progress.base.CdromProgress):
-
     def __init__(self):
         pass
 

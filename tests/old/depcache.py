@@ -31,8 +31,10 @@ def main():
                 if depcache.marked_install(p):
                     depcache.mark_keep(p)
             if depcache.inst_count != 0:
-                print("Error undoing the selection for %s (inst_count: %s)" % (
-                    x, depcache.inst_count))
+                print(
+                    "Error undoing the selection for %s (inst_count: %s)"
+                    % (x, depcache.inst_count)
+                )
         print("\r%i/%i=%.3f%%    " % (i, all, (float(i) / float(all) * 100)))
 
     print()

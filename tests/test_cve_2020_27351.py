@@ -23,11 +23,9 @@ import tempfile
 import warnings
 
 
-@unittest.skipIf(
-    not os.path.exists("/proc/self/fd"), "no /proc/self/fd available"
-)
+@unittest.skipIf(not os.path.exists("/proc/self/fd"), "no /proc/self/fd available")
 class TestCVE_2020_27351(unittest.TestCase):
-    """ test the debfile """
+    """test the debfile"""
 
     GOOD_DEB = "data/test_debs/utf8-package_1.0-1_all.deb"
 
@@ -74,9 +72,7 @@ class TestCVE_2020_27351(unittest.TestCase):
                 return self.file.fileno()
 
         before = os.listdir("/proc/self/fd")
-        Cycle(self.GOOD_DEB).deb.gettar("control.tar.gz", "gzip").extractdata(
-            "control"
-        )
+        Cycle(self.GOOD_DEB).deb.gettar("control.tar.gz", "gzip").extractdata("control")
         warnings.filterwarnings("ignore", category=ResourceWarning)
         gc.collect()
         warnings.resetwarnings()

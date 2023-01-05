@@ -23,10 +23,13 @@ def get_library_dir():
     if not os.path.exists("../build"):
         return None
     from sysconfig import get_platform, get_python_version
+
     # Set the path to the build directory.
     plat_specifier = ".%s-%s" % (get_platform(), get_python_version())
-    library_dir = "../build/lib%s%s" % (plat_specifier,
-                                        (sys.pydebug and "-pydebug" or ""))
+    library_dir = "../build/lib%s%s" % (
+        plat_specifier,
+        (sys.pydebug and "-pydebug" or ""),
+    )
     return os.path.abspath(library_dir)
 
 
@@ -36,10 +39,9 @@ class MyTestRunner(unittest.runner.TextTestRunner):
         super(MyTestRunner, self).__init__(*args, **kwargs)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if not os.access("/etc/apt/sources.list", os.R_OK):
-        sys.stdout.write(
-            "[tests] Skipping because sources.list is not readable\n")
+        sys.stdout.write("[tests] Skipping because sources.list is not readable\n")
         sys.exit(0)
 
     sys.stdout.write("[tests] Running on %s\n" % sys.version.replace("\n", ""))
@@ -54,9 +56,8 @@ if __name__ == '__main__':
         sys.stdout.write("Using library_dir: '%s'\n" % library_dir)
         sys.path.insert(0, os.path.abspath(library_dir))
 
-    for path in os.listdir('.'):
-        if (path.endswith('.py') and os.path.isfile(path) and
-            path.startswith("test_")):
-            exec('from %s import *' % path[:-3])
+    for path in os.listdir("."):
+        if path.endswith(".py") and os.path.isfile(path) and path.startswith("test_"):
+            exec("from %s import *" % path[:-3])
 
     unittest.main(testRunner=MyTestRunner)

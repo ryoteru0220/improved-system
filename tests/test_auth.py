@@ -140,7 +140,7 @@ class TestAuthKeys(testcommon.TestCase):
         stderr_fd = sys.stderr.fileno()
         stderr_save = os.dup(stderr_fd)
         try:
-            devnull = os.open('/dev/null', os.O_WRONLY)
+            devnull = os.open("/dev/null", os.O_WRONLY)
             try:
                 os.dup2(devnull, stderr_fd)
                 yield
@@ -156,8 +156,9 @@ class TestAuthKeys(testcommon.TestCase):
         # Strip the headers from the keys to avoid test errors because
         # the exported key used a differenct GnuPG version than the
         # original example key
-        self.assertEqual(normalize_key(apt.auth.export_key(WHEEZY_KEYID)),
-                         normalize_key(WHEEZY_KEY))
+        self.assertEqual(
+            normalize_key(apt.auth.export_key(WHEEZY_KEYID)), normalize_key(WHEEZY_KEY)
+        )
 
     def testAddAndListKey(self):
         """Add an example key and test if it is correctly returned by
@@ -167,9 +168,11 @@ class TestAuthKeys(testcommon.TestCase):
         ret = apt.auth.list_keys()
         self.assertEqual(len(ret), 1)
         key = ret[0]
-        self.assertEqual(key.name,
-                         "Debian Archive Automatic Signing Key (7.0/wheezy) "
-                         "<ftpmaster@debian.org>")
+        self.assertEqual(
+            key.name,
+            "Debian Archive Automatic Signing Key (7.0/wheezy) "
+            "<ftpmaster@debian.org>",
+        )
         self.assertEqual(key.keyid, WHEEZY_KEYID)
         self.assertEqual(key.date, WHEEZY_KEYDATE)
 
@@ -184,29 +187,31 @@ class TestAuthKeys(testcommon.TestCase):
         ret = apt.auth.list_keys()
         self.assertEqual(len(ret), 1)
         key = ret[0]
-        self.assertEqual(key.name,
-                         "Debian Archive Automatic Signing Key (7.0/wheezy) "
-                         "<ftpmaster@debian.org>")
+        self.assertEqual(
+            key.name,
+            "Debian Archive Automatic Signing Key (7.0/wheezy) "
+            "<ftpmaster@debian.org>",
+        )
         self.assertEqual(key.keyid, WHEEZY_KEYID)
         self.assertEqual(key.date, WHEEZY_KEYDATE)
 
     def test_add_key_from_keyserver_too_short(self):
         """Ensure that short keyids are not imported"""
         with self.assertRaises(apt.auth.AptKeyIDTooShortError):
-            apt.auth.add_key_from_keyserver(
-                WHEEZY_KEYID, "hkp://localhost:19191")
+            apt.auth.add_key_from_keyserver(WHEEZY_KEYID, "hkp://localhost:19191")
         with self.assertRaises(apt.auth.AptKeyIDTooShortError):
             apt.auth.add_key_from_keyserver(
-                "0101010178F7FE5C3E65D8AF8B48AD624692555",
-                "hkp://localhost:19191")
+                "0101010178F7FE5C3E65D8AF8B48AD624692555", "hkp://localhost:19191"
+            )
         with self.assertRaises(apt.auth.AptKeyIDTooShortError):
             apt.auth.add_key_from_keyserver(
-                "0x0101010178F7FE5C3E65D8AF8B48AD624692555",
-                "hkp://localhost:19191")
+                "0x0101010178F7FE5C3E65D8AF8B48AD624692555", "hkp://localhost:19191"
+            )
         with self.assertRaises(apt.auth.AptKeyIDTooShortError):
             apt.auth.add_key_from_keyserver(
                 "0101 0101 78F7 FE5C 3E65 D8AF 8B48 AD62 4692 555",
-                "hkp://localhost:19191")
+                "hkp://localhost:19191",
+            )
 
     def test_add_key_from_server_mitm(self):
         """Verify that the key fingerprint is verified after download"""
@@ -216,13 +221,15 @@ class TestAuthKeys(testcommon.TestCase):
             with self._discard_stderr():
                 apt.auth.add_key_from_keyserver(
                     "0101010178F7FE5C3E65D8AF8B48AD6246925553",
-                    "hkp://localhost:%d" % self.keyserver_port)
+                    "hkp://localhost:%d" % self.keyserver_port,
+                )
         self.assertTrue(
             str(cm.exception).startswith(
-                "recv from 'hkp://localhost:%d' failed for '%s'" % (
-                    self.keyserver_port,
-                    "0101010178F7FE5C3E65D8AF8B48AD6246925553")),
-            cm.exception)
+                "recv from 'hkp://localhost:%d' failed for '%s'"
+                % (self.keyserver_port, "0101010178F7FE5C3E65D8AF8B48AD6246925553")
+            ),
+            cm.exception,
+        )
 
     def testAddKeyFromServer(self):
         """Install a GnuPG key from a remote server."""
@@ -232,14 +239,17 @@ class TestAuthKeys(testcommon.TestCase):
         with self._discard_stderr():
             apt.auth.add_key_from_keyserver(
                 "0xa1bD8E9D78F7FE5C3E65D8AF8B48AD6246925553",
-                "hkp://localhost:%d" % self.keyserver_port)
+                "hkp://localhost:%d" % self.keyserver_port,
+            )
 
         ret = apt.auth.list_keys()
         self.assertEqual(len(ret), 1)
         key = ret[0]
-        self.assertEqual(key.name,
-                         "Debian Archive Automatic Signing Key (7.0/wheezy) "
-                         "<ftpmaster@debian.org>")
+        self.assertEqual(
+            key.name,
+            "Debian Archive Automatic Signing Key (7.0/wheezy) "
+            "<ftpmaster@debian.org>",
+        )
         self.assertEqual(key.keyid, WHEEZY_KEYID)
         self.assertEqual(key.date, WHEEZY_KEYDATE)
 
@@ -260,16 +270,16 @@ class TestAuthKeys(testcommon.TestCase):
         if self.keyserver_pid == 0:
             os.close(keyserver_pipe[0])
             # quiesce server log
-            os.dup2(os.open('/dev/null', os.O_WRONLY), sys.stderr.fileno())
+            os.dup2(os.open("/dev/null", os.O_WRONLY), sys.stderr.fileno())
             os.chdir(dir)
             for port in itertools.count(19191):
                 try:
-                    httpd = HTTPServer(('localhost', port), HTTPRequestHandler)
+                    httpd = HTTPServer(("localhost", port), HTTPRequestHandler)
                     break
                 except IOError as e:
                     if e.errno != errno.EADDRINUSE:
                         raise
-            keyserver_write = os.fdopen(keyserver_pipe[1], 'w')
+            keyserver_write = os.fdopen(keyserver_pipe[1], "w")
             print(port, file=keyserver_write)
             keyserver_write.close()
             httpd.serve_forever()
@@ -282,9 +292,9 @@ class TestAuthKeys(testcommon.TestCase):
 
         # temporarily disable proxy, as gnupg does not get along with that
         # (LP #789049)
-        self.orig_proxy = os.environ.get('http_proxy')
+        self.orig_proxy = os.environ.get("http_proxy")
         try:
-            del os.environ['http_proxy']
+            del os.environ["http_proxy"]
         except KeyError:
             pass
 
@@ -292,7 +302,7 @@ class TestAuthKeys(testcommon.TestCase):
         time.sleep(0.5)
 
     def _stop_keyserver(self):
-        '''Stop fake keyserver'''
+        """Stop fake keyserver"""
         assert self.keyserver_pid
 
         os.kill(self.keyserver_pid, 15)
@@ -300,7 +310,7 @@ class TestAuthKeys(testcommon.TestCase):
 
         # restore proxy
         if self.orig_proxy is not None:
-            os.environ['http_proxy'] = self.orig_proxy
+            os.environ["http_proxy"] = self.orig_proxy
 
 
 if __name__ == "__main__":

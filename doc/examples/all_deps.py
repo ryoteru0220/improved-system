@@ -5,7 +5,7 @@ import apt
 
 
 def dependencies(cache, pkg, deps, key="Depends"):
-    #print "pkg: %s (%s)" % (pkg.name, deps)
+    # print "pkg: %s (%s)" % (pkg.name, deps)
     candver = cache._depcache.get_candidate_ver(pkg._pkg)
     if candver is None:
         return deps
@@ -14,11 +14,12 @@ def dependencies(cache, pkg, deps, key="Depends"):
         for depVerList in dependslist[key]:
             for dep in depVerList:
                 if dep.target_pkg.name in cache:
-                    if (pkg.name != dep.target_pkg.name and
-                            dep.target_pkg.name not in deps):
+                    if (
+                        pkg.name != dep.target_pkg.name
+                        and dep.target_pkg.name not in deps
+                    ):
                         deps.add(dep.target_pkg.name)
-                        dependencies(
-                            cache, cache[dep.target_pkg.name], deps, key)
+                        dependencies(cache, cache[dep.target_pkg.name], deps, key)
     return deps
 
 
