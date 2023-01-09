@@ -1,4 +1,4 @@
-_ChangelogURI: https://metadata.ftp-master.debian.org/changelogs/%s/%s/%s/%s_%s/changelog
+_ChangelogURI: https://metadata.ftp-master.debian.org/changelogs/%s/%s/%s/%s_%s_changelog
 X-Exclude-Suites: buzz, rex, bo, hamm, slink, potato, woody, experimental
 
 Suite: {series}
