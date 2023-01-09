@@ -1,6 +1,6 @@
 #  sourceslist.py - Provide an abstraction of the sources.list
 #
-#  Copyright (c) 2004-2009 Canonical Ltd.
+#  Copyright (c) 2004-2023 Canonical Ltd.
 #  Copyright (c) 2004 Michiel Sikkes
 #  Copyright (c) 2006-2007 Sebastian Heinlein
 #
@@ -31,9 +31,14 @@ import os.path
 import re
 import shutil
 import time
+from typing import (
+    List,
+    Optional,
+)
 
 import apt_pkg
 from .distinfo import DistInfo
+from . import _deb822
 
 # from apt_pkg import gettext as _
 
@@ -88,7 +93,97 @@ def uniq(s):
     return list(set(s))
 
 
-class SourceEntry(object):
+class BaseSourceEntry(object):
+    pass
+
+
+class SingleValueProperty(property):
+    def __init__(self, key, doc):
+        self.key = key
+        self.__doc__ = doc
+
+    def __get__(self, obj: "Deb822SourceEntry", objtype=None) -> Optional[str]:
+        return obj.section.get(self.key, None)
+
+    def __set__(self, obj: "Deb822SourceEntry", value: Optional[str]) -> None:
+        obj.section[self.key] = value
+
+
+class MultiValueProperty(property):
+    def __init__(self, key, doc):
+        self.key = key
+        self.__doc__ = doc
+
+    def __get__(self, obj: "Deb822SourceEntry", objtype=None) -> List[str]:
+        return obj.section.get(self.key, "").split()
+
+    def __set__(self, obj: "Deb822SourceEntry", values: List[str]) -> None:
+        obj.section[self.key] = " ".join(values)
+
+
+def DeprecatedProperty(prop):
+    return prop
+
+
+class Deb822SourceEntry(BaseSourceEntry):
+    def __init__(self, section: Optional[_deb822.Section], file: str):
+        self.section = section if section is not None else _deb822.Section()
+        self._line = str(self.section)
+        self.file = file
+        self.template : DistInfo = None  # type DistInfo.Suite
+
+    architectures = MultiValueProperty("Architectures", "The list of architectures")
+    types = MultiValueProperty("Types", "The list of types")
+    type = DeprecatedProperty(SingleValueProperty("Types", "The list of types"))
+    uris = MultiValueProperty("URIs", "URIs in the source")
+    uri = DeprecatedProperty(SingleValueProperty("URIs", "URIs in the source"))
+    suites = MultiValueProperty("Suites", "Suites in the source")
+    dist = DeprecatedProperty(SingleValueProperty("Suites", "Suites in the source"))
+    comps = MultiValueProperty("Components", "Components in the source")
+
+    @property
+    def comment(self):
+        """Legacy attribute describing the paragraph header."""
+        return self.section.header
+
+    @property
+    def trusted(self) -> Optional[bool]:
+        try:
+            return apt_pkg.string_to_bool(self.section["Trusted"])
+        except KeyError:
+            return None
+
+    @trusted.setter
+    def trusted(self, value: Optional[bool]) -> None:
+        if value is None:
+            del self.section["Trusted"]
+        else:
+            self.section["Trusted"] = "yes" if value else "no"
+
+    @property
+    def disabled(self) -> bool:
+        """Check if Enabled: no is set."""
+        return not apt_pkg.string_to_bool(self.section.get("Enabled", "yes"))
+
+    @disabled.setter
+    def disabled(self, value: bool) -> None:
+        if value:
+            self.section["Enabled"] = "no"
+        else:
+            del self.section["Enabled"]
+
+    @property
+    def invalid(self) -> bool:
+        """A section is invalid if it doesn't have proper entries."""
+        return not self.section
+
+    @property
+    def line(self) -> str:
+        """The entire paragraph."""
+        return self._line
+
+
+class SourceEntry(BaseSourceEntry):
     """single sources.list entry"""
 
     def __init__(self, line, file=None):
@@ -296,6 +391,8 @@ class SourcesList(object):
         partsdir = apt_pkg.config.find_dir("Dir::Etc::sourceparts")
         for file in glob.glob("%s/*.list" % partsdir):
             self.load(file)
+        for file in glob.glob("%s/*.sources" % partsdir):
+            self.load(file)
         # check if the source item fits a predefined template
         for source in self.list:
             if not source.invalid:
@@ -432,11 +529,15 @@ class SourcesList(object):
         """(re)load the current sources"""
         try:
             with open(file, "r") as f:
-                for line in f:
-                    source = SourceEntry(line, file)
-                    self.list.append(source)
-        except Exception:
-            logging.warning("could not open file '%s'\n" % file)
+                if file.endswith(".sources"):
+                    for section in _deb822.File(f):
+                        self.list.append(Deb822SourceEntry(section, file))
+                else:
+                    for line in f:
+                        source = SourceEntry(line, file)
+                        self.list.append(source)
+        except Exception as exc:
+            logging.warning("could not open file '%s': %s\n" % (file, exc))
 
     def save(self):
         """save the current sources"""
