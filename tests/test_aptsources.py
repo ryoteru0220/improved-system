@@ -304,8 +304,15 @@ class TestAptSources(testcommon.TestCase):
         self.assertEqual(found_something, 1)
         self.assertEqual(found_universe, 1)
 
-    def testAddingWithComment(self):
+    def testAddingWithComment_deb822(self):
+        apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
+        self._commonTestAddingWithComment()
+
+    def testAddingWithComment_short(self):
         apt_pkg.config.set("Dir::Etc::sourcelist", "data/aptsources/" "sources.list")
+        self._commonTestAddingWithComment()
+
+    def _commonTestAddingWithComment(self):
         sources = aptsources.sourceslist.SourcesList(True, self.templates)
 
         # test to add something that is already there (main); loses comment
