@@ -26,22 +26,32 @@
 from __future__ import absolute_import, print_function
 
 import glob
+import io
 import logging
 import os.path
 import re
 import shutil
 import time
 from typing import (
+    Any,
+    Dict,
+    Callable,
+    Iterable,
+    Iterator,
     List,
     Optional,
+    Tuple,
+    TypeVar,
+    Union,
 )
 
 import apt_pkg
-from .distinfo import DistInfo
+from .distinfo import DistInfo, Template
 from . import _deb822
 
 # from apt_pkg import gettext as _
 
+T = TypeVar("T")
 
 # some global helpers
 
@@ -54,7 +64,7 @@ __all__ = [
 ]
 
 
-def is_mirror(master_uri, compare_uri):
+def is_mirror(master_uri: str, compare_uri: str) -> bool:
     """check if the given add_url is idential or a mirror of orig_uri e.g.:
     master_uri = archive.ubuntu.com
     compare_uri = de.archive.ubuntu.com
@@ -83,7 +93,7 @@ def is_mirror(master_uri, compare_uri):
     return False
 
 
-def uniq(s):
+def uniq(s: Iterable[T]) -> List[T]:
     """simple and efficient way to return uniq collection
 
     This is not intended for use with a SourceList. It is provided
@@ -98,39 +108,46 @@ class BaseSourceEntry(object):
 
 
 class SingleValueProperty(property):
-    def __init__(self, key, doc):
+    def __init__(self, key: str, doc: str):
         self.key = key
         self.__doc__ = doc
 
-    def __get__(self, obj: "Deb822SourceEntry", objtype=None) -> Optional[str]:
+    def __get__(
+        self, obj: "Deb822SourceEntry", objtype: Optional[type] = None
+    ) -> Optional[str]:
         return obj.section.get(self.key, None)
 
     def __set__(self, obj: "Deb822SourceEntry", value: Optional[str]) -> None:
-        obj.section[self.key] = value
+        if value is None:
+            del obj.section[self.key]
+        else:
+            obj.section[self.key] = value
 
 
 class MultiValueProperty(property):
-    def __init__(self, key, doc):
+    def __init__(self, key: str, doc: str):
         self.key = key
         self.__doc__ = doc
 
-    def __get__(self, obj: "Deb822SourceEntry", objtype=None) -> List[str]:
+    def __get__(
+        self, obj: "Deb822SourceEntry", objtype: Optional[type] = None
+    ) -> List[str]:
         return obj.section.get(self.key, "").split()
 
     def __set__(self, obj: "Deb822SourceEntry", values: List[str]) -> None:
         obj.section[self.key] = " ".join(values)
 
 
-def DeprecatedProperty(prop):
+def DeprecatedProperty(prop: T) -> T:
     return prop
 
 
 class Deb822SourceEntry(BaseSourceEntry):
     def __init__(self, section: Optional[_deb822.Section], file: str):
-        self.section = section if section is not None else _deb822.Section()
+        self.section = section if section is not None else _deb822.Section("")
         self._line = str(self.section)
         self.file = file
-        self.template : DistInfo = None  # type DistInfo.Suite
+        self.template: Optional[Template] = None  # type DistInfo.Suite
 
     architectures = MultiValueProperty("Architectures", "The list of architectures")
     types = MultiValueProperty("Types", "The list of types")
@@ -142,7 +159,7 @@ class Deb822SourceEntry(BaseSourceEntry):
     comps = MultiValueProperty("Components", "Components in the source")
 
     @property
-    def comment(self):
+    def comment(self) -> str:
         """Legacy attribute describing the paragraph header."""
         return self.section.header
 
@@ -182,19 +199,22 @@ class Deb822SourceEntry(BaseSourceEntry):
         """The entire paragraph."""
         return self._line
 
+    def str(self) -> str:
+        return str(self.section)
+
 
 class SourceEntry(BaseSourceEntry):
     """single sources.list entry"""
 
-    def __init__(self, line, file=None):
+    def __init__(self, line: str, file: Optional[str] = None):
         self.invalid = False  # is the source entry valid
         self.disabled = False  # is it disabled ('#' in front)
         self.type = ""  # what type (deb, deb-src)
-        self.architectures = []  # architectures
-        self.trusted = None  # Trusted
+        self.architectures: List[str] = []  # architectures
+        self.trusted: Optional[bool] = None  # Trusted
         self.uri = ""  # base-uri
         self.dist = ""  # distribution (dapper, edgy, etc)
-        self.comps = []  # list of available componetns (may empty)
+        self.comps: List[str] = []  # list of available componetns (may empty)
         self.comment = ""  # (optional) comment
         self.line = line  # the original sources.list line
         if file is None:
@@ -203,10 +223,10 @@ class SourceEntry(BaseSourceEntry):
             )
         self.file = file  # the file that the entry is located in
         self.parse(line)
-        self.template = None  # type DistInfo.Suite
-        self.children = []
+        self.template: Optional[Template] = None  # type DistInfo.Suite
+        self.children: List[SourceEntry] = []
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> Any:
         """equal operator for two sources.list entries"""
         return (
             self.disabled == other.disabled
@@ -216,7 +236,7 @@ class SourceEntry(BaseSourceEntry):
             and self.comps == other.comps
         )
 
-    def mysplit(self, line):
+    def mysplit(self, line: str) -> List[str]:
         """a split() implementation that understands the sources.list
         format better and takes [] into account (for e.g. cdroms)"""
         line = line.strip()
@@ -253,7 +273,7 @@ class SourceEntry(BaseSourceEntry):
             pieces.append(tmp)
         return pieces
 
-    def parse(self, line):
+    def parse(self, line: str) -> None:
         """parse a given sources.list (textual) line and break it up
         into the field we have"""
         self.line = line
@@ -317,7 +337,7 @@ class SourceEntry(BaseSourceEntry):
         else:
             self.comps = []
 
-    def set_enabled(self, new_value):
+    def set_enabled(self, new_value: bool) -> None:
         """set a line to enabled or disabled"""
         self.disabled = not new_value
         # enable, remove all "#" from the start of the line
@@ -328,11 +348,11 @@ class SourceEntry(BaseSourceEntry):
             if self.line.strip()[0] != "#":
                 self.line = "#" + self.line
 
-    def __str__(self):
+    def __str__(self) -> str:
         """debug helper"""
         return self.str().strip()
 
-    def str(self):
+    def str(self) -> str:
         """return the current line as string"""
         if self.invalid:
             return self.line
@@ -360,10 +380,13 @@ class SourceEntry(BaseSourceEntry):
         return line
 
 
+AnySourceEntry = Union[SourceEntry, Deb822SourceEntry]
+
+
 class NullMatcher(object):
     """a Matcher that does nothing"""
 
-    def match(self, s):
+    def match(self, s: AnySourceEntry) -> bool:
         return True
 
 
@@ -371,16 +394,19 @@ class SourcesList(object):
     """represents the full sources.list + sources.list.d file"""
 
     def __init__(
-        self, withMatcher=True, matcherPath="/usr/share/python-apt/templates/"
+        self,
+        withMatcher: bool = True,
+        matcherPath: str = "/usr/share/python-apt/templates/",
     ):
-        self.list = []  # the actual SourceEntries Type
+        self.list: List[AnySourceEntry] = []  # the actual SourceEntries Type
+        self.matcher: Union[NullMatcher, SourceEntryMatcher]
         if withMatcher:
             self.matcher = SourceEntryMatcher(matcherPath)
         else:
             self.matcher = NullMatcher()
         self.refresh()
 
-    def refresh(self):
+    def refresh(self) -> None:
         """update the list of known entries"""
         self.list = []
         # read sources.list
@@ -398,16 +424,19 @@ class SourcesList(object):
             if not source.invalid:
                 self.matcher.match(source)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[AnySourceEntry]:
         """simple iterator to go over self.list, returns SourceEntry
         types"""
         for entry in self.list:
             yield entry
 
-    def __find(self, *predicates, **attrs):
+    # typing: ignore
+    def __find(
+        self, *predicates: Callable[[AnySourceEntry], bool], **attrs: Any
+    ) -> Iterator[AnySourceEntry]:
         uri = attrs.pop("uri", None)
         for source in self.list:
-            if uri and uri.rstrip("/") != source.uri.rstrip("/"):
+            if uri and source.uri and uri.rstrip("/") != source.uri.rstrip("/"):
                 continue
             if all(getattr(source, key) == attrs[key] for key in attrs) and all(
                 predicate(source) for predicate in predicates
@@ -416,15 +445,15 @@ class SourcesList(object):
 
     def add(
         self,
-        type,
-        uri,
-        dist,
-        orig_comps,
-        comment="",
-        pos=-1,
-        file=None,
-        architectures=[],
-    ):
+        type: str,
+        uri: str,
+        dist: str,
+        orig_comps: List[str],
+        comment: str = "",
+        pos: int = -1,
+        file: Optional[str] = None,
+        architectures: Iterable[str] = [],
+    ) -> AnySourceEntry:
         """
         Add a new source to the sources.list.
         The method will search for existing matching repos and will try to
@@ -499,11 +528,11 @@ class SourcesList(object):
             self.list.insert(pos, new_entry)
         return new_entry
 
-    def remove(self, source_entry):
+    def remove(self, source_entry: SourceEntry) -> None:
         """remove the specified entry from the sources.list"""
         self.list.remove(source_entry)
 
-    def restore_backup(self, backup_ext):
+    def restore_backup(self, backup_ext: str) -> None:
         "restore sources.list files based on the backup extension"
         file = apt_pkg.config.find_file("Dir::Etc::sourcelist")
         if os.path.exists(file + backup_ext) and os.path.exists(file):
@@ -514,10 +543,10 @@ class SourcesList(object):
             if os.path.exists(file + backup_ext):
                 shutil.copy(file + backup_ext, file)
 
-    def backup(self, backup_ext=None):
+    def backup(self, backup_ext: Optional[str] = None) -> str:
         """make a backup of the current source files, if no backup extension
         is given, the current date/time is used (and returned)"""
-        already_backuped = set()
+        already_backuped: Iterable[str] = set()
         if backup_ext is None:
             backup_ext = time.strftime("%y%m%d.%H%M")
         for source in self.list:
@@ -525,7 +554,7 @@ class SourcesList(object):
                 shutil.copy(source.file, "%s%s" % (source.file, backup_ext))
         return backup_ext
 
-    def load(self, file):
+    def load(self, file: str) -> None:
         """(re)load the current sources"""
         try:
             with open(file, "r") as f:
@@ -539,9 +568,9 @@ class SourcesList(object):
         except Exception as exc:
             logging.warning("could not open file '%s': %s\n" % (file, exc))
 
-    def save(self):
+    def save(self) -> None:
         """save the current sources"""
-        files = {}
+        files: Dict[str, io.TextIOWrapper] = {}
         # write an empty default config file if there aren't any sources
         if len(self.list) == 0:
             path = apt_pkg.config.find_file("Dir::Etc::sourcelist")
@@ -561,13 +590,15 @@ class SourcesList(object):
                     files[source.file] = open(source.file, "w")
                 files[source.file].write(source.str())
         finally:
-            for f in files:
-                files[f].close()
+            for f in files.values():
+                f.close()
 
-    def check_for_relations(self, sources_list):
+    def check_for_relations(
+        self, sources_list: Iterable[AnySourceEntry]
+    ) -> Tuple[List[AnySourceEntry], Dict[Template, List[AnySourceEntry]]]:
         """get all parent and child channels in the sources list"""
         parents = []
-        used_child_templates = {}
+        used_child_templates: Dict[Template, List[AnySourceEntry]] = {}
         for source in sources_list:
             # try to avoid checking uninterressting sources
             if source.template is None:
@@ -594,8 +625,8 @@ class SourceEntryMatcher(object):
     lots of predefined matchers to make it i18n/gettext friendly
     """
 
-    def __init__(self, matcherPath):
-        self.templates = []
+    def __init__(self, matcherPath: str):
+        self.templates: List[Template] = []
         # Get the human readable channel and comp names from the channel .infos
         spec_files = glob.glob("%s/*.info" % matcherPath)
         for f in spec_files:
@@ -608,12 +639,18 @@ class SourceEntryMatcher(object):
                     self.templates.append(template)
         return
 
-    def match(self, source):
+    def match(self, source: AnySourceEntry) -> bool:
         """Add a matching template to the source"""
         found = False
         for template in self.templates:
+            if source.uri is None or source.dist is None:
+                continue
             if (
-                re.search(template.match_uri, source.uri)
+                template.match_uri is not None
+                and template.match_name is not None
+                and source.uri is not None
+                and source.dist is not None
+                and re.search(template.match_uri, source.uri)
                 and re.match(template.match_name, source.dist)
                 and
                 # deb is a valid fallback for deb-src (if that is not
@@ -623,8 +660,11 @@ class SourceEntryMatcher(object):
                 found = True
                 source.template = template
                 break
-            elif template.is_mirror(source.uri) and re.match(
-                template.match_name, source.dist
+            elif (
+                template.is_mirror(source.uri)
+                and template.match_name is not None
+                and source.dist is not None
+                and re.match(template.match_name, source.dist)
             ):
                 found = True
                 source.template = template

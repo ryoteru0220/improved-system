@@ -13,6 +13,7 @@ import typing
 
 import apt_pkg
 
+
 T = typing.TypeVar("T")
 
 
@@ -41,12 +42,24 @@ class Section:
         """Get the value of a field."""
         return self.tags[key]
 
+    def __delitem__(self, key: str) -> None:
+        """Delete a field"""
+        del self.tags[key]
+
     def __setitem__(self, key: str, val: str) -> None:
         """Set the value of a field."""
         self.tags[key] = val
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.tags)
+
+    @typing.overload
+    def get(self, key: str) -> typing.Optional[str]:
+        ...
+
+    @typing.overload
+    def get(self, key: str, default: T) -> typing.Union[T, str]:
+        ...
 
     def get(
         self, key: str, default: typing.Optional[T] = None
