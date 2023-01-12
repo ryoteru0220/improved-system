@@ -103,10 +103,6 @@ def uniq(s: Iterable[T]) -> List[T]:
     return list(set(s))
 
 
-class BaseSourceEntry(object):
-    pass
-
-
 class SingleValueProperty(property):
     def __init__(self, key: str, doc: str):
         self.key = key
@@ -142,7 +138,7 @@ def DeprecatedProperty(prop: T) -> T:
     return prop
 
 
-class Deb822SourceEntry(BaseSourceEntry):
+class Deb822SourceEntry:
     def __init__(self, section: Optional[_deb822.Section], file: str):
         self.section = section if section is not None else _deb822.Section("")
         self._line = str(self.section)
@@ -203,7 +199,7 @@ class Deb822SourceEntry(BaseSourceEntry):
         return str(self.section)
 
 
-class SourceEntry(BaseSourceEntry):
+class SourceEntry:
     """single sources.list entry"""
 
     def __init__(self, line: str, file: Optional[str] = None):
