@@ -54,6 +54,43 @@ class TestAptSources(testcommon.TestCase):
         sources.load("data/aptsources/sources.list")
         self.assertEqual(len(sources.list), 10)
 
+    def testSourcesListReading_deb822(self):
+        """aptsources: Test sources.list parsing."""
+        apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
+        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        self.assertEqual(len(sources.list), 5)
+        # test load
+        sources.list = []
+        sources.load("data/aptsources/sources.list.d/main.sources")
+        self.assertEqual(len(sources.list), 5)
+
+        for entry in sources.list:
+            self.assertFalse(entry.invalid)
+            self.assertFalse(entry.disabled)
+            self.assertEqual(entry.types, ["deb"])
+            self.assertEqual(entry.type, "deb")
+            self.assertEqual(entry.uris, ["http://de.archive.ubuntu.com/"])
+            self.assertEqual(entry.uri, "http://de.archive.ubuntu.com/")
+            self.assertEqual(entry.suites, ["edgy"])
+            self.assertEqual(entry.dist, "edgy")
+
+        self.assertEqual(sources.list[0].comps, ["main"])
+        self.assertEqual(sources.list[1].comps, ["restricted"])
+        self.assertEqual(sources.list[2].comps, ["universe"])
+        self.assertEqual(sources.list[3].comps, ["universe"])
+        self.assertEqual(sources.list[4].comps, ["universe"])
+
+        for entry in sources.list[:-1]:
+            self.assertIsNone(entry.trusted)
+
+        self.assertTrue(sources.list[-1].trusted)
+
+        for entry in sources.list[:-2]:
+            self.assertEqual(entry.architectures, [])
+
+        for entry in sources.list[-2:]:
+            self.assertEqual(entry.architectures, ["amd64", "i386"])
+
     def testSourcesListAdding(self):
         """aptsources: Test additions to sources.list"""
         apt_pkg.config.set("Dir::Etc::sourcelist", "data/aptsources/" "sources.list")
