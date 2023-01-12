@@ -360,6 +360,48 @@ class TestAptSources(testcommon.TestCase):
                 break
         self.assertTrue(found)
 
+    def testInsertion_deb822(self):
+        apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
+        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+
+        # test to insert something that is already there (universe); does not
+        # move existing entry (remains at index 2)
+        before = copy.deepcopy(sources)
+        sources.add(
+            "deb", "http://de.archive.ubuntu.com/ubuntu/", "edgy", ["universe"], pos=0
+        )
+        self.assertTrue(sources.list == before.list)
+        entry = list(sources)[2]
+        self.assertEqual(entry.type, "deb")
+        self.assertEqual(entry.uri, "http://de.archive.ubuntu.com/ubuntu/")
+        self.assertEqual(entry.dist, "edgy")
+        self.assertIn("universe", entry.comps)
+
+        # test add component to existing entry: multiverse; does not move
+        # entry to which it is appended (remains at index 0)
+        sources.add(
+            "deb", "http://de.archive.ubuntu.com/ubuntu/", "edgy", ["multiverse"], pos=2
+        )
+        entry = list(sources)[0]
+        self.assertTrue(
+            entry.type == "deb"
+            and entry.uri == "http://de.archive.ubuntu.com/ubuntu/"
+            and entry.dist == "edgy"
+            and {"main", "multiverse"} <= set(entry.comps)
+        )
+
+        # test to add entirely new entry; inserted at 0
+        sources.add(
+            "deb-src", "http://de.archive.ubuntu.com/ubuntu/", "edgy", ["main"], pos=0
+        )
+        entry = list(sources)[0]
+        self.assertTrue(
+            entry.type == "deb-src"
+            and entry.uri == "http://de.archive.ubuntu.com/ubuntu/"
+            and entry.dist == "edgy"
+            and "main" in entry.comps
+        )
+
     def testInsertion(self):
         apt_pkg.config.set("Dir::Etc::sourcelist", "data/aptsources/" "sources.list")
         sources = aptsources.sourceslist.SourcesList(True, self.templates)
