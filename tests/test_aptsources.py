@@ -69,16 +69,14 @@ class TestAptSources(testcommon.TestCase):
             self.assertFalse(entry.disabled)
             self.assertEqual(entry.types, ["deb"])
             self.assertEqual(entry.type, "deb")
-            self.assertEqual(entry.uris, ["http://de.archive.ubuntu.com/"])
-            self.assertEqual(entry.uri, "http://de.archive.ubuntu.com/")
-            self.assertEqual(entry.suites, ["edgy"])
-            self.assertEqual(entry.dist, "edgy")
+            self.assertEqual(entry.uris, ["http://de.archive.ubuntu.com/ubuntu/"])
+            self.assertEqual(entry.uri, "http://de.archive.ubuntu.com/ubuntu/")
 
         self.assertEqual(sources.list[0].comps, ["main"])
         self.assertEqual(sources.list[1].comps, ["restricted"])
         self.assertEqual(sources.list[2].comps, ["universe"])
-        self.assertEqual(sources.list[3].comps, ["universe"])
-        self.assertEqual(sources.list[4].comps, ["universe"])
+        self.assertEqual(sources.list[3].comps, ["main"])
+        self.assertEqual(sources.list[4].comps, ["main"])
 
         for entry in sources.list[:-1]:
             self.assertIsNone(entry.trusted)
@@ -87,8 +85,12 @@ class TestAptSources(testcommon.TestCase):
 
         for entry in sources.list[:-2]:
             self.assertEqual(entry.architectures, [])
+            self.assertEqual(entry.suites, ["edgy"])
+            self.assertEqual(entry.dist, "edgy")
 
         for entry in sources.list[-2:]:
+            self.assertEqual(entry.suites, ["natty"])
+            self.assertEqual(entry.dist, "natty")
             self.assertEqual(entry.architectures, ["amd64", "i386"])
 
     def testSourcesListAdding(self):
@@ -115,6 +117,113 @@ class TestAptSources(testcommon.TestCase):
             architectures=["amd64", "i386"],
         )
         self.assertTrue(sources.list == before.list)
+
+        # test to add something new: multiverse
+        sources.add(
+            "deb", "http://de.archive.ubuntu.com/ubuntu/", "edgy", ["multiverse"]
+        )
+        found = False
+        for entry in sources:
+            if (
+                entry.type == "deb"
+                and entry.uri == "http://de.archive.ubuntu.com/ubuntu/"
+                and entry.dist == "edgy"
+                and "multiverse" in entry.comps
+            ):
+                found = True
+                break
+        self.assertTrue(found)
+
+        # add a new natty entry without architecture specification
+        sources.add(
+            "deb", "http://de.archive.ubuntu.com/ubuntu/", "natty", ["multiverse"]
+        )
+        found = False
+        for entry in sources:
+            if (
+                entry.type == "deb"
+                and entry.uri == "http://de.archive.ubuntu.com/ubuntu/"
+                and entry.dist == "natty"
+                and entry.architectures == []
+                and "multiverse" in entry.comps
+            ):
+                found = True
+                break
+        self.assertTrue(found)
+
+        # Add universe to existing multi-arch line
+        sources.add(
+            "deb",
+            "http://de.archive.ubuntu.com/ubuntu/",
+            "natty",
+            ["universe"],
+            architectures=["i386", "amd64"],
+        )
+        found = False
+        for entry in sources:
+            if (
+                entry.type == "deb"
+                and entry.uri == "http://de.archive.ubuntu.com/ubuntu/"
+                and entry.dist == "natty"
+                and set(entry.architectures) == set(["amd64", "i386"])
+                and set(entry.comps) == set(["main", "universe"])
+            ):
+                found = True
+                break
+        self.assertTrue(found)
+        # test to add something new: multiverse *and*
+        # something that is already there
+        before = copy.deepcopy(sources)
+        sources.add(
+            "deb",
+            "http://de.archive.ubuntu.com/ubuntu/",
+            "edgy",
+            ["universe", "something"],
+        )
+        found_universe = 0
+        found_something = 0
+        for entry in sources:
+            if (
+                entry.type == "deb"
+                and entry.uri == "http://de.archive.ubuntu.com/ubuntu/"
+                and entry.dist == "edgy"
+            ):
+                for c in entry.comps:
+                    if c == "universe":
+                        found_universe += 1
+                    if c == "something":
+                        found_something += 1
+        # print "\n".join([s.str() for s in sources])
+        self.assertEqual(found_something, 1)
+        self.assertEqual(found_universe, 1)
+
+    def testSourcesListAdding_deb822(self):
+        """aptsources: Test additions to sources.list"""
+        apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
+
+        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        # test to add something that is already there (main)
+        before = copy.deepcopy(sources)
+        sources.add("deb", "http://de.archive.ubuntu.com/ubuntu/", "edgy", ["main"])
+        self.assertEqual(sources.list, before.list)
+        # test to add something that is already there (restricted)
+        before = copy.deepcopy(sources)
+        sources.add(
+            "deb", "http://de.archive.ubuntu.com/ubuntu/", "edgy", ["restricted"]
+        )
+        self.assertTrue(sources.list == before.list)
+
+        before = copy.deepcopy(sources)
+        sources.add(
+            "deb",
+            "http://de.archive.ubuntu.com/ubuntu/",
+            "natty",
+            ["main"],
+            architectures=["amd64", "i386"],
+        )
+        self.assertEqual(
+            [e.str() for e in sources.list], [e.str() for e in before.list]
+        )
 
         # test to add something new: multiverse
         sources.add(

@@ -145,6 +145,17 @@ class Deb822SourceEntry:
         self.file = file
         self.template: Optional[Template] = None  # type DistInfo.Suite
 
+    def __eq__(self, other: Any) -> Any:
+        #  FIXME: Implement plurals more correctly
+        """equal operator for two sources.list entries"""
+        return (
+            self.disabled == other.disabled
+            and self.type == other.type
+            and self.uri and self.uri.rstrip("/") == other.uri.rstrip("/")
+            and self.dist == other.dist
+            and self.comps == other.comps
+        )
+
     architectures = MultiValueProperty("Architectures", "The list of architectures")
     types = MultiValueProperty("Types", "The list of types")
     type = DeprecatedProperty(SingleValueProperty("Types", "The list of types"))
@@ -501,22 +512,36 @@ class SourcesList(object):
                 if set(source.comps) == set(comps):
                     source.disabled = False
                     return source
-        # there isn't any matching source, so create a new line and parse it
-        parts = [
-            "#" if disabled else "",
-            type,
-            ("[arch=%s]" % ",".join(architectures)) if architectures else "",
-            uri,
-            dist,
-        ]
-        parts.extend(comps)
-        if comment:
-            parts.append("#" + comment)
-        line = " ".join(part for part in parts if part) + "\n"
 
-        new_entry = SourceEntry(line)
-        if file is not None:
-            new_entry.file = file
+        new_entry: AnySourceEntry
+        if file is not None and file.endswith(".sources"):
+            new_entry = Deb822SourceEntry(None, file=file)
+            new_entry.types = [type]
+            new_entry.uris = [uri]
+            new_entry.suites = [dist]
+            new_entry.comps = comps
+            if architectures:
+                new_entry.architectures = list(architectures)
+            new_entry.section.header = "+ # comment"
+            new_entry.disabled = disabled
+        else:
+            # there isn't any matching source, so create a new line and parse it
+            parts = [
+                "#" if disabled else "",
+                type,
+                ("[arch=%s]" % ",".join(architectures)) if architectures else "",
+                uri,
+                dist,
+            ]
+            parts.extend(comps)
+            if comment:
+                parts.append("#" + comment)
+            line = " ".join(part for part in parts if part) + "\n"
+
+            new_entry = SourceEntry(line)
+            if file is not None:
+                new_entry.file = file
+
         self.matcher.match(new_entry)
         if pos < 0:
             self.list.append(new_entry)
