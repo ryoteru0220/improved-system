@@ -444,10 +444,9 @@ class SourcesList(object):
             self.load(file)
         # read sources.list.d
         partsdir = apt_pkg.config.find_dir("Dir::Etc::sourceparts")
-        for file in glob.glob("%s/*.list" % partsdir):
-            self.load(file)
-        for file in glob.glob("%s/*.sources" % partsdir):
-            self.load(file)
+        for file in os.listdir(partsdir):
+            if file.endswith(".sources") or file.endswith(".list"):
+                self.load(os.path.join(partsdir, file))
         # check if the source item fits a predefined template
         for source in self.list:
             if not source.invalid:
