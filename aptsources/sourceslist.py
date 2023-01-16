@@ -57,6 +57,7 @@ T = TypeVar("T")
 
 __all__ = [
     "is_mirror",
+    "Deb822SourceEntry",
     "SourceEntry",
     "NullMatcher",
     "SourcesList",
