@@ -581,7 +581,7 @@ class SourcesList(object):
             shutil.copy(file + backup_ext, file)
         # now sources.list.d
         partsdir = apt_pkg.config.find_dir("Dir::Etc::sourceparts")
-        for file in glob.glob("%s/*.list" % partsdir):
+        for file in glob.glob("%s/*" % partsdir):
             if os.path.exists(file + backup_ext):
                 shutil.copy(file + backup_ext, file)
 
