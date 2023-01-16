@@ -216,10 +216,11 @@ class Deb822SourceEntry:
 
     @property
     def line(self) -> str:
-        """The entire paragraph."""
+        """The entire (original) paragraph."""
         return self._line
 
     def str(self) -> str:
+        """Section as a string, newline terminated."""
         return str(self.section)
 
     def __str__(self) -> str:
