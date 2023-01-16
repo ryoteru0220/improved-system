@@ -619,11 +619,23 @@ class TestAptSources(testcommon.TestCase):
         self.assertTrue("multiverse" in comps)
         self.assertTrue("universe" in comps)
 
-    def testDistribution(self):
+    def testDistribution_short(self):
         """aptsources: Test distribution detection."""
         apt_pkg.config.set(
             "Dir::Etc::sourcelist", "data/aptsources/" "sources.list.testDistribution"
         )
+        return self.commonTestDistribution()
+
+    def testDistribution_deb822(self):
+        """aptsources: Test distribution detection."""
+        apt_pkg.config.set(
+            "Dir::Etc::sourceparts",
+            "data/aptsources/" "sources.list.d.testDistribution",
+        )
+        return self.commonTestDistribution()
+
+    def commonTestDistribution(self):
+        """aptsources: Test distribution detection."""
         sources = aptsources.sourceslist.SourcesList(True, self.templates)
         distro = aptsources.distro.get_distro(
             id="Ubuntu",
