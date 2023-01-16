@@ -595,6 +595,30 @@ class TestAptSources(testcommon.TestCase):
         self.assertTrue("multiverse" in comps)
         self.assertTrue("universe" in comps)
 
+    def test_enable_component_deb822(self):
+        target = (
+            apt_pkg.config.find_dir("dir::etc::sourceparts") + "enable_comps.sources"
+        )
+        line = "Types: deb\nURIs: http://archive.ubuntu.com/ubuntu\nSuites: lucid\nComponents: main\n"
+        with open(target, "w") as target_file:
+            target_file.write(line)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        distro = aptsources.distro.get_distro(id="Ubuntu")
+        # make sure we are using the right distro
+        distro.codename = "lucid"
+        distro.id = "Ubuntu"
+        distro.release = "10.04"
+        # and get the sources
+        distro.get_sources(sources)
+        # test enable_component
+        comp = "multiverse"
+        distro.enable_component(comp)
+        comps = set()
+        for entry in sources:
+            comps = comps.union(set(entry.comps))
+        self.assertTrue("multiverse" in comps)
+        self.assertTrue("universe" in comps)
+
     def testDistribution(self):
         """aptsources: Test distribution detection."""
         apt_pkg.config.set(

@@ -213,6 +213,7 @@ class Deb822SourceEntry:
     def __str__(self) -> str:
         return self.str().strip()
 
+
 class SourceEntry:
     """single sources.list entry"""
 

@@ -335,7 +335,7 @@ class Distribution(object):
             if comp in comps_per_dist[source.dist]:
                 return
             # add it
-            source.comps.append(comp)
+            source.comps += [comp]
             comps_per_dist[source.dist].add(comp)
 
         sources = []
