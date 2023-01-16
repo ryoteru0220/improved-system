@@ -24,12 +24,14 @@ class Section:
     """
 
     def __init__(self, section: str):
-        self.header, self.footer = comments = ["", ""]
+        comments = ["", ""]
         in_section = False
         trimmed_section = ""
 
         for line in section.split("\n"):
             if line.startswith("#"):
+                # remove the leading #
+                line = line[1:]
                 comments[in_section] += line + "\n"
                 continue
 
@@ -37,6 +39,7 @@ class Section:
             trimmed_section += line + "\n"
 
         self.tags = collections.OrderedDict(apt_pkg.TagSection(trimmed_section))
+        self.header, self.footer = comments
 
     def __getitem__(self, key: str) -> str:
         """Get the value of a field."""
@@ -69,12 +72,20 @@ class Section:
         except KeyError:
             return default
 
+    @staticmethod
+    def __comment_lines(content):
+        return (
+            "\n".join("#" + line for line in content.splitlines()) + "\n"
+            if content
+            else ""
+        )
+
     def __str__(self) -> str:
         """Canonical string rendering of this section."""
         return (
-            self.header
+            self.__comment_lines(self.header)
             + "".join(f"{k}: {v}\n" for k, v in self.tags.items())
-            + self.footer
+            + self.__comment_lines(self.footer)
         )
 
 

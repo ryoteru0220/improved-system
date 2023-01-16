@@ -171,6 +171,11 @@ class Deb822SourceEntry:
         """Legacy attribute describing the paragraph header."""
         return self.section.header
 
+    @comment.setter
+    def comment(self, comment: str) -> None:
+        """Legacy attribute describing the paragraph header."""
+        self.section.header = comment
+
     @property
     def trusted(self) -> Optional[bool]:
         try:
@@ -181,7 +186,10 @@ class Deb822SourceEntry:
     @trusted.setter
     def trusted(self, value: Optional[bool]) -> None:
         if value is None:
-            del self.section["Trusted"]
+            try:
+                del self.section["Trusted"]
+            except KeyError:
+                pass
         else:
             self.section["Trusted"] = "yes" if value else "no"
 
@@ -195,7 +203,10 @@ class Deb822SourceEntry:
         if value:
             self.section["Enabled"] = "no"
         else:
-            del self.section["Enabled"]
+            try:
+                del self.section["Enabled"]
+            except KeyError:
+                pass
 
     @property
     def invalid(self) -> bool:
@@ -526,7 +537,7 @@ class SourcesList(object):
             new_entry.comps = comps
             if architectures:
                 new_entry.architectures = list(architectures)
-            new_entry.section.header = "+ # comment"
+            new_entry.section.header = comment
             new_entry.disabled = disabled
         else:
             # there isn't any matching source, so create a new line and parse it
@@ -613,6 +624,8 @@ class SourcesList(object):
             for source in self.list:
                 if source.file not in files:
                     files[source.file] = open(source.file, "w")
+                elif source.file.endswith(".sources"):
+                    files[source.file].write("\n")
                 files[source.file].write(source.str())
         finally:
             for f in files.values():

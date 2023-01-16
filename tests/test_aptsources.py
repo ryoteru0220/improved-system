@@ -93,6 +93,25 @@ class TestAptSources(testcommon.TestCase):
             self.assertEqual(entry.dist, "natty")
             self.assertEqual(entry.architectures, ["amd64", "i386"])
 
+    def testSourcesListWriting_deb822(self):
+        """aptsources: Test sources.list parsing."""
+        apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
+        apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
+        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            for entry in sources.list:
+                entry.file = os.path.join(tmpdir, os.path.basename(entry.file))
+
+            sources.save()
+
+            maxDiff = self.maxDiff
+            self.maxDiff = None
+            for file in os.listdir("data/aptsources/sources.list.d"):
+                with open(os.path.join("data/aptsources/sources.list.d", file)) as a:
+                    with open(os.path.join(tmpdir, file)) as b:
+                        self.assertEqual(a.read(), b.read(), f"file {file}")
+            self.maxDiff = maxDiff
+
     def testSourcesListAdding(self):
         """aptsources: Test additions to sources.list"""
         apt_pkg.config.set("Dir::Etc::sourcelist", "data/aptsources/" "sources.list")
@@ -326,7 +345,7 @@ class TestAptSources(testcommon.TestCase):
         )
         self.assertTrue(sources.list == before.list)
         for entry in sources:
-            self.assertEqual(entry.comment, "")
+            self.assertNotEqual(entry.comment, "this will be lost")
 
         # test to add component to existing entry: multiverse; loses comment
         sources.add(
@@ -337,8 +356,9 @@ class TestAptSources(testcommon.TestCase):
             comment="this will be lost",
         )
         for entry in sources:
-            self.assertEqual(entry.comment, "")
+            self.assertNotEqual(entry.comment, "this will be lost")
 
+        before = copy.deepcopy(sources)
         # test to add entirely new entry; retains comment
         sources.add(
             "deb-src",
@@ -346,7 +366,10 @@ class TestAptSources(testcommon.TestCase):
             "edgy",
             ["main"],
             comment="this will appear",
+            file=sources.list[0].file,  # make sure we test the deb822 code path
         )
+        self.assertNotEqual(sources.list, before.list)
+        self.assertEqual(len(sources.list), len(before.list) + 1)
         found = False
         for entry in sources:
             if (
