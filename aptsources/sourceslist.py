@@ -129,7 +129,7 @@ class MultiValueProperty(property):
     def __get__(
         self, obj: "Deb822SourceEntry", objtype: Optional[type] = None
     ) -> List[str]:
-        return obj.section.get(self.key, "").split()
+        return SourceEntry.mysplit(obj.section.get(self.key, ""))
 
     def __set__(self, obj: "Deb822SourceEntry", values: List[str]) -> None:
         obj.section[self.key] = " ".join(values)
@@ -264,7 +264,8 @@ class SourceEntry:
             and self.comps == other.comps
         )
 
-    def mysplit(self, line: str) -> List[str]:
+    @staticmethod
+    def mysplit(line: str) -> List[str]:
         """a split() implementation that understands the sources.list
         format better and takes [] into account (for e.g. cdroms)"""
         line = line.strip()

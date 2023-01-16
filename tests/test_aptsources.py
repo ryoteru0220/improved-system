@@ -539,6 +539,13 @@ class TestAptSources(testcommon.TestCase):
             if not s.template:
                 self.fail("source entry '%s' has no matcher" % s)
 
+        # Hack in a check for splitting of fields here.
+        if sources.list[-1].file.endswith(".sources"):
+            self.assertEqual(
+                sources.list[-1].uris, ["cdrom:[Ubuntu 8.04 _Hardy Heron_]"]
+            )
+        self.assertEqual(sources.list[-1].uri, "cdrom:[Ubuntu 8.04 _Hardy Heron_]")
+
     def testMultiArch(self):
         """aptsources: Test multi-arch parsing"""
 
