@@ -73,7 +73,7 @@ class Section:
             return default
 
     @staticmethod
-    def __comment_lines(content):
+    def __comment_lines(content: str) -> str:
         return (
             "\n".join("#" + line for line in content.splitlines()) + "\n"
             if content

@@ -219,12 +219,12 @@ class Deb822SourceEntry:
         """The entire (original) paragraph."""
         return self._line
 
+    def __str__(self) -> str:
+        return self.str().strip()
+
     def str(self) -> str:
         """Section as a string, newline terminated."""
         return str(self.section)
-
-    def __str__(self) -> str:
-        return self.str().strip()
 
     def set_enabled(self, enabled: bool) -> None:
         """Deprecated (for deb822) accessor for .disabled"""
