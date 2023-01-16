@@ -224,6 +224,10 @@ class Deb822SourceEntry:
     def __str__(self) -> str:
         return self.str().strip()
 
+    def set_enabled(self, enabled: bool) -> None:
+        """Deprecated (for deb822) accessor for .disabled"""
+        self.disabled = not enabled
+
 
 class SourceEntry:
     """single sources.list entry"""

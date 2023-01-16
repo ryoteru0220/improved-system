@@ -747,11 +747,19 @@ class TestAptSources(testcommon.TestCase):
         """LP: #1042916: Test enabling disabled entry."""
         sources = aptsources.sourceslist.SourcesList(True, self.templates)
         disabled = sources.add(
-            "deb", "http://fi.archive.ubuntu.com/ubuntu/", "precise", ["main"]
+            "deb",
+            "http://fi.archive.ubuntu.com/ubuntu/",
+            "precise",
+            ["main"],
+            file=sources.list[0].file,  # if we use deb822, enable deb822
         )
         disabled.set_enabled(False)
         enabled = sources.add(
-            "deb", "http://fi.archive.ubuntu.com/ubuntu/", "precise", ["main"]
+            "deb",
+            "http://fi.archive.ubuntu.com/ubuntu/",
+            "precise",
+            ["main"],
+            file=sources.list[0].file,  # if we use deb822, enable deb822
         )
         self.assertEqual(disabled, enabled)
         self.assertFalse(disabled.disabled)
