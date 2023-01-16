@@ -446,19 +446,28 @@ class TestAptSources(testcommon.TestCase):
             and "main" in entry.comps
         )
 
-    def testDuplication(self):
+    def testDuplication_short(self):
         apt_pkg.config.set(
             "Dir::Etc::sourcelist", "data/aptsources/sources.list.testDuplication"
         )
+        return self.commonTestDuplication()
+
+    def testDuplication_deb822(self):
+        apt_pkg.config.set(
+            "Dir::Etc::sourceparts", "data/aptsources/sources.list.d.testDuplication"
+        )
+        return self.commonTestDuplication()
+
+    def commonTestDuplication(self):
         sources = aptsources.sourceslist.SourcesList(True, self.templates)
         test_url = "http://ppa.launchpad.net/me/myproject/ubuntu"
         # test to add something that is already there (enabled)
         before = copy.deepcopy(sources)
         sources.add("deb", test_url, "xenial", ["main"])
-        self.assertTrue(sources.list == before.list)
+        self.assertEqual(sources.list, before.list)
         # test to add something that is already there (disabled)
         sources.add("# deb-src", test_url, "xenial", ["main"])
-        self.assertTrue(sources.list == before.list)
+        self.assertEqual(sources.list, before.list)
         # test to enable something that is already there
         sources.add("deb-src", test_url, "xenial", ["main"])
         found = False
