@@ -485,11 +485,23 @@ class TestAptSources(testcommon.TestCase):
                 break
         self.assertTrue(found)
 
-    def testMatcher(self):
+    def testMatcher_short(self):
         """aptsources: Test matcher"""
         apt_pkg.config.set(
             "Dir::Etc::sourcelist", "data/aptsources/" "sources.list.testDistribution"
         )
+        return self.commonTestMatcher()
+
+    def testMatcher_deb822(self):
+        """aptsources: Test matcher"""
+        apt_pkg.config.set(
+            "Dir::Etc::sourceparts",
+            "data/aptsources/" "sources.list.d.testDistribution",
+        )
+        return self.commonTestMatcher()
+
+    def commonTestMatcher(self):
+        """aptsources: Test matcher"""
         sources = aptsources.sourceslist.SourcesList(True, self.templates)
         distro = aptsources.distro.get_distro(
             id="Ubuntu",
@@ -499,6 +511,7 @@ class TestAptSources(testcommon.TestCase):
         )
         distro.get_sources(sources)
         # test if all suits of the current distro were detected correctly
+        self.assertNotEqual(sources.list, [])
         for s in sources:
             if not s.template:
                 self.fail("source entry '%s' has no matcher" % s)
