@@ -558,6 +558,20 @@ class TestAptSources(testcommon.TestCase):
         assert sources.list[9].trusted
         assert sources.list[9].line.strip() == str(sources.list[9])
 
+    def testMultipleOptions_deb822(self):
+        """aptsources: Test multi-arch parsing"""
+
+        apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
+        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        assert sources.list[4].invalid is False
+        assert sources.list[4].type == "deb"
+        assert sources.list[4].architectures == ["amd64", "i386"]
+        self.assertEqual(sources.list[4].uri, "http://de.archive.ubuntu.com/ubuntu/")
+        assert sources.list[4].dist == "natty"
+        assert sources.list[4].comps == ["main"]
+        assert sources.list[4].trusted
+        assert sources.list[4].line.strip() == str(sources.list[4])
+
     def test_enable_component(self):
         target = "./data/aptsources/sources.list.enable_comps"
         line = "deb http://archive.ubuntu.com/ubuntu lucid main\n"
