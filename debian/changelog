@@ -1,3 +1,21 @@
+python-apt (2.5.1) unstable; urgency=medium
+
+  [ Julian Andres Klode ]
+  * aptsources: distinfo: type annotations
+  * Reformat code with black
+  * aptsources: Initial deb822 reading, use SourcesList(..., deb822=True) to opt in.
+    The .distro matcher code has not been fully ported yet, and you will
+    experience issues trying to match distro entries to a deb822 source entry
+    with multiple values in the Types, URIs, Suites field, but this should
+    work for most use cases.
+  * Mirror list updates
+
+  [ Matthias Klumpp ]
+  * Update Debian template information
+  * trivial: Fix Debian changelog URI template
+
+ -- Julian Andres Klode <jak@debian.org>  Mon, 16 Jan 2023 18:44:09 +0100
+
 python-apt (2.5.0) unstable; urgency=medium
 
   [ Jelmer Vernooĳ ]
