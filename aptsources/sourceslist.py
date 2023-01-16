@@ -426,6 +426,8 @@ class SourcesList(object):
         self,
         withMatcher: bool = True,
         matcherPath: str = "/usr/share/python-apt/templates/",
+        *,
+        deb822: bool = False,
     ):
         self.list: List[AnySourceEntry] = []  # the actual SourceEntries Type
         self.matcher: Union[NullMatcher, SourceEntryMatcher]
@@ -433,6 +435,7 @@ class SourcesList(object):
             self.matcher = SourceEntryMatcher(matcherPath)
         else:
             self.matcher = NullMatcher()
+        self.deb822 = deb822
         self.refresh()
 
     def refresh(self) -> None:
@@ -445,7 +448,7 @@ class SourcesList(object):
         # read sources.list.d
         partsdir = apt_pkg.config.find_dir("Dir::Etc::sourceparts")
         for file in os.listdir(partsdir):
-            if file.endswith(".sources") or file.endswith(".list"):
+            if (self.deb822 and file.endswith(".sources")) or file.endswith(".list"):
                 self.load(os.path.join(partsdir, file))
         # check if the source item fits a predefined template
         for source in self.list:

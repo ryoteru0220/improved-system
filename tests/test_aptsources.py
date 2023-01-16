@@ -57,7 +57,7 @@ class TestAptSources(testcommon.TestCase):
     def testSourcesListReading_deb822(self):
         """aptsources: Test sources.list parsing."""
         apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
-        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
         self.assertEqual(len(sources.list), 5)
         # test load
         sources.list = []
@@ -96,8 +96,7 @@ class TestAptSources(testcommon.TestCase):
     def testSourcesListWriting_deb822(self):
         """aptsources: Test sources.list parsing."""
         apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
-        apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
-        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
         with tempfile.TemporaryDirectory() as tmpdir:
             for entry in sources.list:
                 entry.file = os.path.join(tmpdir, os.path.basename(entry.file))
@@ -220,7 +219,7 @@ class TestAptSources(testcommon.TestCase):
         """aptsources: Test additions to sources.list"""
         apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
 
-        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
         # test to add something that is already there (main)
         before = copy.deepcopy(sources)
         sources.add("deb", "http://de.archive.ubuntu.com/ubuntu/", "edgy", ["main"])
@@ -332,7 +331,7 @@ class TestAptSources(testcommon.TestCase):
         self._commonTestAddingWithComment()
 
     def _commonTestAddingWithComment(self):
-        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
 
         # test to add something that is already there (main); loses comment
         before = copy.deepcopy(sources)
@@ -385,7 +384,7 @@ class TestAptSources(testcommon.TestCase):
 
     def testInsertion_deb822(self):
         apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
-        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
 
         # test to insert something that is already there (universe); does not
         # move existing entry (remains at index 2)
@@ -482,7 +481,7 @@ class TestAptSources(testcommon.TestCase):
         return self.commonTestDuplication()
 
     def commonTestDuplication(self):
-        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
         test_url = "http://ppa.launchpad.net/me/myproject/ubuntu"
         # test to add something that is already there (enabled)
         before = copy.deepcopy(sources)
@@ -525,7 +524,7 @@ class TestAptSources(testcommon.TestCase):
 
     def commonTestMatcher(self):
         """aptsources: Test matcher"""
-        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
         distro = aptsources.distro.get_distro(
             id="Ubuntu",
             codename="bionic",
@@ -550,7 +549,7 @@ class TestAptSources(testcommon.TestCase):
         """aptsources: Test multi-arch parsing"""
 
         apt_pkg.config.set("Dir::Etc::sourcelist", "data/aptsources/" "sources.list")
-        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
         assert not sources.list[8].invalid
         assert sources.list[8].type == "deb"
         assert sources.list[8].architectures == ["amd64", "i386"]
@@ -564,7 +563,7 @@ class TestAptSources(testcommon.TestCase):
         """aptsources: Test multi-arch parsing"""
 
         apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
-        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
         assert not sources.list[3].invalid
         assert sources.list[3].type == "deb"
         assert sources.list[3].architectures == ["amd64", "i386"]
@@ -592,7 +591,7 @@ class TestAptSources(testcommon.TestCase):
         """aptsources: Test multi-arch parsing"""
 
         apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
-        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
         assert sources.list[4].invalid is False
         assert sources.list[4].type == "deb"
         assert sources.list[4].architectures == ["amd64", "i386"]
@@ -632,7 +631,7 @@ class TestAptSources(testcommon.TestCase):
         line = "Types: deb\nURIs: http://archive.ubuntu.com/ubuntu\nSuites: lucid\nComponents: main\n"
         with open(target, "w") as target_file:
             target_file.write(line)
-        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
         distro = aptsources.distro.get_distro(id="Ubuntu")
         # make sure we are using the right distro
         distro.codename = "lucid"
@@ -666,7 +665,7 @@ class TestAptSources(testcommon.TestCase):
 
     def commonTestDistribution(self):
         """aptsources: Test distribution detection."""
-        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
         distro = aptsources.distro.get_distro(
             id="Ubuntu",
             codename="bionic",
@@ -752,7 +751,7 @@ class TestAptSources(testcommon.TestCase):
 
     def common_test_enable_disabled(self):
         """LP: #1042916: Test enabling disabled entry."""
-        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
         disabled = sources.add(
             "deb",
             "http://fi.archive.ubuntu.com/ubuntu/",
@@ -783,7 +782,7 @@ class TestAptSources(testcommon.TestCase):
 
     def common_test_duplicate_uri_with_trailing_slash(self):
         """Test replacing entry with same uri except trailing slash"""
-        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
         line_wslash = "deb http://rslash.ubuntu.com/ubuntu/ precise main"
         line_woslash = "deb http://rslash.ubuntu.com/ubuntu precise main"
         entry_wslash = aptsources.sourceslist.SourceEntry(line_wslash)
