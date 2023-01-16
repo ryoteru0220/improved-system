@@ -210,6 +210,8 @@ class Deb822SourceEntry:
     def str(self) -> str:
         return str(self.section)
 
+    def __str__(self) -> str:
+        return self.str().strip()
 
 class SourceEntry:
     """single sources.list entry"""

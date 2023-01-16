@@ -530,6 +530,20 @@ class TestAptSources(testcommon.TestCase):
         assert sources.list[8].line.strip() == str(sources.list[8])
         assert sources.list[8].trusted is None
 
+    def testMultiArch_deb822(self):
+        """aptsources: Test multi-arch parsing"""
+
+        apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
+        sources = aptsources.sourceslist.SourcesList(True, self.templates)
+        assert not sources.list[3].invalid
+        assert sources.list[3].type == "deb"
+        assert sources.list[3].architectures == ["amd64", "i386"]
+        assert sources.list[3].uri == "http://de.archive.ubuntu.com/ubuntu/"
+        assert sources.list[3].dist == "natty"
+        assert sources.list[3].comps == ["main"]
+        self.assertEqual(sources.list[3].line.strip(), str(sources.list[3]))
+        self.assertIsNone(sources.list[3].trusted)
+
     def testMultipleOptions(self):
         """aptsources: Test multi-arch parsing"""
 
