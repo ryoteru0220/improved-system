@@ -710,9 +710,18 @@ class TestAptSources(testcommon.TestCase):
         self.assertEqual("16.04", distro.release)
         self.assertEqual(["ubuntu", "debian"], distro.is_like)
 
-    def test_enable_disabled(self):
+    def test_enable_disabled_short(self):
         """LP: #1042916: Test enabling disabled entry."""
         apt_pkg.config.set("Dir::Etc::sourcelist", "data/aptsources/" "sources.list")
+        return self.common_test_enable_disabled()
+
+    def test_enable_disabled_deb822(self):
+        """LP: #1042916: Test enabling disabled entry."""
+        apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
+        return self.common_test_enable_disabled()
+
+    def common_test_enable_disabled(self):
+        """LP: #1042916: Test enabling disabled entry."""
         sources = aptsources.sourceslist.SourcesList(True, self.templates)
         disabled = sources.add(
             "deb", "http://fi.archive.ubuntu.com/ubuntu/", "precise", ["main"]
@@ -724,9 +733,18 @@ class TestAptSources(testcommon.TestCase):
         self.assertEqual(disabled, enabled)
         self.assertFalse(disabled.disabled)
 
-    def test_duplicate_uri_with_trailing_slash(self):
+    def test_duplicate_uri_with_trailing_slash_short(self):
         """Test replacing entry with same uri except trailing slash"""
         apt_pkg.config.set("Dir::Etc::sourcelist", "data/aptsources/" "sources.list")
+        return self.common_test_duplicate_uri_with_trailing_slash()
+
+    def test_duplicate_uri_with_trailing_slash_deb822(self):
+        """Test replacing entry with same uri except trailing slash"""
+        apt_pkg.config.set("Dir::Etc::sourceparts", "data/aptsources/" "sources.list.d")
+        return self.common_test_duplicate_uri_with_trailing_slash()
+
+    def common_test_duplicate_uri_with_trailing_slash(self):
+        """Test replacing entry with same uri except trailing slash"""
         sources = aptsources.sourceslist.SourcesList(True, self.templates)
         line_wslash = "deb http://rslash.ubuntu.com/ubuntu/ precise main"
         line_woslash = "deb http://rslash.ubuntu.com/ubuntu precise main"
