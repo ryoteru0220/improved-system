@@ -38,6 +38,7 @@ http://debian.c3sl.ufpr.br/debian/
 http://debian.itsbrasil.net/debian/
 http://debian.pop-sc.rnp.br/debian/
 http://ftp.br.debian.org/debian/
+http://mirror.uepg.br/debian/
 http://mirror.unesp.br/debian/
 #LOC:BY
 http://ftp.by.debian.org/debian/
@@ -68,6 +69,7 @@ http://mirrors.163.com/debian/
 http://mirrors.bfsu.edu.cn/debian/
 http://mirrors.hit.edu.cn/debian/
 http://mirrors.huaweicloud.com/debian/
+http://mirrors.neusoft.edu.cn/debian/
 http://mirrors.tuna.tsinghua.edu.cn/debian/
 http://mirrors.ustc.edu.cn/debian/
 #LOC:CR
@@ -76,7 +78,6 @@ http://mirrors.ucr.ac.cr/debian/
 #LOC:CZ
 http://debian.mirror.web4u.cz/
 http://debian.superhosting.cz/debian/
-http://ftp.cvut.cz/debian/
 http://ftp.cz.debian.org/debian/
 http://ftp.debian.cz/debian/
 http://ftp.zcu.cz/debian/
@@ -103,14 +104,12 @@ http://ftp.tu-chemnitz.de/debian/
 http://ftp.tu-clausthal.de/debian/
 http://ftp.uni-bayreuth.de/debian/
 http://ftp.uni-hannover.de/debian/debian/
-http://ftp.uni-kl.de/debian/
 http://ftp.uni-mainz.de/debian/
 http://ftp.wrz.de/debian/
 http://mirror.23m.com/debian/
 http://mirror.de.leaseweb.net/debian/
 http://mirror.dogado.de/debian/
 http://mirror.eu.oneandone.net/debian/
-http://mirror.informatik.tu-freiberg.de/debian/
 http://mirror.ipb.de/debian/
 http://mirror.netzwerge.de/debian/
 http://mirror.united-gameserver.de/debian/
@@ -144,7 +143,6 @@ http://www.nic.funet.fi/debian/
 #LOC:FR
 http://apt.tetaneutral.net/debian/
 http://deb-mir1.naitways.net/debian/
-http://debian.apt-mirror.de/debian/
 http://debian.mirror.ate.info/
 http://debian.obspm.fr/debian/
 http://debian.polytech-lille.fr/debian/
@@ -196,12 +194,14 @@ http://ftp.hu.debian.org/debian/
 http://repo.jztkft.hu/debian/
 #LOC:ID
 http://kebo.pens.ac.id/debian/
+http://mirror.poliwangi.ac.id/debian/
 #LOC:IL
 http://debian.interhost.co.il/debian/
 http://mirror.isoc.org.il/pub/debian/
 #LOC:IN
 http://debian.mirror.net.in/debian/
 #LOC:IR
+http://archive.debian.petiak.ir/debian/
 http://debian.asis.ai/debian/
 http://mirrors.pardisco.co/debian/
 #LOC:IS
@@ -266,8 +266,6 @@ http://mirror.i3d.net/debian/
 http://mirror.nforce.com/debian/
 http://mirror.nl.datapacket.com/debian/
 http://mirror.nl.leaseweb.net/debian/
-http://mirror.seedvps.com/debian/
-http://mirror.serverius.net/debian/
 http://mirrors.xtom.nl/debian/
 http://nl.mirrors.clouvider.net/debian/
 #LOC:NO
