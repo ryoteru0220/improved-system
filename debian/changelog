@@ -1,3 +1,17 @@
+python-apt (2.5.2) unstable; urgency=medium
+
+  [ Jelmer Vernooĳ ]
+  * Allow sources.list.d to not exist
+
+  [ Julian Andres Klode ]
+  * Fix Debian templates to fix FTBFS/test failure.
+    We copied the URI regex from the templated section, so they had
+    {{0,1}}, but these sections had a fixed codename, so there's no
+    expansion, so it needs to be {0,1} here.
+  * Update mirror lists
+
+ -- Julian Andres Klode <jak@debian.org>  Mon, 23 Jan 2023 10:51:16 +0100
+
 python-apt (2.5.1) unstable; urgency=medium
 
   [ Julian Andres Klode ]
