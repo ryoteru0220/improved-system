@@ -140,8 +140,14 @@ def DeprecatedProperty(prop: T) -> T:
 
 
 class Deb822SourceEntry:
-    def __init__(self, section: Optional[_deb822.Section], file: str):
-        self.section = section if section is not None else _deb822.Section("")
+    def __init__(self, section: Optional[Union[_deb822.Section, str]], file: str):
+        if section is None:
+            self.section = _deb822.Section("")
+        elif isinstance(section, str):
+            self.section = _deb822.Section(section)
+        else:
+            self.section = section
+
         self._line = str(self.section)
         self.file = file
         self.template: Optional[Template] = None  # type DistInfo.Suite
