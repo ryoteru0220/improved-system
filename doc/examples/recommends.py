@@ -21,7 +21,7 @@ for package in cache.packages:
     if not current:
         continue
     depends = current.depends_list
-    for (key, attr) in (("Suggests", "suggested"), ("Recommends", "recommended")):
+    for key, attr in (("Suggests", "suggested"), ("Recommends", "recommended")):
         list = depends.get(key, [])
         for dependency in list:
             name = dependency[0].target_pkg.name

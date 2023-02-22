@@ -275,7 +275,6 @@ class IndexFile:
     size: int
 
 class SourceRecordFiles:
-
     hashes: HashStringList
     path: str
     size: int

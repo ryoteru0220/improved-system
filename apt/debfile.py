@@ -370,7 +370,7 @@ class DebPackage(object):
         else:
             pkgver = None
         for or_group in self.replaces:
-            for (name, ver, oper) in or_group:
+            for name, ver, oper in or_group:
                 if name == pkgname and (
                     pkgver is None or apt_pkg.check_dep(pkgver, oper, ver)
                 ):
@@ -412,7 +412,7 @@ class DebPackage(object):
         debarch = self._sections["Architecture"]
         # store what we provide so that we can later check against that
         provides = [x[0][0] for x in self.provides]
-        for (i, pkg) in enumerate(self._cache):
+        for i, pkg in enumerate(self._cache):
             if i % steps == 0:
                 self._cache.op_progress.update(float(i) / size * 100.0)
             if not pkg.is_installed:
@@ -669,7 +669,7 @@ class DebPackage(object):
     def to_hex(in_data):
         # type: (str) -> str
         hex = ""
-        for (i, c) in enumerate(in_data):
+        for i, c in enumerate(in_data):
             if i % 80 == 0:
                 hex += "\n"
             hex += "%2.2x " % ord(c)

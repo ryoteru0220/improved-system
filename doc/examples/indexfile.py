@@ -11,7 +11,7 @@ cache = apt_pkg.Cache()
 depcache = apt_pkg.DepCache(cache)
 pkg = cache["libimlib2"]
 cand = depcache.get_candidate_ver(pkg)
-for (f, i) in cand.file_list:
+for f, i in cand.file_list:
     index = sources.find_index(f)
     print(index)
     if index:

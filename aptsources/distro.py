@@ -537,7 +537,6 @@ def _system_image_channel():
 
 
 class _OSRelease:
-
     DEFAULT_OS_RELEASE_FILE = "/etc/os-release"
     OS_RELEASE_FILE = "/etc/os-release"
 
