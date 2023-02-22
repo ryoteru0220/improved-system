@@ -5,9 +5,11 @@ variables:
 typing:
   script:
   - apt update
-  - apt install -q -y python3-pip
-  - python3 -m pip install -U mypy
-  - env MYPYPATH=$PWD/typehinting/ mypy --strict ./apt
+  - apt install -q -y python3-full
+  - mkdir -p venv
+  - python3 -m venv venv
+  - ./venv/bin/pip install -U mypy
+  - env MYPYPATH=$PWD/typehinting/ ./venv/bin/mypy --strict ./apt
 
 pep8:
   script:
