@@ -135,7 +135,7 @@ class TestAptCache(testcommon.TestCase):
         li = cache["mail-transport-agent"].provides_list
         # arbitrary number, just needs to be higher enough
         self.assertEqual(len(li), 2)
-        for (providesname, providesver, version) in li:
+        for providesname, providesver, version in li:
             self.assertEqual(providesname, "mail-transport-agent")
             if version.parent_pkg.name == "postfix":
                 break

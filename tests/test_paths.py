@@ -12,7 +12,6 @@ import testcommon
 
 
 class TestPath(testcommon.TestCase):
-
     dir_unicode = "data/tmp"
     dir_bytes = b"data/tmp"
     file_unicode = "data/tmp/python-apt-test"
