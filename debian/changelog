@@ -1,3 +1,12 @@
+python-apt (2.5.3) unstable; urgency=medium
+
+  [ Nick Rosbrook ]
+  * deb822: allow initializing a Deb822SourceEntry from string
+  * all: fix PEP8 formatting
+  * .gitlab-ci.yml: update typing stage to use venv
+
+ -- Julian Andres Klode <jak@debian.org>  Thu, 23 Feb 2023 21:38:02 +0100
+
 python-apt (2.5.2) unstable; urgency=medium
 
   [ Jelmer Vernooĳ ]
