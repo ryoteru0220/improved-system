@@ -878,7 +878,7 @@ class Version(object):
                 % (
                     self.package.name,
                     self.version,
-                    getattr(index, "describe", "<unkown>"),
+                    getattr(index, "describe", "<unknown>"),
                 )
             )
         if not self.uri:
