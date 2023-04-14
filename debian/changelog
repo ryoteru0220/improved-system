@@ -1,3 +1,11 @@
+python-apt (2.5.3ubuntu1) lunar; urgency=medium
+
+  * Update mirror lists
+  * debian/gbp.conf: Point at ubuntu/lunar branch
+  * .gitlab-ci.yml: Point at ubuntu:lunar
+
+ -- Julian Andres Klode <juliank@ubuntu.com>  Fri, 14 Apr 2023 17:14:22 +0200
+
 python-apt (2.5.3) unstable; urgency=medium
 
   [ Nick Rosbrook ]
