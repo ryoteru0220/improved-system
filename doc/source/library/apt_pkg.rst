@@ -1099,7 +1099,7 @@ Example:
 
 Example: Find all missing dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-With the help of Dependency.AllTargets(), you can easily find all packages with
+With the help of Dependency.all_targets(), you can easily find all packages with
 broken dependencies:
 
 .. literalinclude:: ../examples/missing-deps.py
