@@ -209,7 +209,7 @@ static PyMethodDef filelock_methods[] = {
     {NULL}
 };
 
-static char *filelock_doc = "SystemLock(filename: str)\n\n"
+static char *filelock_doc = "FileLock(filename: str)\n\n"
     "Context manager for locking using a file. The lock is established\n"
     "as soon as the method __enter__() is called. It is released when\n"
     "__exit__() is called.\n\n"
