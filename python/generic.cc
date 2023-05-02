@@ -20,33 +20,40 @@ using namespace std;
 /* We throw away all warnings and only propogate the first error. */
 PyObject *HandleErrors(PyObject *Res)
 {
-   if (_error->PendingError() == false)
-   {
-      // Throw away warnings
-      _error->Discard();
-      return Res;
-   }
-
    if (Res != 0) {
-      Py_DECREF(Res);
    }
 
    string Err;
    int errcnt = 0;
+   int wrncnt = 0;
    while (_error->empty() == false)
    {
       string Msg;
       bool Type = _error->PopMessage(Msg);
-      if (errcnt > 0)
+      if (errcnt > 0 || wrncnt > 0)
          Err.append(", ");
       Err.append((Type == true ? "E:" : "W:"));
       Err.append(Msg);
-      ++errcnt;
+      if (Type)
+          ++errcnt;
+      else
+          ++wrncnt;
    }
-   if (errcnt == 0)
-      Err = "Internal Error";
-   PyErr_SetString(PyAptError,Err.c_str());
-   return 0;
+   if (errcnt > 0)
+   {
+       PyErr_SetString(PyAptError,Err.c_str());
+       goto err;
+   }
+   else if (wrncnt > 0)
+   {
+       if (PyErr_WarnEx(PyAptWarning, Err.c_str(), 1) == -1)
+           goto err;
+   }
+
+   return Res;
+err:
+    Py_DECREF(Res);
+    return nullptr;
 }
 
 									/*}}}*/

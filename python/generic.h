@@ -37,6 +37,7 @@
  * Exception class for almost all Python errors
  */
 extern PyObject *PyAptError;
+extern PyObject *PyAptWarning;
 /**
  * Exception class for invalidated cache objects.
  */
