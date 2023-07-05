@@ -414,6 +414,21 @@ class SourceEntry:
         line += "\n"
         return line
 
+    @property
+    def types(self) -> List[str]:
+        """deb822 compatible accessor for the type"""
+        return [self.type]
+
+    @property
+    def uris(self) -> List[str]:
+        """deb822 compatible accessor for the uri"""
+        return [self.uri]
+
+    @property
+    def suites(self) -> List[str]:
+        """deb822 compatible accessor for the suite"""
+        return [self.dist]
+
 
 AnySourceEntry = Union[SourceEntry, Deb822SourceEntry]
 
