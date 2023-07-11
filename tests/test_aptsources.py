@@ -648,6 +648,263 @@ class TestAptSources(testcommon.TestCase):
         self.assertTrue("multiverse" in comps)
         self.assertTrue("universe" in comps)
 
+    def test_enable_component_deb822_multi(self):
+        apt_pkg.config.set("Dir::Etc::sourcelist", "/dev/null")
+
+        target = (
+            apt_pkg.config.find_dir("dir::etc::sourceparts") + "enable_comps.sources"
+        )
+        line = "Types: deb\nURIs: http://archive.ubuntu.com/ubuntu\nSuites: lucid lucid-updates\nComponents: main\n"
+        with open(target, "w") as target_file:
+            target_file.write(line)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
+        distro = aptsources.distro.get_distro(id="Ubuntu")
+        # make sure we are using the right distro
+        distro.codename = "lucid"
+        distro.id = "Ubuntu"
+        distro.release = "10.04"
+        # and get the sources
+        distro.get_sources(sources)
+        self.assertEqual(len(distro.main_sources), 1)
+        self.assertEqual(len(sources.list), 1)
+        # test enable_component
+        comp = "multiverse"
+        distro.enable_component(comp)
+        self.assertEqual(len(sources.list), 2)  # split into two
+
+        self.assertEqual(
+            "Types: deb\n"
+            "URIs: http://archive.ubuntu.com/ubuntu\n"
+            "Suites: lucid\n"
+            "Components: main multiverse universe",
+            str(sources.list[0]),
+        )
+        self.assertEqual(
+            "Types: deb\n"
+            "URIs: http://archive.ubuntu.com/ubuntu\n"
+            "Suites: lucid-updates\n"
+            "Components: main multiverse universe",
+            str(sources.list[1]),
+        )
+
+        comps = set()
+        for entry in sources:
+            comps = comps.union(set(entry.comps))
+        self.assertTrue("multiverse" in comps)
+        self.assertTrue("universe" in comps)
+
+        sources.save()
+        self.assertEqual(
+            "Types: deb\n"
+            "URIs: http://archive.ubuntu.com/ubuntu\n"
+            "Suites: lucid lucid-updates\n"
+            "Components: main multiverse universe",
+            str(sources.list[0]),
+        )
+
+    def test_enable_component_deb822_multi_mixed_origin(self):
+        apt_pkg.config.set("Dir::Etc::sourcelist", "/dev/null")
+
+        target = (
+            apt_pkg.config.find_dir("dir::etc::sourceparts") + "enable_comps.sources"
+        )
+        line = "Types: deb\nURIs: http://archive.ubuntu.com/ubuntu http://example.com/\nSuites: lucid\nComponents: main\n"
+        with open(target, "w") as target_file:
+            target_file.write(line)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
+        distro = aptsources.distro.get_distro(id="Ubuntu")
+        # make sure we are using the right distro
+        distro.codename = "lucid"
+        distro.id = "Ubuntu"
+        distro.release = "10.04"
+        # and get the sources
+        distro.get_sources(sources)
+        self.assertEqual(len(distro.main_sources), 2)
+        self.assertEqual(len(sources.list), 1)
+        # test enable_component
+        comp = "multiverse"
+        distro.enable_component(comp)
+        self.assertEqual(len(sources.list), 2)  # split into two
+
+        self.assertEqual(
+            "Types: deb\n"
+            "URIs: http://archive.ubuntu.com/ubuntu\n"
+            "Suites: lucid\n"
+            "Components: main multiverse universe",
+            str(sources.list[0]),
+        )
+        self.assertEqual(
+            "Types: deb\n"
+            "URIs: http://example.com/\n"
+            "Suites: lucid\n"
+            "Components: main",
+            str(sources.list[1]),
+        )
+
+        sources.save()
+        self.assertEqual(
+            "Types: deb\n"
+            "URIs: http://archive.ubuntu.com/ubuntu\n"
+            "Suites: lucid\n"
+            "Components: main multiverse universe",
+            str(sources.list[0]),
+        )
+        self.assertEqual(
+            "Types: deb\n"
+            "URIs: http://example.com/\n"
+            "Suites: lucid\n"
+            "Components: main",
+            str(sources.list[1]),
+        )
+
+    def test_enable_component_deb822_multi_mixed_ultimate(self):
+        apt_pkg.config.set("Dir::Etc::sourcelist", "/dev/null")
+
+        target = (
+            apt_pkg.config.find_dir("dir::etc::sourceparts") + "enable_comps.sources"
+        )
+        line = "Types: deb deb-src\nURIs: http://archive.ubuntu.com/ubuntu http://example.com/\nSuites: lucid lucid-updates notalucid\nComponents: main\n"
+        with open(target, "w") as target_file:
+            target_file.write(line)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
+        distro = aptsources.distro.get_distro(id="Ubuntu")
+        # make sure we are using the right distro
+        distro.codename = "lucid"
+        distro.id = "Ubuntu"
+        distro.release = "10.04"
+        # and get the sources
+        distro.get_sources(sources)
+        self.assertEqual(len(distro.main_sources), 1)
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 12)
+        # test enable_component
+        comp = "multiverse"
+        distro.enable_component(comp)
+        self.assertEqual(len(sources.list), 12)  # split into two
+
+        expected = []
+        for typ in "deb", "deb-src":
+            for uri in "http://archive.ubuntu.com/ubuntu", "http://example.com/":
+                for suite in "lucid", "lucid-updates", "notalucid":
+                    comps = "main multiverse universe"
+                    # unofficial source ends up without enablement
+                    if uri == "http://example.com/" or suite == "notalucid":
+                        comps = "main"
+                    expected.append(
+                        f"Types: {typ}\n"
+                        f"URIs: {uri}\n"
+                        f"Suites: {suite}\n"
+                        f"Components: {comps}"
+                    )
+
+        self.maxDiff = None
+        self.assertEqual(expected, list(map(str, sources.list)))
+        sources.save()
+
+        expected = [
+            "Types: deb deb-src\n"
+            "URIs: http://archive.ubuntu.com/ubuntu\n"
+            "Suites: lucid lucid-updates\n"
+            "Components: main multiverse universe",
+            # unofficial suite
+            "Types: deb deb-src\n"
+            "URIs: http://archive.ubuntu.com/ubuntu http://example.com/\n"
+            "Suites: notalucid\n"
+            "Components: main",
+            # unofficial mirror, FIXME: We'd rather merge the notalucid into here
+            "Types: deb deb-src\n"
+            "URIs: http://example.com/\n"
+            "Suites: lucid lucid-updates\n"
+            "Components: main",
+        ]
+        self.maxDiff = None
+        self.assertEqual(expected, list(map(str, sources.list)))
+
+    def test_deb822_explode(self):
+        apt_pkg.config.set("Dir::Etc::sourcelist", "/dev/null")
+        target = (
+            apt_pkg.config.find_dir("dir::etc::sourceparts") + "enable_comps.sources"
+        )
+        line = "Types: deb\nURIs: http://archive.ubuntu.com/ubuntu\nSuites: lucid\nComponents: main\n"
+        with open(target, "w") as target_file:
+            target_file.write(line)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
+
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 1)
+        self.assertIsInstance(
+            sources.exploded_list()[0], aptsources.sourceslist.Deb822SourceEntry
+        )
+
+        sources.list[0].suites += ["fakesuite"]
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 2)
+        self.assertIsInstance(
+            sources.exploded_list()[0], aptsources.sourceslist.ExplodedDeb822SourceEntry
+        )
+        self.assertIsInstance(
+            sources.exploded_list()[1], aptsources.sourceslist.ExplodedDeb822SourceEntry
+        )
+        self.assertEqual(sources.list[0].suites, ["lucid", "fakesuite"])
+        sources.remove(sources.exploded_list()[1])
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 1)
+        self.assertEqual(sources.list[0].suites, ["lucid"])
+
+        sources.list[0].types += ["deb-src"]
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 2)
+        self.assertIsInstance(
+            sources.exploded_list()[0], aptsources.sourceslist.ExplodedDeb822SourceEntry
+        )
+        self.assertIsInstance(
+            sources.exploded_list()[1], aptsources.sourceslist.ExplodedDeb822SourceEntry
+        )
+        self.assertEqual(sources.list[0].types, ["deb", "deb-src"])
+        sources.remove(sources.exploded_list()[1])
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 1)
+        self.assertEqual(sources.list[0].types, ["deb"])
+
+        sources.list[0].uris += ["http://example.com"]
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 2)
+        self.assertIsInstance(
+            sources.exploded_list()[0], aptsources.sourceslist.ExplodedDeb822SourceEntry
+        )
+        self.assertIsInstance(
+            sources.exploded_list()[1], aptsources.sourceslist.ExplodedDeb822SourceEntry
+        )
+        self.assertEqual(
+            sources.list[0].uris,
+            ["http://archive.ubuntu.com/ubuntu", "http://example.com"],
+        )
+        sources.remove(sources.exploded_list()[1])
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 1)
+        self.assertEqual(sources.list[0].uris, ["http://archive.ubuntu.com/ubuntu"])
+
+        # test setting attributes
+        sources.list[0].uris += ["http://example.com"]
+        with self.assertRaises(AttributeError):
+            sources.exploded_list()[0].types = ["does not work"]
+        with self.assertRaises(AttributeError):
+            sources.exploded_list()[0].uris = ["does not work"]
+        with self.assertRaises(AttributeError):
+            sources.exploded_list()[0].suites = ["does not work"]
+        with self.assertRaises(AttributeError):
+            sources.exploded_list()[0].doesnotexist = ["does not work"]
+
+        # test overriding
+        sources.exploded_list()[0].type = "faketype"
+        self.assertEqual(sources.list[0].type, "faketype")
+        self.assertEqual(sources.list[1].type, "deb")
+        sources.exploded_list()[0].type = "deb"
+        self.assertEqual(sources.list[0].type, "deb")
+        self.assertEqual(sources.list[1].type, "deb")
+        sources.save()
+        self.assertEqual(len(sources.list), 1)
+
     def testDistribution_short(self):
         """aptsources: Test distribution detection."""
         apt_pkg.config.set(

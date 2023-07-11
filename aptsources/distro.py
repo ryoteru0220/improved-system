@@ -97,7 +97,7 @@ class Distribution(object):
         cdrom_comps = []
         enabled_comps = []
         # source_code = []
-        for source in self.sourceslist.list:
+        for source in self.sourceslist.exploded_list():
             if (
                 not source.invalid
                 and self.is_codename(source.dist)

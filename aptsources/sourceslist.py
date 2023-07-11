@@ -23,6 +23,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 #  USA
 
+import builtins
 import glob
 import io
 import logging
@@ -42,6 +43,7 @@ from typing import (
     TypeVar,
     Union,
 )
+import weakref
 
 import apt_pkg
 from .distinfo import DistInfo, Template
@@ -108,8 +110,10 @@ class SingleValueProperty(property):
         self.__doc__ = doc
 
     def __get__(
-        self, obj: "Deb822SourceEntry", objtype: Optional[type] = None
+        self, obj: Optional["Deb822SourceEntry"], objtype: Optional[type] = None
     ) -> Optional[str]:
+        if obj is None:
+            return self  # type: ignore
         return obj.section.get(self.key, None)
 
     def __set__(self, obj: "Deb822SourceEntry", value: Optional[str]) -> None:
@@ -125,8 +129,10 @@ class MultiValueProperty(property):
         self.__doc__ = doc
 
     def __get__(
-        self, obj: "Deb822SourceEntry", objtype: Optional[type] = None
+        self, obj: Optional["Deb822SourceEntry"], objtype: Optional[type] = None
     ) -> List[str]:
+        if obj is None:
+            return self  # type: ignore
         return SourceEntry.mysplit(obj.section.get(self.key, ""))
 
     def __set__(self, obj: "Deb822SourceEntry", values: List[str]) -> None:
@@ -137,8 +143,18 @@ def DeprecatedProperty(prop: T) -> T:
     return prop
 
 
+def _null_weakref() -> None:
+    """Behaves like an expired weakref.ref, returning None"""
+    return None
+
+
 class Deb822SourceEntry:
-    def __init__(self, section: Optional[Union[_deb822.Section, str]], file: str):
+    def __init__(
+        self,
+        section: Optional[Union[_deb822.Section, str]],
+        file: str,
+        list: Optional["SourcesList"] = None,
+    ):
         if section is None:
             self.section = _deb822.Section("")
         elif isinstance(section, str):
@@ -149,6 +165,13 @@ class Deb822SourceEntry:
         self._line = str(self.section)
         self.file = file
         self.template: Optional[Template] = None  # type DistInfo.Suite
+        self.may_merge = False
+        self._children = weakref.WeakSet["ExplodedDeb822SourceEntry"]()
+
+        if list:
+            self._list: Callable[[], Optional[SourcesList]] = weakref.ref(list)
+        else:
+            self._list = _null_weakref
 
     def __eq__(self, other: Any) -> Any:
         #  FIXME: Implement plurals more correctly
@@ -183,6 +206,7 @@ class Deb822SourceEntry:
 
     @property
     def trusted(self) -> Optional[bool]:
+        """Return the value of the Trusted field"""
         try:
             return apt_pkg.string_to_bool(self.section["Trusted"])
         except KeyError:
@@ -232,6 +256,232 @@ class Deb822SourceEntry:
 
     def set_enabled(self, enabled: bool) -> None:
         """Deprecated (for deb822) accessor for .disabled"""
+        self.disabled = not enabled
+
+    def merge(self, other: "AnySourceEntry") -> bool:
+        """Merge the two entries if they are compatible."""
+        if not self.may_merge:
+            return False
+        if self.file != other.file:
+            return False
+        if not isinstance(other, Deb822SourceEntry):
+            return False
+        if self.comment != other.comment or self.section.get(
+            "Signed-By"
+        ) != other.section.get("Signed-By"):
+            return False
+
+        for tag in list(self.section.tags) + list(other.section.tags):
+            if tag.lower() in (
+                "types",
+                "uris",
+                "suites",
+                "components",
+                "architectures",
+            ):
+                continue
+            in_self = self.section.get(tag, None)
+            in_other = other.section.get(tag, None)
+            if in_self != in_other:
+                return False
+
+        if (
+            sum(
+                [
+                    set(self.types) != set(other.types),
+                    set(self.uris) != set(other.uris),
+                    set(self.suites) != set(other.suites),
+                    set(self.comps) != set(other.comps),
+                    set(self.architectures) != set(other.architectures),
+                ]
+            )
+            > 1
+        ):
+            return False
+
+        for typ in other.types:
+            if typ not in self.types:
+                self.types += [typ]
+
+        for uri in other.uris:
+            if uri not in self.uris:
+                self.uris += [uri]
+
+        for suite in other.suites:
+            if suite not in self.suites:
+                self.suites += [suite]
+
+        for component in other.comps:
+            if component not in self.comps:
+                self.comps += [component]
+
+        for arch in other.architectures:
+            if arch not in self.architectures:
+                self.architectures += [arch]
+
+        return True
+
+    def _reparent_children(self, to):
+        """If we end up being split, check if any of our children need to be reparented to the new parent."""
+        for child in self._children:
+            for typ in to.types:
+                for uri in to.uris:
+                    for suite in to.suites:
+                        if (child._type, child._uri, child._suite) == (typ, uri, suite):
+                            assert child.parent == self
+                            child._parent = weakref.ref(to)
+
+
+class ExplodedDeb822SourceEntry:
+    """This represents a bit of a deb822 paragraph corresponding to a legacy sources.list entry"""
+
+    # Mostly we use slots to prevent accidentally assigning unproxied attributes
+    __slots__ = ["_parent", "_type", "_uri", "_suite", "template", "__weakref__"]
+
+    def __init__(self, parent: Deb822SourceEntry, typ, uri, suite):
+        self._parent = weakref.ref(parent)
+        self._type = typ
+        self._uri = uri
+        self._suite = suite
+        self.template = parent.template
+        parent._children.add(self)
+
+    @property
+    def parent(self) -> Deb822SourceEntry:
+        if self._parent is not None:
+            if (parent := self._parent()) is not None:
+                return parent
+        raise ValueError("The parent entry is no longer valid")
+
+    @property
+    def uri(self) -> str:
+        self.__check_valid()
+        return self._uri
+
+    @uri.setter  # type: ignore
+    def uri(self, uri: str) -> None:
+        self.split_out()
+        self.parent.uris = [u if u != self._uri else uri for u in self.parent.uris]
+        self._uri = uri
+
+    @property
+    def types(self) -> List[str]:
+        return [self.type]
+
+    @property
+    def suites(self) -> List[str]:
+        return [self.dist]
+
+    @property
+    def uris(self) -> List[str]:
+        return [self.uri]
+
+    @property
+    def type(self) -> str:
+        self.__check_valid()
+        return self._type
+
+    @type.setter
+    def type(self, typ: str) -> None:
+        self.split_out()
+        self.parent.types = [typ]
+        self._type = typ
+        self.__check_valid()
+        assert self._type == typ
+        assert self.parent.types == [self._type]
+
+    @property
+    def dist(self) -> str:
+        self.__check_valid()
+        return self._suite
+
+    @dist.setter
+    def dist(self, suite: str) -> None:
+        self.split_out()
+        self.parent.suites = [suite]
+        self._suite = suite
+        self.__check_valid()
+        assert self._suite == suite
+        assert self.parent.suites == [self._suite]
+
+    def __check_valid(self) -> None:
+        if self.parent._list() is None:
+            raise ValueError("The parent entry is dead")
+        for type in self.parent.types:
+            for uri in self.parent.uris:
+                for suite in self.parent.suites:
+                    if (type, uri, suite) == (self._type, self._uri, self._suite):
+                        return
+        raise ValueError(f"Could not find parent of {self}")
+
+    def split_out(self) -> None:
+        parent = self.parent
+        if (parent.types, parent.uris, parent.suites) == (
+            [self._type],
+            [self._uri],
+            [self._suite],
+        ):
+            return
+        sources_list = parent._list()
+        if sources_list is None:
+            raise ValueError("The parent entry is dead")
+
+        try:
+            index = sources_list.list.index(parent)
+        except ValueError as e:
+            raise ValueError(
+                f"Parent entry for partial deb822 {self} no longer valid"
+            ) from e
+
+        sources_list.remove(parent)
+
+        reparented = False
+        for type in reversed(parent.types):
+            for uri in reversed(parent.uris):
+                for suite in reversed(parent.suites):
+                    new = Deb822SourceEntry(
+                        section=_deb822.Section(parent.section),
+                        file=parent.file,
+                        list=sources_list,
+                    )
+                    new.types = [type]
+                    new.uris = [uri]
+                    new.suites = [suite]
+                    new.may_merge = True
+
+                    parent._reparent_children(new)
+                    sources_list.list.insert(index, new)
+                    if (type, uri, suite) == (self._type, self._uri, self._suite):
+                        self._parent = weakref.ref(new)
+                        reparented = True
+        if not reparented:
+            raise ValueError(f"Could not find parent of {self}")
+
+    def __repr__(self) -> str:
+        return f"<child {self._type} {self._uri} {self._suite} of {self._parent}"
+
+    BoundProperty = TypeVar("BoundProperty", bound=property)
+
+    @staticmethod
+    def proxy(parent):
+        def get(self):
+            return parent.__get__(self.parent)
+
+        def set(self, value):
+            self.split_out()
+            return parent.__set__(self.parent, value)
+
+        return property(get, set, doc=parent.__doc__)
+
+    architectures = proxy(Deb822SourceEntry.architectures)
+    comps = proxy(Deb822SourceEntry.comps)
+    invalid = proxy(Deb822SourceEntry.invalid)
+    disabled = proxy(Deb822SourceEntry.disabled)
+    trusted = proxy(Deb822SourceEntry.trusted)
+    comment = proxy(Deb822SourceEntry.comment)
+
+    def set_enabled(self, enabled):
+        """Set the source to enabled."""
         self.disabled = not enabled
 
 
@@ -413,28 +663,31 @@ class SourceEntry:
         return line
 
     @property
-    def types(self) -> List[str]:
+    def types(self) -> List[builtins.str]:
         """deb822 compatible accessor for the type"""
         return [self.type]
 
     @property
-    def uris(self) -> List[str]:
+    def uris(self) -> List[builtins.str]:
         """deb822 compatible accessor for the uri"""
         return [self.uri]
 
     @property
-    def suites(self) -> List[str]:
+    def suites(self) -> List[builtins.str]:
         """deb822 compatible accessor for the suite"""
         return [self.dist]
 
 
 AnySourceEntry = Union[SourceEntry, Deb822SourceEntry]
+AnyExplodedSourceEntry = Union[
+    SourceEntry, Deb822SourceEntry, ExplodedDeb822SourceEntry
+]
 
 
 class NullMatcher(object):
     """a Matcher that does nothing"""
 
-    def match(self, s: AnySourceEntry) -> bool:
+    def match(self, s: AnyExplodedSourceEntry) -> bool:
         return True
 
 
@@ -483,7 +736,7 @@ class SourcesList(object):
         for entry in self.list:
             yield entry
 
-    # typing: ignore
+    # type: ignore
     def __find(
         self, *predicates: Callable[[AnySourceEntry], bool], **attrs: Any
     ) -> Iterator[AnySourceEntry]:
@@ -561,7 +814,7 @@ class SourcesList(object):
 
         new_entry: AnySourceEntry
         if file is not None and file.endswith(".sources"):
-            new_entry = Deb822SourceEntry(None, file=file)
+            new_entry = Deb822SourceEntry(None, file=file, list=self)
             new_entry.types = [type]
             new_entry.uris = [uri]
             new_entry.suites = [dist]
@@ -595,8 +848,11 @@ class SourcesList(object):
             self.list.insert(pos, new_entry)
         return new_entry
 
-    def remove(self, source_entry: SourceEntry) -> None:
+    def remove(self, source_entry: AnyExplodedSourceEntry) -> None:
         """remove the specified entry from the sources.list"""
+        if isinstance(source_entry, ExplodedDeb822SourceEntry):
+            source_entry.split_out()
+            source_entry = source_entry.parent
         self.list.remove(source_entry)
 
     def restore_backup(self, backup_ext: str) -> None:
@@ -627,13 +883,31 @@ class SourcesList(object):
             with open(file, "r") as f:
                 if file.endswith(".sources"):
                     for section in _deb822.File(f):
-                        self.list.append(Deb822SourceEntry(section, file))
+                        self.list.append(Deb822SourceEntry(section, file, list=self))
                 else:
                     for line in f:
                         source = SourceEntry(line, file)
                         self.list.append(source)
         except Exception as exc:
             logging.warning("could not open file '%s': %s\n" % (file, exc))
+
+    def merge(self) -> None:
+        """Merge consecutive entries that have been split back together."""
+        merged = True
+        while merged:
+            i = 0
+            merged = False
+            while i + 1 < len(self.list):
+                entry = self.list[i]
+                if isinstance(entry, Deb822SourceEntry):
+                    j = i + 1
+                    while j < len(self.list):
+                        if entry.merge(self.list[j]):
+                            del self.list[j]
+                            merged = True
+                        else:
+                            j += 1
+                    i += 1
 
     def save(self) -> None:
         """save the current sources"""
@@ -651,11 +925,12 @@ class SourcesList(object):
                 f.write(header)
             return
 
+        self.merge()
         try:
             for source in self.list:
                 if source.file not in files:
                     files[source.file] = open(source.file, "w")
-                elif source.file.endswith(".sources"):
+                elif isinstance(source, Deb822SourceEntry):
                     files[source.file].write("\n")
                 files[source.file].write(source.str())
         finally:
@@ -688,6 +963,32 @@ class SourcesList(object):
         # print self.parents
         return (parents, used_child_templates)
 
+    def exploded_list(self) -> List[AnyExplodedSourceEntry]:
+        """Present an exploded view of the list where each entry corresponds exactly to a Release file.
+
+        A release file is uniquely identified by the triplet (type, uri, suite). Old style entries
+        always referred to a single release file, but deb822 entries allow multiple values for each
+        of those fields.
+        """
+        res: List[AnyExplodedSourceEntry] = []
+        for entry in self.list:
+            if isinstance(entry, SourceEntry):
+                res.append(entry)
+            elif (
+                len(entry.types) == 1
+                and len(entry.uris) == 1
+                and len(entry.suites) == 1
+            ):
+                res.append(entry)
+            else:
+                for typ in entry.types:
+                    for uri in entry.uris:
+                        for sui in entry.suites:
+                            res.append(ExplodedDeb822SourceEntry(entry, typ, uri, sui))
+                            self.matcher.match(res[-1])
+
+        return res
+
 
 class SourceEntryMatcher(object):
     """matcher class to make a source entry look nice
@@ -708,7 +1009,7 @@ class SourceEntryMatcher(object):
                     self.templates.append(template)
         return
 
-    def match(self, source: AnySourceEntry) -> bool:
+    def match(self, source: AnyExplodedSourceEntry) -> bool:
         """Add a matching template to the source"""
         found = False
         for template in self.templates:
