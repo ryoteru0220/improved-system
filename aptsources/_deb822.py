@@ -23,7 +23,17 @@ class Section:
     This represents a single deb822 section.
     """
 
-    def __init__(self, section: str):
+    tags: collections.OrderedDict[str, str]
+    header: str
+    footer: str
+
+    def __init__(self, section: typing.Union[str, "Section"]):
+        if isinstance(section, Section):
+            self.tags = collections.OrderedDict(section.tags)
+            self.header = section.header
+            self.footer = section.footer
+            return
+
         comments = ["", ""]
         in_section = False
         trimmed_section = ""
