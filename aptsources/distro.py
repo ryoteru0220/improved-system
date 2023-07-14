@@ -310,12 +310,13 @@ class Distribution(object):
 
         comp:         the component that should be enabled
         """
-        comps = set([comp])
+        comps = list([comp])
         # look for parent components that we may have to add
         for source in self.main_sources:
             for c in source.template.components:
                 if c.name == comp and c.parent_component:
-                    comps.add(c.parent_component)
+                    if c.parent_component not in comps:
+                        comps.append(c.parent_component)
         for c in comps:
             self._enable_component(c)
 
