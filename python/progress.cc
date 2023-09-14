@@ -341,7 +341,6 @@ pkgPackageManager::OrderResult PyInstallProgress::Run(pkgPackageManager *pm)
    // support custom fork methods
    if(PyObject_HasAttrString(callbackInst, "fork")) {
       PyObject *method = PyObject_GetAttrString(callbackInst, "fork");
-      std::cerr << "custom fork found" << std::endl;
       PyObject *arglist = Py_BuildValue("()");
       PyObject *result = PyObject_CallObject(method, arglist);
       Py_DECREF(arglist);
@@ -354,7 +353,6 @@ pkgPackageManager::OrderResult PyInstallProgress::Run(pkgPackageManager *pm)
 	 std::cerr << "custom fork() result could not be parsed?"<< std::endl;
 	 return pkgPackageManager::Failed;
       }
-      std::cerr << "got pid: " << child_id << std::endl;
    } else {
       //std::cerr << "using build-in fork()" << std::endl;
       child_id = fork();
@@ -374,7 +372,6 @@ pkgPackageManager::OrderResult PyInstallProgress::Run(pkgPackageManager *pm)
       PyObject *v = PyObject_GetAttrString(callbackInst, "writefd");
       if(v) {
 	 int fd = PyObject_AsFileDescriptor(v);
-         std::cout << "got fd: " << fd << std::endl;
 
 	 APT::Progress::PackageManagerProgressFd progress(fd);
 	 res = pm->DoInstall(&progress);
