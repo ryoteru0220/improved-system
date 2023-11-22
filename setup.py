@@ -22,13 +22,6 @@ else:
     cmdclass["build_i18n"] = build_i18n.build_i18n
     cmdclass["clean"] = clean_build_tree
 
-try:
-    from sphinx.setup_command import BuildDoc
-except ImportError:
-    print("W: [python%s] Sphinx import error." % sys.version[:3])
-else:
-    cmdclass["build_sphinx"] = BuildDoc
-
 
 class InstallTypeinfo(install):
     def run(self):
