@@ -1,3 +1,18 @@
+python-apt (2.7.0) unstable; urgency=medium
+
+  [ Cory Todd ]
+  * Add version fallback for non-dpkg builds
+
+  [ Julian Andres Klode ]
+  * sourceslist: add deb822-compatibility properties to legacy
+  * tests: Fix Python 3.12 compatibility by not using utcfromtimestamp()
+    (Closes: #1056456)
+  * Use sphinx-build directly, sphinx.setup_command is no more
+  * Update translation template
+  * Update mirror lists
+
+ -- Julian Andres Klode <jak@debian.org>  Wed, 22 Nov 2023 15:36:46 +0100
+
 python-apt (2.6.0) unstable; urgency=medium
 
   * The Debian bookworm stable release
