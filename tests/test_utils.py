@@ -23,7 +23,8 @@ class TestUtils(testcommon.TestCase):
         path = os.path.join(os.path.dirname(__file__), "data", "misc", "foo_Release")
         t = get_release_date_from_release_file(path)
         self.assertEqual(
-            str(datetime.datetime.utcfromtimestamp(t)), "2012-04-25 22:49:23"
+            str(datetime.datetime.fromtimestamp(t, datetime.timezone.utc)),
+            "2012-04-25 22:49:23+00:00",
         )
 
     def test_maintenance_time(self):
