@@ -260,15 +260,19 @@ class Deb822SourceEntry:
 
     def merge(self, other: "AnySourceEntry") -> bool:
         """Merge the two entries if they are compatible."""
-        if not self.may_merge:
+        if (
+            not self.may_merge
+            and self.template is None
+            and not all(child.template for child in self._children)
+        ):
             return False
         if self.file != other.file:
             return False
         if not isinstance(other, Deb822SourceEntry):
             return False
-        if self.comment != other.comment or self.section.get(
-            "Signed-By"
-        ) != other.section.get("Signed-By"):
+        if self.comment != other.comment and not any(
+            "Added by software-properties" in c for c in (self.comment, other.comment)
+        ):
             return False
 
         for tag in list(self.section.tags) + list(other.section.tags):
@@ -278,6 +282,7 @@ class Deb822SourceEntry:
                 "suites",
                 "components",
                 "architectures",
+                "signed-by",
             ):
                 continue
             in_self = self.section.get(tag, None)
