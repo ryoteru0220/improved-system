@@ -289,7 +289,16 @@ class Distribution(object):
             comps = list(self.enabled_comps)
         if type is None:
             type = self.binary_type
-        new_source = self.sourceslist.add(type, uri, dist, comps, comment)
+
+        parent = None
+        file = None
+        for parent in reversed(self.child_sources) or reversed(self.main_sources):
+            file = parent.file
+            break
+
+        new_source = self.sourceslist.add(
+            type, uri, dist, comps, comment, parent=parent, file=file
+        )
         # if source code is enabled add a deb-src line after the new
         # source
         if self.get_source_code and type == self.binary_type:
