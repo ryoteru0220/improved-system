@@ -489,6 +489,11 @@ class ExplodedDeb822SourceEntry:
         """Set the source to enabled."""
         self.disabled = not enabled
 
+    @property
+    def file(self):
+        """Return the file."""
+        return self.parent.file
+
 
 class SourceEntry:
     """single sources.list entry"""
