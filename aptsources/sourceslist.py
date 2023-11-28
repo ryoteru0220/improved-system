@@ -927,7 +927,7 @@ class SourcesList(object):
                             merged = True
                         else:
                             j += 1
-                    i += 1
+                i += 1
 
     def save(self) -> None:
         """save the current sources"""
