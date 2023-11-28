@@ -751,7 +751,7 @@ class SourcesList(object):
         self, *predicates: Callable[[AnySourceEntry], bool], **attrs: Any
     ) -> Iterator[AnySourceEntry]:
         uri = attrs.pop("uri", None)
-        for source in self.list:
+        for source in self.exploded_list():
             if uri and source.uri and uri.rstrip("/") != source.uri.rstrip("/"):
                 continue
             if all(getattr(source, key) == attrs[key] for key in attrs) and all(
