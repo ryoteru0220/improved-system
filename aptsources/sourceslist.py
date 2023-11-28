@@ -906,6 +906,11 @@ class SourcesList(object):
         except Exception as exc:
             logging.warning("could not open file '%s': %s\n" % (file, exc))
 
+    def index(self, entry: AnyExplodedSourceEntry) -> bool:
+        if isinstance(entry, ExplodedDeb822SourceEntry):
+            return self.list.index(entry.parent)
+        return self.list.index(entry)
+
     def merge(self) -> None:
         """Merge consecutive entries that have been split back together."""
         merged = True
