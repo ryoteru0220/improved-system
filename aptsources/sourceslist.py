@@ -759,6 +759,7 @@ class SourcesList(object):
         pos: int = -1,
         file: Optional[str] = None,
         architectures: Iterable[str] = [],
+        parent: Optional[AnyExplodedSourceEntry] = None,
     ) -> AnySourceEntry:
         """
         Add a new source to the sources.list.
@@ -815,6 +816,10 @@ class SourcesList(object):
         new_entry: AnySourceEntry
         if file is not None and file.endswith(".sources"):
             new_entry = Deb822SourceEntry(None, file=file, list=self)
+            if parent:
+                parent = getattr(parent, "parent", parent)
+                for k in parent.section.tags:
+                    new_entry.section.tags[k] = parent.section.tags[k]
             new_entry.types = [type]
             new_entry.uris = [uri]
             new_entry.suites = [dist]
