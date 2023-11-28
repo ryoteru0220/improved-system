@@ -345,7 +345,7 @@ class Distribution(object):
             if comp in comps_per_dist[source.dist]:
                 return
             # add it
-            source.comps += [comp]
+            source.comps = source.comps + [comp]
             comps_per_dist[source.dist].add(comp)
 
         sources = []
@@ -404,7 +404,9 @@ class Distribution(object):
             sources.extend(self.main_sources)
         for source in sources:
             if comp in source.comps:
-                source.comps.remove(comp)
+                comps = source.comps
+                comps.remove(comp)
+                source.comps = comps
                 if len(source.comps) < 1:
                     self.sourceslist.remove(source)
 
