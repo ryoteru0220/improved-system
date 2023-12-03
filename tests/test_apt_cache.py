@@ -8,8 +8,6 @@
 # notice and this notice are preserved.
 """Unit tests for verifying the correctness of check_dep, etc in apt_pkg."""
 
-from __future__ import print_function
-
 import glob
 import logging
 import os

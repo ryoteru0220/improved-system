@@ -24,8 +24,6 @@
 #  USA
 """Handle GnuPG keys used to trust signed repositories."""
 
-from __future__ import print_function
-
 import errno
 import os
 import os.path

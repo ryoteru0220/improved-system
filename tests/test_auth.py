@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-from __future__ import print_function
-
 import contextlib
 import errno
 import itertools

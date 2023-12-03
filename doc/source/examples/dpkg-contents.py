@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 """Emulate dpkg --contents"""
 
-from __future__ import print_function
-
 import grp
 import pwd
 import stat

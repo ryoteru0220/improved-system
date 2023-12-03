@@ -22,8 +22,6 @@
 Custom progress classes should inherit from these classes. They can also be
 used as dummy progress classes which simply do nothing.
 """
-from __future__ import print_function
-
 import errno
 import fcntl
 import io
