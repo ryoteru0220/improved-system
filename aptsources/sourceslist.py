@@ -725,11 +725,11 @@ class SourcesList(object):
         self.list = []
         # read sources.list
         file = apt_pkg.config.find_file("Dir::Etc::sourcelist")
-        if os.path.exists(file):
+        if file != "/dev/null" and os.path.exists(file):
             self.load(file)
         # read sources.list.d
         partsdir = apt_pkg.config.find_dir("Dir::Etc::sourceparts")
-        if os.path.exists(partsdir):
+        if partsdir != "/dev/null" and os.path.exists(partsdir):
             for file in os.listdir(partsdir):
                 if (self.deb822 and file.endswith(".sources")) or file.endswith(
                     ".list"
