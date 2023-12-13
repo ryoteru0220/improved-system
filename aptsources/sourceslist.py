@@ -906,7 +906,7 @@ class SourcesList(object):
         except Exception as exc:
             logging.warning("could not open file '%s': %s\n" % (file, exc))
 
-    def index(self, entry: AnyExplodedSourceEntry) -> bool:
+    def index(self, entry: AnyExplodedSourceEntry) -> int:
         if isinstance(entry, ExplodedDeb822SourceEntry):
             return self.list.index(entry.parent)
         return self.list.index(entry)
