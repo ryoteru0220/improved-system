@@ -35,6 +35,7 @@ from typing import (
     Any,
     Dict,
     Callable,
+    Generic,
     Iterable,
     Iterator,
     List,
@@ -137,6 +138,22 @@ class MultiValueProperty(property):
 
     def __set__(self, obj: "Deb822SourceEntry", values: List[str]) -> None:
         obj.section[self.key] = " ".join(values)
+
+
+class ExplodedEntryProperty(property, Generic[T]):
+    def __init__(self, parent: T):
+        self.parent = parent
+
+    def __get__(
+        self, obj: Optional["ExplodedDeb822SourceEntry"], objtype: Optional[type] = None
+    ) -> T:
+        if obj is None:
+            return self  # type: ignore
+        return self.parent.__get__(obj.parent)  # type: ignore
+
+    def __set__(self, obj: "ExplodedDeb822SourceEntry", value: T) -> None:
+        obj.split_out()
+        self.parent.__set__(obj.parent, value)  # type: ignore
 
 
 def DeprecatedProperty(prop: T) -> T:
@@ -465,32 +482,19 @@ class ExplodedDeb822SourceEntry:
     def __repr__(self) -> str:
         return f"<child {self._type} {self._uri} {self._suite} of {self._parent}"
 
-    BoundProperty = TypeVar("BoundProperty", bound=property)
+    architectures = ExplodedEntryProperty(Deb822SourceEntry.architectures)
+    comps = ExplodedEntryProperty(Deb822SourceEntry.comps)
+    invalid = ExplodedEntryProperty(Deb822SourceEntry.invalid)
+    disabled = ExplodedEntryProperty[bool](Deb822SourceEntry.disabled)  # type: ignore
+    trusted = ExplodedEntryProperty(Deb822SourceEntry.trusted)
+    comment = ExplodedEntryProperty(Deb822SourceEntry.comment)
 
-    @staticmethod
-    def proxy(parent):
-        def get(self):
-            return parent.__get__(self.parent)
-
-        def set(self, value):
-            self.split_out()
-            return parent.__set__(self.parent, value)
-
-        return property(get, set, doc=parent.__doc__)
-
-    architectures = proxy(Deb822SourceEntry.architectures)
-    comps = proxy(Deb822SourceEntry.comps)
-    invalid = proxy(Deb822SourceEntry.invalid)
-    disabled = proxy(Deb822SourceEntry.disabled)
-    trusted = proxy(Deb822SourceEntry.trusted)
-    comment = proxy(Deb822SourceEntry.comment)
-
-    def set_enabled(self, enabled):
+    def set_enabled(self, enabled: bool) -> None:
         """Set the source to enabled."""
         self.disabled = not enabled
 
     @property
-    def file(self):
+    def file(self) -> str:
         """Return the file."""
         return self.parent.file
 
@@ -746,10 +750,9 @@ class SourcesList(object):
         for entry in self.list:
             yield entry
 
-    # type: ignore
     def __find(
-        self, *predicates: Callable[[AnySourceEntry], bool], **attrs: Any
-    ) -> Iterator[AnySourceEntry]:
+        self, *predicates: Callable[[AnyExplodedSourceEntry], bool], **attrs: Any
+    ) -> Iterator[AnyExplodedSourceEntry]:
         uri = attrs.pop("uri", None)
         for source in self.exploded_list():
             if uri and source.uri and uri.rstrip("/") != source.uri.rstrip("/"):
@@ -770,7 +773,7 @@ class SourcesList(object):
         file: Optional[str] = None,
         architectures: Iterable[str] = [],
         parent: Optional[AnyExplodedSourceEntry] = None,
-    ) -> AnySourceEntry:
+    ) -> AnyExplodedSourceEntry:
         """
         Add a new source to the sources.list.
         The method will search for existing matching repos and will try to
@@ -828,6 +831,7 @@ class SourcesList(object):
             new_entry = Deb822SourceEntry(None, file=file, list=self)
             if parent:
                 parent = getattr(parent, "parent", parent)
+                assert isinstance(parent, Deb822SourceEntry)
                 for k in parent.section.tags:
                     new_entry.section.tags[k] = parent.section.tags[k]
             new_entry.types = [type]
