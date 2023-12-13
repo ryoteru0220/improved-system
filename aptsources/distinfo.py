@@ -30,11 +30,11 @@ import re
 from typing import (
     cast,
     Dict,
-    Iterator,
     List,
     Optional,
     Tuple,
 )
+from collections.abc import Iterator
 
 import apt_pkg
 
@@ -129,18 +129,18 @@ def _expand_template(template: str, csv_path: str) -> Iterator[str]:
 
 class Template:
     def __init__(self) -> None:
-        self.name: Optional[str] = None
+        self.name: str | None = None
         self.child = False
-        self.parents: List[Template] = []  # ref to parent template(s)
-        self.match_name: Optional[str] = None
-        self.description: Optional[str] = None
-        self.base_uri: Optional[str] = None
-        self.type: Optional[str] = None
-        self.components: List[Component] = []
-        self.children: List[Template] = []
-        self.match_uri: Optional[str] = None
-        self.mirror_set: Dict[str, Mirror] = {}
-        self.distribution: Optional[str] = None
+        self.parents: list[Template] = []  # ref to parent template(s)
+        self.match_name: str | None = None
+        self.description: str | None = None
+        self.base_uri: str | None = None
+        self.type: str | None = None
+        self.components: list[Component] = []
+        self.children: list[Template] = []
+        self.match_uri: str | None = None
+        self.mirror_set: dict[str, Mirror] = {}
+        self.distribution: str | None = None
         self.available = True
         self.official = True
 
@@ -161,22 +161,22 @@ class Component:
     def __init__(
         self,
         name: str,
-        desc: Optional[str] = None,
-        long_desc: Optional[str] = None,
-        parent_component: Optional[str] = None,
+        desc: str | None = None,
+        long_desc: str | None = None,
+        parent_component: str | None = None,
     ):
         self.name = name
         self.description = desc
         self.description_long = long_desc
         self.parent_component = parent_component
 
-    def get_parent_component(self) -> Optional[str]:
+    def get_parent_component(self) -> str | None:
         return self.parent_component
 
     def set_parent_component(self, parent: str) -> None:
         self.parent_component = parent
 
-    def get_description(self) -> Optional[str]:
+    def get_description(self) -> str | None:
         if self.description_long is not None:
             return self.description_long
         elif self.description is not None:
@@ -190,7 +190,7 @@ class Component:
     def set_description_long(self, desc: str) -> None:
         self.description_long = desc
 
-    def get_description_long(self) -> Optional[str]:
+    def get_description_long(self) -> str | None:
         return self.description_long
 
 
@@ -198,17 +198,17 @@ class Mirror:
     """Storage for mirror related information"""
 
     def __init__(
-        self, proto: str, hostname: str, dir: str, location: Optional[str] = None
+        self, proto: str, hostname: str, dir: str, location: str | None = None
     ):
         self.hostname = hostname
-        self.repositories: List[Repository] = []
+        self.repositories: list[Repository] = []
         self.add_repository(proto, dir)
         self.location = location
 
     def add_repository(self, proto: str, dir: str) -> None:
         self.repositories.append(Repository(proto, dir))
 
-    def get_repositories_for_proto(self, proto: str) -> List["Repository"]:
+    def get_repositories_for_proto(self, proto: str) -> list["Repository"]:
         return [r for r in self.repositories if r.proto == proto]
 
     def has_repository(self, proto: str, dir: str) -> bool:
@@ -219,10 +219,10 @@ class Mirror:
                 return True
         return False
 
-    def get_repo_urls(self) -> List[str]:
+    def get_repo_urls(self) -> list[str]:
         return [r.get_url(self.hostname) for r in self.repositories]
 
-    def get_location(self) -> Optional[str]:
+    def get_location(self) -> str | None:
         return self.location
 
     def set_location(self, location: str) -> None:
@@ -234,14 +234,14 @@ class Repository:
         self.proto = proto
         self.dir = dir
 
-    def get_info(self) -> Tuple[str, str]:
+    def get_info(self) -> tuple[str, str]:
         return self.proto, self.dir
 
     def get_url(self, hostname: str) -> str:
-        return "{}://{}/{}".format(self.proto, hostname, self.dir)
+        return f"{self.proto}://{hostname}/{self.dir}"
 
 
-def split_url(url: str) -> List[str]:
+def split_url(url: str) -> list[str]:
     """split a given URL into the protocoll, the hostname and the dir part"""
     split = re.split(":*\\/+", url, maxsplit=2)
     while len(split) < 3:
@@ -252,11 +252,11 @@ def split_url(url: str) -> List[str]:
 class DistInfo:
     def __init__(
         self,
-        dist: Optional[str] = None,
+        dist: str | None = None,
         base_dir: str = "/usr/share/python-apt/templates",
     ):
         self.metarelease_uri = ""
-        self.templates: List[Template] = []
+        self.templates: list[Template] = []
         self.arch = apt_pkg.config.find("APT::Architecture")
 
         location = None
@@ -287,8 +287,8 @@ class DistInfo:
 
         map_mirror_sets = {}
 
-        dist_fname = "{}/{}.info".format(base_dir, dist)
-        csv_fname = "/usr/share/distro-info/{}.csv".format(dist.lower())
+        dist_fname = f"{base_dir}/{dist}.info"
+        csv_fname = f"/usr/share/distro-info/{dist.lower()}.csv"
 
         # FIXME: Logic doesn't work with types.
         template = cast(Template, None)
@@ -341,7 +341,7 @@ class DistInfo:
                     or os.path.abspath(os.path.join(base_dir, value))
                 )
                 if value not in map_mirror_sets:
-                    mirror_set: Dict[str, Mirror] = {}
+                    mirror_set: dict[str, Mirror] = {}
                     try:
                         with open(value) as value_f:
                             mirror_data = list(
@@ -382,9 +382,7 @@ class DistInfo:
         template = cast(Template, None)
         component = cast(Component, None)
 
-    def finish_template(
-        self, template: Template, component: Optional[Component]
-    ) -> None:
+    def finish_template(self, template: Template, component: Component | None) -> None:
         "finish the current tempalte"
         if not template:
             return
@@ -419,8 +417,6 @@ if __name__ == "__main__":
         if template.mirror_set != {}:
             logging.info("Mirrors: %s" % list(template.mirror_set.keys()))
         for comp in template.components:
-            logging.info(
-                " {} -{} -{}".format(comp.name, comp.description, comp.description_long)
-            )
+            logging.info(f" {comp.name} -{comp.description} -{comp.description_long}")
         for child in template.children:
             logging.info("  %s" % child.description)

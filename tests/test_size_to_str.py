@@ -83,7 +83,7 @@ class SizeToStrTestCase(testcommon.TestCase):
     def test_from_data(self):
         for k, v in self.DATA.items():
             size = apt_pkg.size_to_str(k)
-            msg = "size_to_str({}) returned '{}', expected '{}'".format(k, size, v)
+            msg = f"size_to_str({k}) returned '{size}', expected '{v}'"
             self.assertEqual(size, v, msg)
 
     def test_raise_on_unsupported(self):

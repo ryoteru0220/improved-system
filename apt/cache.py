@@ -29,17 +29,15 @@ import weakref
 
 from typing import (
     Any,
-    Callable,
     Dict,
-    Iterator,
     List,
     Optional,
     Set,
     Tuple,
     Union,
     cast,
-    KeysView,
 )
+from collections.abc import Callable, Iterator, KeysView
 
 import apt_pkg
 from apt.package import Package, Version
@@ -426,7 +424,7 @@ class Cache:
                 continue
             if item.STAT_IDLE:
                 continue
-            err_msg += "Failed to fetch {} {}\n".format(item.desc_uri, item.error_text)
+            err_msg += f"Failed to fetch {item.desc_uri} {item.error_text}\n"
             failed = True
 
         # we raise a exception if the download failed or it was cancelt

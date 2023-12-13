@@ -16,12 +16,12 @@ class TextInstallProgress(InstallProgress):
         InstallProgress.updateInterface(self)
         if self.last >= self.percent:
             return
-        sys.stdout.write("\r[{}] {}\n".format(self.percent, self.status))
+        sys.stdout.write(f"\r[{self.percent}] {self.status}\n")
         sys.stdout.flush()
         self.last = self.percent
 
     def conffile(self, current, new):
-        print("conffile prompt: {} {}".format(current, new))
+        print(f"conffile prompt: {current} {new}")
 
     def error(self, errorstr):
         print("got dpkg error: '%s'" % errorstr)

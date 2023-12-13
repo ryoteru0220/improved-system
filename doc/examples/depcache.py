@@ -35,29 +35,29 @@ ver = depcache.get_candidate_ver(iter)
 print("Candidate version: %s " % ver)
 
 print("\n\nQuerry interface")
-print("{}.is_upgradable(): {}".format(iter.name, depcache.is_upgradable(iter)))
+print(f"{iter.name}.is_upgradable(): {depcache.is_upgradable(iter)}")
 
 print("\nMarking interface")
 print("Marking '%s' for install" % iter.name)
 depcache.mark_install(iter)
 print("Install count: %s " % depcache.inst_count)
-print("{}.marked_install(): {}".format(iter.name, depcache.marked_install(iter)))
-print("{}.marked_upgrade(): {}".format(iter.name, depcache.marked_upgrade(iter)))
-print("{}.marked_delete(): {}".format(iter.name, depcache.marked_delete(iter)))
+print(f"{iter.name}.marked_install(): {depcache.marked_install(iter)}")
+print(f"{iter.name}.marked_upgrade(): {depcache.marked_upgrade(iter)}")
+print(f"{iter.name}.marked_delete(): {depcache.marked_delete(iter)}")
 
 print("Marking %s for delete" % iter.name)
 depcache.mark_delete(iter)
 print("del_count: %s " % depcache.del_count)
-print("{}.marked_delete(): {}".format(iter.name, depcache.marked_delete(iter)))
+print(f"{iter.name}.marked_delete(): {depcache.marked_delete(iter)}")
 
 
 iter = cache["3dchess"]
 print("\nMarking '%s' for install" % iter.name)
 depcache.mark_install(iter)
 print("Install count: %s " % depcache.inst_count)
-print("{}.marked_install(): {}".format(iter.name, depcache.marked_install(iter)))
-print("{}.marked_upgrade(): {}".format(iter.name, depcache.marked_upgrade(iter)))
-print("{}.marked_delete(): {}".format(iter.name, depcache.marked_delete(iter)))
+print(f"{iter.name}.marked_install(): {depcache.marked_install(iter)}")
+print(f"{iter.name}.marked_upgrade(): {depcache.marked_upgrade(iter)}")
+print(f"{iter.name}.marked_delete(): {depcache.marked_delete(iter)}")
 
 print("Marking %s for keep" % iter.name)
 depcache.mark_keep(iter)

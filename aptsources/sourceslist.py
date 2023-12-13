@@ -34,16 +34,14 @@ import time
 from typing import (
     Any,
     Dict,
-    Callable,
     Generic,
-    Iterable,
-    Iterator,
     List,
     Optional,
     Tuple,
     TypeVar,
     Union,
 )
+from collections.abc import Callable, Iterable, Iterator
 import weakref
 
 import apt_pkg
@@ -95,7 +93,7 @@ def is_mirror(master_uri: str, compare_uri: str) -> bool:
     return False
 
 
-def uniq(s: Iterable[T]) -> List[T]:
+def uniq(s: Iterable[T]) -> list[T]:
     """simple and efficient way to return uniq collection
 
     This is not intended for use with a SourceList. It is provided
@@ -111,13 +109,13 @@ class SingleValueProperty(property):
         self.__doc__ = doc
 
     def __get__(
-        self, obj: Optional["Deb822SourceEntry"], objtype: Optional[type] = None
-    ) -> Optional[str]:
+        self, obj: Optional["Deb822SourceEntry"], objtype: type | None = None
+    ) -> str | None:
         if obj is None:
             return self  # type: ignore
         return obj.section.get(self.key, None)
 
-    def __set__(self, obj: "Deb822SourceEntry", value: Optional[str]) -> None:
+    def __set__(self, obj: "Deb822SourceEntry", value: str | None) -> None:
         if value is None:
             del obj.section[self.key]
         else:
@@ -130,13 +128,13 @@ class MultiValueProperty(property):
         self.__doc__ = doc
 
     def __get__(
-        self, obj: Optional["Deb822SourceEntry"], objtype: Optional[type] = None
-    ) -> List[str]:
+        self, obj: Optional["Deb822SourceEntry"], objtype: type | None = None
+    ) -> list[str]:
         if obj is None:
             return self  # type: ignore
         return SourceEntry.mysplit(obj.section.get(self.key, ""))
 
-    def __set__(self, obj: "Deb822SourceEntry", values: List[str]) -> None:
+    def __set__(self, obj: "Deb822SourceEntry", values: list[str]) -> None:
         obj.section[self.key] = " ".join(values)
 
 
@@ -145,7 +143,7 @@ class ExplodedEntryProperty(property, Generic[T]):
         self.parent = parent
 
     def __get__(
-        self, obj: Optional["ExplodedDeb822SourceEntry"], objtype: Optional[type] = None
+        self, obj: Optional["ExplodedDeb822SourceEntry"], objtype: type | None = None
     ) -> T:
         if obj is None:
             return self  # type: ignore
@@ -168,7 +166,7 @@ def _null_weakref() -> None:
 class Deb822SourceEntry:
     def __init__(
         self,
-        section: Optional[Union[_deb822.Section, str]],
+        section: _deb822.Section | str | None,
         file: str,
         list: Optional["SourcesList"] = None,
     ):
@@ -181,12 +179,12 @@ class Deb822SourceEntry:
 
         self._line = str(self.section)
         self.file = file
-        self.template: Optional[Template] = None  # type DistInfo.Suite
+        self.template: Template | None = None  # type DistInfo.Suite
         self.may_merge = False
         self._children = weakref.WeakSet["ExplodedDeb822SourceEntry"]()
 
         if list:
-            self._list: Callable[[], Optional[SourcesList]] = weakref.ref(list)
+            self._list: Callable[[], SourcesList | None] = weakref.ref(list)
         else:
             self._list = _null_weakref
 
@@ -222,7 +220,7 @@ class Deb822SourceEntry:
         self.section.header = comment
 
     @property
-    def trusted(self) -> Optional[bool]:
+    def trusted(self) -> bool | None:
         """Return the value of the Trusted field"""
         try:
             return apt_pkg.string_to_bool(self.section["Trusted"])
@@ -230,7 +228,7 @@ class Deb822SourceEntry:
             return None
 
     @trusted.setter
-    def trusted(self, value: Optional[bool]) -> None:
+    def trusted(self, value: bool | None) -> None:
         if value is None:
             try:
                 del self.section["Trusted"]
@@ -387,15 +385,15 @@ class ExplodedDeb822SourceEntry:
         self._uri = uri
 
     @property
-    def types(self) -> List[str]:
+    def types(self) -> list[str]:
         return [self.type]
 
     @property
-    def suites(self) -> List[str]:
+    def suites(self) -> list[str]:
         return [self.dist]
 
     @property
-    def uris(self) -> List[str]:
+    def uris(self) -> list[str]:
         return [self.uri]
 
     @property
@@ -502,15 +500,15 @@ class ExplodedDeb822SourceEntry:
 class SourceEntry:
     """single sources.list entry"""
 
-    def __init__(self, line: str, file: Optional[str] = None):
+    def __init__(self, line: str, file: str | None = None):
         self.invalid = False  # is the source entry valid
         self.disabled = False  # is it disabled ('#' in front)
         self.type = ""  # what type (deb, deb-src)
-        self.architectures: List[str] = []  # architectures
-        self.trusted: Optional[bool] = None  # Trusted
+        self.architectures: list[str] = []  # architectures
+        self.trusted: bool | None = None  # Trusted
         self.uri = ""  # base-uri
         self.dist = ""  # distribution (dapper, edgy, etc)
-        self.comps: List[str] = []  # list of available componetns (may empty)
+        self.comps: list[str] = []  # list of available componetns (may empty)
         self.comment = ""  # (optional) comment
         self.line = line  # the original sources.list line
         if file is None:
@@ -519,8 +517,8 @@ class SourceEntry:
             )
         self.file = file  # the file that the entry is located in
         self.parse(line)
-        self.template: Optional[Template] = None  # type DistInfo.Suite
-        self.children: List[SourceEntry] = []
+        self.template: Template | None = None  # type DistInfo.Suite
+        self.children: list[SourceEntry] = []
 
     def __eq__(self, other: Any) -> Any:
         """equal operator for two sources.list entries"""
@@ -533,7 +531,7 @@ class SourceEntry:
         )
 
     @staticmethod
-    def mysplit(line: str) -> List[str]:
+    def mysplit(line: str) -> list[str]:
         """a split() implementation that understands the sources.list
         format better and takes [] into account (for e.g. cdroms)"""
         line = line.strip()
@@ -668,7 +666,7 @@ class SourceEntry:
             line += " [trusted=%s]" % ("yes" if self.trusted else "no")
         elif self.architectures:
             line += " [arch=%s]" % ",".join(self.architectures)
-        line += " {} {}".format(self.uri, self.dist)
+        line += f" {self.uri} {self.dist}"
         if len(self.comps) > 0:
             line += " " + " ".join(self.comps)
         if self.comment != "":
@@ -677,17 +675,17 @@ class SourceEntry:
         return line
 
     @property
-    def types(self) -> List[builtins.str]:
+    def types(self) -> list[builtins.str]:
         """deb822 compatible accessor for the type"""
         return [self.type]
 
     @property
-    def uris(self) -> List[builtins.str]:
+    def uris(self) -> list[builtins.str]:
         """deb822 compatible accessor for the uri"""
         return [self.uri]
 
     @property
-    def suites(self) -> List[builtins.str]:
+    def suites(self) -> list[builtins.str]:
         """deb822 compatible accessor for the suite"""
         return [self.dist]
 
@@ -715,8 +713,8 @@ class SourcesList:
         *,
         deb822: bool = False,
     ):
-        self.list: List[AnySourceEntry] = []  # the actual SourceEntries Type
-        self.matcher: Union[NullMatcher, SourceEntryMatcher]
+        self.list: list[AnySourceEntry] = []  # the actual SourceEntries Type
+        self.matcher: NullMatcher | SourceEntryMatcher
         if withMatcher:
             self.matcher = SourceEntryMatcher(matcherPath)
         else:
@@ -766,12 +764,12 @@ class SourcesList:
         type: str,
         uri: str,
         dist: str,
-        orig_comps: List[str],
+        orig_comps: list[str],
         comment: str = "",
         pos: int = -1,
-        file: Optional[str] = None,
+        file: str | None = None,
         architectures: Iterable[str] = [],
-        parent: Optional[AnyExplodedSourceEntry] = None,
+        parent: AnyExplodedSourceEntry | None = None,
     ) -> AnyExplodedSourceEntry:
         """
         Add a new source to the sources.list.
@@ -884,7 +882,7 @@ class SourcesList:
             if os.path.exists(file + backup_ext):
                 shutil.copy(file + backup_ext, file)
 
-    def backup(self, backup_ext: Optional[str] = None) -> str:
+    def backup(self, backup_ext: str | None = None) -> str:
         """make a backup of the current source files, if no backup extension
         is given, the current date/time is used (and returned)"""
         already_backuped: Iterable[str] = set()
@@ -892,7 +890,7 @@ class SourcesList:
             backup_ext = time.strftime("%y%m%d.%H%M")
         for source in self.list:
             if source.file not in already_backuped and os.path.exists(source.file):
-                shutil.copy(source.file, "{}{}".format(source.file, backup_ext))
+                shutil.copy(source.file, f"{source.file}{backup_ext}")
         return backup_ext
 
     def load(self, file: str) -> None:
@@ -907,7 +905,7 @@ class SourcesList:
                         source = SourceEntry(line, file)
                         self.list.append(source)
         except Exception as exc:
-            logging.warning("could not open file '{}': {}\n".format(file, exc))
+            logging.warning(f"could not open file '{file}': {exc}\n")
 
     def index(self, entry: AnyExplodedSourceEntry) -> int:
         if isinstance(entry, ExplodedDeb822SourceEntry):
@@ -934,7 +932,7 @@ class SourcesList:
 
     def save(self) -> None:
         """save the current sources"""
-        files: Dict[str, io.TextIOWrapper] = {}
+        files: dict[str, io.TextIOWrapper] = {}
         # write an empty default config file if there aren't any sources
         if len(self.list) == 0:
             path = apt_pkg.config.find_file("Dir::Etc::sourcelist")
@@ -962,10 +960,10 @@ class SourcesList:
 
     def check_for_relations(
         self, sources_list: Iterable[AnySourceEntry]
-    ) -> Tuple[List[AnySourceEntry], Dict[Template, List[AnySourceEntry]]]:
+    ) -> tuple[list[AnySourceEntry], dict[Template, list[AnySourceEntry]]]:
         """get all parent and child channels in the sources list"""
         parents = []
-        used_child_templates: Dict[Template, List[AnySourceEntry]] = {}
+        used_child_templates: dict[Template, list[AnySourceEntry]] = {}
         for source in sources_list:
             # try to avoid checking uninterressting sources
             if source.template is None:
@@ -986,14 +984,14 @@ class SourcesList:
         # print self.parents
         return (parents, used_child_templates)
 
-    def exploded_list(self) -> List[AnyExplodedSourceEntry]:
+    def exploded_list(self) -> list[AnyExplodedSourceEntry]:
         """Present an exploded view of the list where each entry corresponds exactly to a Release file.
 
         A release file is uniquely identified by the triplet (type, uri, suite). Old style entries
         always referred to a single release file, but deb822 entries allow multiple values for each
         of those fields.
         """
-        res: List[AnyExplodedSourceEntry] = []
+        res: list[AnyExplodedSourceEntry] = []
         for entry in self.list:
             if isinstance(entry, SourceEntry):
                 res.append(entry)
@@ -1019,7 +1017,7 @@ class SourceEntryMatcher:
     """
 
     def __init__(self, matcherPath: str):
-        self.templates: List[Template] = []
+        self.templates: list[Template] = []
         # Get the human readable channel and comp names from the channel .infos
         spec_files = glob.glob("%s/*.info" % matcherPath)
         for f in spec_files:

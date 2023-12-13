@@ -27,7 +27,7 @@ import apt_pkg
 
 def get_maintenance_end_date(
     release_date: datetime.datetime, m_months: int
-) -> Tuple[int, int]:
+) -> tuple[int, int]:
     """
     get the (year, month) tuple when the maintenance for the distribution
     ends. Needs the data of the release and the number of months that
@@ -45,7 +45,7 @@ def get_maintenance_end_date(
     return (support_end_year, support_end_month)
 
 
-def get_release_date_from_release_file(path: str) -> Optional[int]:
+def get_release_date_from_release_file(path: str) -> int | None:
     """
     return the release date as time_t for the given release file
     """
@@ -63,7 +63,7 @@ def get_release_date_from_release_file(path: str) -> Optional[int]:
 
 def get_release_filename_for_pkg(
     cache: apt.Cache, pkgname: str, label: str, release: str
-) -> Optional[str]:
+) -> str | None:
     "get the release file that provides this pkg"
     if pkgname not in cache:
         return None

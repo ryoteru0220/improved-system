@@ -95,7 +95,7 @@ class TestDebfile(testcommon.TestCase):
     def test_deb_file(self):
         deb = apt.debfile.DebPackage(cache=self.cache)
         for filename, expected_res in self.TEST_DEBS:
-            logging.debug("testing {}, expecting {}".format(filename, expected_res))
+            logging.debug(f"testing {filename}, expecting {expected_res}")
             deb.open(os.path.join("data", "test_debs", filename))
             res = deb.check()
             self.assertEqual(

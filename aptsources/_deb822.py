@@ -66,16 +66,14 @@ class Section:
         return bool(self.tags)
 
     @typing.overload
-    def get(self, key: str) -> typing.Optional[str]:
+    def get(self, key: str) -> str | None:
         ...
 
     @typing.overload
-    def get(self, key: str, default: T) -> typing.Union[T, str]:
+    def get(self, key: str, default: T) -> T | str:
         ...
 
-    def get(
-        self, key: str, default: typing.Optional[T] = None
-    ) -> typing.Union[typing.Optional[T], str]:
+    def get(self, key: str, default: T | None = None) -> T | None | str:
         try:
             return self.tags[key]
         except KeyError:

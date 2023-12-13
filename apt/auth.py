@@ -57,10 +57,10 @@ class TrustedKey:
         self.date = date
 
     def __str__(self) -> str:
-        return "{}\n{} {}".format(self.name, self.keyid, self.date)
+        return f"{self.name}\n{self.keyid} {self.date}"
 
 
-def _call_apt_key_script(*args: str, **kwargs: Optional[str]) -> str:
+def _call_apt_key_script(*args: str, **kwargs: str | None) -> str:
     """Run the apt-key script with the given arguments."""
     conf = None
     cmd = [apt_pkg.config.find_file("Dir::Bin::Apt-Key", "/usr/bin/apt-key")]
@@ -137,7 +137,7 @@ def add_key_from_keyserver(keyid: str, keyserver: str) -> None:
         # We are racing with gpg when removing sockets, so ignore
         # failure to delete non-existing files.
         def onerror(
-            func: object, path: str, exc_info: Tuple[type, Exception, object]
+            func: object, path: str, exc_info: tuple[type, Exception, object]
         ) -> None:
             if isinstance(exc_info[1], OSError) and exc_info[1].errno == errno.ENOENT:
                 return
@@ -175,7 +175,7 @@ def _add_key_from_keyserver(keyid: str, keyserver: str, tmp_keyring_dir: str) ->
         ]
     )
     if res != 0:
-        raise AptKeyError("recv from '{}' failed for '{}'".format(keyserver, keyid))
+        raise AptKeyError(f"recv from '{keyserver}' failed for '{keyid}'")
     # FIXME:
     # - with gnupg 1.4.18 the downloaded key is actually checked(!),
     #   i.e. gnupg will not import anything that the server sends
@@ -227,7 +227,7 @@ def _add_key_from_keyserver(keyid: str, keyserver: str, tmp_keyring_dir: str) ->
         # make the error match what gnupg >= 1.4.18 will output when
         # it checks the key itself before importing it
         raise AptKeyError(
-            "recv from '{}' failed for '{}'".format(keyserver, signing_key_fingerprint)
+            f"recv from '{keyserver}' failed for '{signing_key_fingerprint}'"
         )
     # finally add it
     add_key_from_file(tmp_export_keyring)
@@ -280,7 +280,7 @@ def net_update() -> str:
     return _call_apt_key_script("net-update")
 
 
-def list_keys() -> List[TrustedKey]:
+def list_keys() -> list[TrustedKey]:
     """Returns a list of TrustedKey instances for each key which is
     used to trust repositories.
     """

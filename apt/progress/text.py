@@ -21,7 +21,8 @@ import signal
 import sys
 
 import types
-from typing import Callable, Optional, Union
+from typing import Optional, Union
+from collections.abc import Callable
 
 
 import apt_pkg
@@ -42,7 +43,7 @@ def _(msg: str) -> str:
 class TextProgress:
     """Internal Base class for text progress classes."""
 
-    def __init__(self, outfile: Optional[io.TextIOBase] = None) -> None:
+    def __init__(self, outfile: io.TextIOBase | None = None) -> None:
         self._file = outfile or sys.stdout
         self._width = 0
 
@@ -69,12 +70,12 @@ class OpProgress(base.OpProgress, TextProgress):
     This closely resembles OpTextProgress in libapt-pkg.
     """
 
-    def __init__(self, outfile: Optional[io.TextIOBase] = None) -> None:
+    def __init__(self, outfile: io.TextIOBase | None = None) -> None:
         TextProgress.__init__(self, outfile)
         base.OpProgress.__init__(self)
         self.old_op = ""
 
-    def update(self, percent: Optional[float] = None) -> None:
+    def update(self, percent: float | None = None) -> None:
         """Called periodically to update the user interface."""
         base.OpProgress.update(self, percent)
         if self.major_change and self.old_op:
@@ -93,12 +94,12 @@ class OpProgress(base.OpProgress, TextProgress):
 class AcquireProgress(base.AcquireProgress, TextProgress):
     """AcquireProgress for the text interface."""
 
-    def __init__(self, outfile: Optional[io.TextIOBase] = None) -> None:
+    def __init__(self, outfile: io.TextIOBase | None = None) -> None:
         TextProgress.__init__(self, outfile)
         base.AcquireProgress.__init__(self)
-        self._signal: Union[
-            Callable[[int, Optional[types.FrameType]], None], int, signal.Handlers, None
-        ] = None  # noqa
+        self._signal: (
+            Callable[[int, types.FrameType | None], None] | int | signal.Handlers | None
+        ) = None  # noqa
         self._width = 80
         self._id = 1
 
@@ -150,7 +151,7 @@ class AcquireProgress(base.AcquireProgress, TextProgress):
             return
         item.owner.id = self._id
         self._id += 1
-        line = _("Get:") + "{} {}".format(item.owner.id, item.description)
+        line = _("Get:") + f"{item.owner.id} {item.description}"
         if item.owner.filesize:
             line += " [%sB]" % apt_pkg.size_to_str(item.owner.filesize)
 
@@ -265,7 +266,7 @@ class AcquireProgress(base.AcquireProgress, TextProgress):
 class CdromProgress(base.CdromProgress, TextProgress):
     """Text CD-ROM progress."""
 
-    def ask_cdrom_name(self) -> Optional[str]:
+    def ask_cdrom_name(self) -> str | None:
         """Ask the user to provide a name for the disc."""
         base.CdromProgress.ask_cdrom_name(self)
         self._write(

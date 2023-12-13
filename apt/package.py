@@ -34,17 +34,14 @@ from urllib.request import urlopen
 
 from typing import (
     Any,
-    Iterable,
-    Iterator,
     List,
     Optional,
     Set,
     Tuple,
     Union,
     no_type_check,
-    Mapping,
-    Sequence,
 )
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 
 import apt_pkg
 import apt.progress.text
@@ -115,7 +112,7 @@ class BaseDependency:
         self._dep = dep  # apt_pkg.Dependency
 
     def __str__(self) -> str:
-        return "{}: {}".format(self.rawtype, self.rawstr)
+        return f"{self.rawtype}: {self.rawstr}"
 
     def __repr__(self) -> str:
         return "<BaseDependency: name:{!r} relation:{!r} version:{!r} rawtype:{!r}>".format(
@@ -201,7 +198,7 @@ class BaseDependency:
         .. versionadded:: 1.0.0
         """
         if self.version:
-            return "{} {} {}".format(self.name, self.relation_deb, self.version)
+            return f"{self.name} {self.relation_deb} {self.version}"
         else:
             return self.name
 
@@ -222,7 +219,7 @@ class BaseDependency:
         return self._dep.dep_type_untranslated == "PreDepends"
 
 
-class Dependency(List[BaseDependency]):
+class Dependency(list[BaseDependency]):
     """Represent an Or-group of dependencies.
 
     Attributes defined here:
@@ -240,7 +237,7 @@ class Dependency(List[BaseDependency]):
         self._rawtype = rawtype
 
     def __str__(self) -> str:
-        return "{}: {}".format(self.rawtype, self.rawstr)
+        return f"{self.rawtype}: {self.rawstr}"
 
     def __repr__(self) -> str:
         return "<Dependency: [%s]>" % (", ".join(repr(bd) for bd in self))
@@ -467,12 +464,10 @@ class Version:
         return self._cand.hash
 
     def __str__(self) -> str:
-        return "{}={}".format(self.package.name, self.version)
+        return f"{self.package.name}={self.version}"
 
     def __repr__(self) -> str:
-        return "<Version: package:{!r} version:{!r}>".format(
-            self.package.name, self.version
-        )
+        return f"<Version: package:{self.package.name!r} version:{self.version!r}>"
 
     @property
     def _records(self) -> apt_pkg.PackageRecords:
@@ -1529,7 +1524,7 @@ def _test():
     for dep in pkg.candidate.dependencies:
         print(
             ",".join(
-                "{} ({}) ({}) ({})".format(o.name, o.version, o.relation, o.pre_depend)
+                f"{o.name} ({o.version}) ({o.relation}) ({o.pre_depend})"
                 for o in dep.or_dependencies
             )
         )

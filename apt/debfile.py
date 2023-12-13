@@ -25,7 +25,8 @@ import apt_pkg
 import gzip
 import os
 import sys
-from typing import Dict, Iterable, List, Optional, Set, Tuple, Union, cast
+from typing import Dict, List, Optional, Set, Tuple, Union, cast
+from collections.abc import Iterable
 
 from apt_pkg import gettext as _
 from io import BytesIO
@@ -45,19 +46,19 @@ class DebPackage:
     debug = 0
 
     def __init__(
-        self, filename: Optional[str] = None, cache: Optional[apt.Cache] = None
+        self, filename: str | None = None, cache: apt.Cache | None = None
     ) -> None:
         if cache is None:
             cache = apt.Cache()
         self._cache = cache
         self._debfile = cast(apt_inst.DebFile, None)
         self.pkgname = ""
-        self.filename: Optional[str] = None
-        self._sections: Union[Dict[str, str], apt_pkg.TagSection[str]] = {}  # noqa
-        self._need_pkgs: List[str] = []
+        self.filename: str | None = None
+        self._sections: dict[str, str] | apt_pkg.TagSection[str] = {}  # noqa
+        self._need_pkgs: list[str] = []
         self._check_was_run = False
         self._failure_string = ""
-        self._multiarch: Optional[str] = None
+        self._multiarch: str | None = None
         if filename:
             self.open(filename)
 
@@ -65,7 +66,7 @@ class DebPackage:
         """open given debfile"""
         self._dbg(3, "open '%s'" % filename)
         self._need_pkgs = []
-        self._installed_conflicts: Set[str] = set()
+        self._installed_conflicts: set[str] = set()
         self._failure_string = ""
         self.filename = filename
         self._debfile = apt_inst.DebFile(self.filename)
@@ -81,7 +82,7 @@ class DebPackage:
         return key in self._sections
 
     @property
-    def filelist(self) -> List[str]:
+    def filelist(self) -> list[str]:
         """return the list of files in the deb."""
         files = []
         try:
@@ -91,7 +92,7 @@ class DebPackage:
         return files
 
     @property
-    def control_filelist(self) -> List[str]:
+    def control_filelist(self) -> list[str]:
         """return the list of files in control.tar.gz"""
         control = []
         try:
@@ -121,7 +122,7 @@ class DebPackage:
         ):
             return pkgname
         # now do the real multiarch checking
-        multiarch_pkgname = "{}:{}".format(pkgname, self._multiarch)
+        multiarch_pkgname = f"{pkgname}:{self._multiarch}"
         # the upper layers will handle this
         if multiarch_pkgname not in self._cache:
             return multiarch_pkgname
@@ -141,7 +142,7 @@ class DebPackage:
             return pkgname
         return multiarch_pkgname
 
-    def _is_or_group_satisfied(self, or_group: List[Tuple[str, str, str]]) -> bool:
+    def _is_or_group_satisfied(self, or_group: list[tuple[str, str, str]]) -> bool:
         """Return True if at least one dependency of the or-group is satisfied.
 
         This method gets an 'or_group' and analyzes if at least one dependency
@@ -190,7 +191,7 @@ class DebPackage:
                         return True
         return False
 
-    def _satisfy_or_group(self, or_group: List[Tuple[str, str, str]]) -> bool:
+    def _satisfy_or_group(self, or_group: list[tuple[str, str, str]]) -> bool:
         """Try to satisfy the or_group."""
         for dep in or_group:
             depname, ver, oper = dep
@@ -228,7 +229,7 @@ class DebPackage:
         for dep in or_group:
             or_str += dep[0]
             if ver and oper:
-                or_str += " ({} {})".format(dep[2], dep[1])
+                or_str += f" ({dep[2]} {dep[1]})"
             if dep != or_group[len(or_group) - 1]:
                 or_str += "|"
         self._failure_string += _("Dependency is not satisfiable: %s\n") % or_str
@@ -266,7 +267,7 @@ class DebPackage:
             return True
         return False
 
-    def _check_conflicts_or_group(self, or_group: List[Tuple[str, str, str]]) -> bool:
+    def _check_conflicts_or_group(self, or_group: list[tuple[str, str, str]]) -> bool:
         """Check the or-group for conflicts with installed pkgs."""
         self._dbg(2, "_check_conflicts_or_group(): %s " % (or_group))
         for dep in or_group:
@@ -299,7 +300,7 @@ class DebPackage:
         return bool(self._installed_conflicts)
 
     @property
-    def conflicts(self) -> List[List[Tuple[str, str, str]]]:
+    def conflicts(self) -> list[list[tuple[str, str, str]]]:
         """List of packages conflicting with this package."""
         key = "Conflicts"
         try:
@@ -308,7 +309,7 @@ class DebPackage:
             return []
 
     @property
-    def depends(self) -> List[List[Tuple[str, str, str]]]:
+    def depends(self) -> list[list[tuple[str, str, str]]]:
         """List of packages on which this package depends on."""
         depends = []
         # find depends
@@ -320,7 +321,7 @@ class DebPackage:
         return depends
 
     @property
-    def provides(self) -> List[List[Tuple[str, str, str]]]:
+    def provides(self) -> list[list[tuple[str, str, str]]]:
         """List of virtual packages which are provided by this package."""
         key = "Provides"
         try:
@@ -329,7 +330,7 @@ class DebPackage:
             return []
 
     @property
-    def replaces(self) -> List[List[Tuple[str, str, str]]]:
+    def replaces(self) -> list[list[tuple[str, str, str]]]:
         """List of packages which are replaced by this package."""
         key = "Replaces"
         try:
@@ -343,9 +344,9 @@ class DebPackage:
         Return True if the deb packages replaces a real (not virtual)
         packages named (pkgname, oper, ver).
         """
-        self._dbg(3, "replaces_real_pkg() {} {} {}".format(pkgname, oper, ver))
+        self._dbg(3, f"replaces_real_pkg() {pkgname} {oper} {ver}")
         pkg = self._cache[pkgname]
-        pkgver: Optional[str] = None
+        pkgver: str | None = None
         if pkg.is_installed:
             assert pkg.installed is not None
             pkgver = pkg.installed.version
@@ -527,7 +528,7 @@ class DebPackage:
         if arch != "all" and arch != apt_pkg.config.find("APT::Architecture"):
             if arch in apt_pkg.get_architectures():
                 self._multiarch = arch
-                self.pkgname = "{}:{}".format(self.pkgname, self._multiarch)
+                self.pkgname = f"{self.pkgname}:{self._multiarch}"
                 self._dbg(1, "Found multiarch arch: '%s'" % arch)
             else:
                 self._dbg(1, "ERROR: Wrong architecture dude!")
@@ -585,7 +586,7 @@ class DebPackage:
         """Satisfy the dependencies in the given string."""
         return self._satisfy_depends(apt_pkg.parse_depends(dependsstr, False))
 
-    def _satisfy_depends(self, depends: List[List[Tuple[str, str, str]]]) -> bool:
+    def _satisfy_depends(self, depends: list[list[tuple[str, str, str]]]) -> bool:
         """Satisfy the dependencies."""
         # turn off MarkAndSweep via a action group (if available)
         try:
@@ -609,7 +610,7 @@ class DebPackage:
         return True
 
     @property
-    def missing_deps(self) -> List[str]:
+    def missing_deps(self) -> list[str]:
         """Return missing dependencies."""
         self._dbg(1, "Installing: %s" % self._need_pkgs)
         if not self._check_was_run:
@@ -617,7 +618,7 @@ class DebPackage:
         return self._need_pkgs
 
     @property
-    def required_changes(self) -> Tuple[List[str], List[str], List[str]]:
+    def required_changes(self) -> tuple[list[str], list[str], list[str]]:
         """Get the changes required to satisfy the dependencies.
 
         Returns: a tuple with (install, remove, unauthenticated)
@@ -652,7 +653,7 @@ class DebPackage:
         return hex
 
     @staticmethod
-    def to_strish(in_data: Union[str, Iterable[int]]) -> str:
+    def to_strish(in_data: str | Iterable[int]) -> str:
         s = ""
         # py2 compat, in_data is type string
         if isinstance(in_data, str):
@@ -714,7 +715,7 @@ class DebPackage:
             print(msg, file=sys.stderr)
 
     def install(
-        self, install_progress: Optional[apt.progress.base.InstallProgress] = None
+        self, install_progress: apt.progress.base.InstallProgress | None = None
     ) -> int:
         """Install the package."""
         if self.filename is None:
@@ -738,31 +739,31 @@ class DscSrcPackage(DebPackage):
     """A locally available source package."""
 
     def __init__(
-        self, filename: Optional[str] = None, cache: Optional[apt.Cache] = None
+        self, filename: str | None = None, cache: apt.Cache | None = None
     ) -> None:
         DebPackage.__init__(self, None, cache)
-        self.filename: Optional[str] = filename
-        self._depends: List[List[Tuple[str, str, str]]] = []
-        self._conflicts: List[List[Tuple[str, str, str]]] = []
-        self._installed_conflicts: Set[str] = set()
+        self.filename: str | None = filename
+        self._depends: list[list[tuple[str, str, str]]] = []
+        self._conflicts: list[list[tuple[str, str, str]]] = []
+        self._installed_conflicts: set[str] = set()
         self.pkgname = ""
-        self.binaries: List[str] = []
-        self._sections: Dict[str, str] = {}
+        self.binaries: list[str] = []
+        self._sections: dict[str, str] = {}
         if self.filename is not None:
             self.open(self.filename)
 
     @property
-    def depends(self) -> List[List[Tuple[str, str, str]]]:
+    def depends(self) -> list[list[tuple[str, str, str]]]:
         """Return the dependencies of the package"""
         return self._depends
 
     @property
-    def conflicts(self) -> List[List[Tuple[str, str, str]]]:
+    def conflicts(self) -> list[list[tuple[str, str, str]]]:
         """Return the dependencies of the package"""
         return self._conflicts
 
     @property
-    def filelist(self) -> List[str]:
+    def filelist(self) -> list[str]:
         """Return the list of files associated with this dsc file"""
         # Files stanza looks like (hash, size, filename, ...)
         return self._sections["Files"].split()[2::3]
@@ -826,7 +827,7 @@ def _test() -> None:
     cache = Cache()
 
     vp = "www-browser"
-    print("{} virtual: {}".format(vp, cache.is_virtual_package(vp)))
+    print(f"{vp} virtual: {cache.is_virtual_package(vp)}")
     providers = cache.get_providing_packages(vp)
     print("Providers for %s :" % vp)
     for pkg in providers:
