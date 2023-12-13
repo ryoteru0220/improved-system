@@ -1290,6 +1290,259 @@ class TestAptSources(testcommon.TestCase):
                     "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
                 )
 
+    def test_deb822_distro_enable_disable_child_source_mixed_origins(self):
+        """Test enabling and disabling a child source (proposed) in the distro sources, with mixed origin
+
+        Here we ensure that we still get idempotent behavior of disable after enable even if the
+        entry we were modifying also had a non-official repository in it."""
+        with tempfile.NamedTemporaryFile("w", suffix=".sources") as file:
+            file.write(
+                "# main archive\n"
+                "Types: deb deb-src\n"
+                "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                "Suites: noble noble-updates\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                "\n"
+                "# security\n"
+                "Types: deb deb-src\n"
+                "URIs: http://security.ubuntu.com/ubuntu/\n"
+                "Suites: noble-security\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+            )
+            file.flush()
+
+            apt_pkg.config.set("Dir::Etc::sourcelist", file.name)
+            sources = aptsources.sourceslist.SourcesList(
+                True, self.templates, deb822=True
+            )
+            distro = aptsources.distro.get_distro(
+                id="Ubuntu",
+                codename="noble",
+            )
+
+            self.assertEqual(len(sources.list), 2)
+            distro.get_sources(sources)
+            distro.get_source_code = True
+            distro.add_source(dist="noble-proposed")
+
+            # FIXME: Component ordering is not stable right now
+            for entry in sources.list:
+                entry.comps = sorted(entry.comps)
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+
+                # FIXME: In an optimal world it would look like this
+                self.assertNotEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble noble-updates noble-proposed\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                # Sadly our merge algorithm does not always produce optimal merges, because it merges the unofficial entry first
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-proposed\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            # Disable it again
+            # FIXME: The child entries will no longer be valid at this point, so we have to call
+            #        get_sources(), but it's not clear whether this should be considered a bug -
+            #        there may have been other changes rendering entries no longer valid that distro
+            #        is holding on to.
+            distro.get_sources(sources)
+            for child in distro.child_sources + distro.source_code_sources:
+                if child.dist.endswith("proposed"):
+                    sources.remove(child)
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+    def test_deb822_distro_enable_disable_child_source_mixed_origins_no_source_code(
+        self,
+    ):
+        """Test enabling and disabling a child source (proposed) in the distro sources, with mixed origin
+
+        Here we ensure that we still get idempotent behavior of disable after enable even if the
+        entry we were modifying also had a non-official repository in it."""
+        with tempfile.NamedTemporaryFile("w", suffix=".sources") as file:
+            file.write(
+                "# main archive\n"
+                "Types: deb\n"
+                "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                "Suites: noble noble-updates\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                "\n"
+                "# security\n"
+                "Types: deb\n"
+                "URIs: http://security.ubuntu.com/ubuntu/\n"
+                "Suites: noble-security\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+            )
+            file.flush()
+
+            apt_pkg.config.set("Dir::Etc::sourcelist", file.name)
+            sources = aptsources.sourceslist.SourcesList(
+                True, self.templates, deb822=True
+            )
+            distro = aptsources.distro.get_distro(
+                id="Ubuntu",
+                codename="noble",
+            )
+
+            self.assertEqual(len(sources.list), 2)
+            distro.get_sources(sources)
+            distro.add_source(dist="noble-proposed")
+
+            # FIXME: Component ordering is not stable right now
+            for entry in sources.list:
+                entry.comps = sorted(entry.comps)
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+
+                # FIXME: In an optimal world it would look like this
+                self.assertNotEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble noble-updates noble-proposed\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# main archive\n"
+                    "Types: deb\n"
+                    "URIs: http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                # Sadly our merge algorithm does not always produce optimal merges, because it merges the unofficial entry first
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "Types: deb\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-proposed\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            # Disable it again
+            # FIXME: The child entries will no longer be valid at this point, so we have to call
+            #        get_sources(), but it's not clear whether this should be considered a bug -
+            #        there may have been other changes rendering entries no longer valid that distro
+            #        is holding on to.
+            distro.get_sources(sources)
+            for child in distro.child_sources + distro.source_code_sources:
+                if child.dist.endswith("proposed"):
+                    sources.remove(child)
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
 
 if __name__ == "__main__":
     os.chdir(os.path.dirname(__file__))
