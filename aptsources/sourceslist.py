@@ -326,7 +326,7 @@ class Deb822SourceEntry:
 
         return True
 
-    def _reparent_children(self, to):
+    def _reparent_children(self, to: "Deb822SourceEntry") -> None:
         """If we end up being split, check if any of our children need to be reparented to the new parent."""
         for child in self._children:
             for typ in to.types:
@@ -343,7 +343,7 @@ class ExplodedDeb822SourceEntry:
     # Mostly we use slots to prevent accidentally assigning unproxied attributes
     __slots__ = ["_parent", "_type", "_uri", "_suite", "template", "__weakref__"]
 
-    def __init__(self, parent: Deb822SourceEntry, typ, uri, suite):
+    def __init__(self, parent: Deb822SourceEntry, typ: str, uri: str, suite: str):
         self._parent = weakref.ref(parent)
         self._type = typ
         self._uri = uri
@@ -363,7 +363,7 @@ class ExplodedDeb822SourceEntry:
         self.__check_valid()
         return self._uri
 
-    @uri.setter  # type: ignore
+    @uri.setter
     def uri(self, uri: str) -> None:
         self.split_out()
         self.parent.uris = [u if u != self._uri else uri for u in self.parent.uris]
