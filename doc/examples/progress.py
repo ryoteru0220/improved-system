@@ -65,7 +65,6 @@ class TextFetchProgress(apt.progress.base.AcquireProgress):
 class TextInstallProgress(apt.progress.base.InstallProgress):
     def __init__(self):
         apt.progress.base.InstallProgress.__init__(self)
-        pass
 
     def start_update(self):
         print("start_update")

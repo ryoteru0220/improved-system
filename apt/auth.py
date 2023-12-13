@@ -34,8 +34,6 @@ import tempfile
 import apt_pkg
 from apt_pkg import gettext as _
 
-from typing import List, Optional, Tuple
-
 
 class AptKeyError(Exception):
     pass

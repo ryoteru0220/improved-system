@@ -19,7 +19,6 @@
 import datetime
 import os
 
-from typing import Optional, Tuple
 
 import apt
 import apt_pkg

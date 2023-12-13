@@ -31,7 +31,6 @@ import re
 import select
 import sys
 
-from typing import Optional, Union
 
 import apt_pkg
 

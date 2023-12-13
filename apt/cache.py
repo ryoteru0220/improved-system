@@ -29,12 +29,6 @@ import weakref
 
 from typing import (
     Any,
-    Dict,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Union,
     cast,
 )
 from collections.abc import Callable, Iterator, KeysView

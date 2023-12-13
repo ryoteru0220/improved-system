@@ -21,7 +21,6 @@ import signal
 import sys
 
 import types
-from typing import Optional, Union
 from collections.abc import Callable
 
 

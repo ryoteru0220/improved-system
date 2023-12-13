@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-import threading, queue, time, re, os, tempfile
+import threading
+import queue
+import time
+import re
+import os
 import aptsources.sourceslist
 import aptsources.distro
-from timeit import Timer
 import urllib.request, urllib.parse, urllib.error
 import socket
 import random

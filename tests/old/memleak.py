@@ -4,7 +4,6 @@ import apt
 import apt_pkg
 import time
 import gc
-import sys
 
 
 cache = apt.Cache()

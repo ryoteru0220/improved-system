@@ -34,11 +34,6 @@ from urllib.request import urlopen
 
 from typing import (
     Any,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Union,
     no_type_check,
 )
 from collections.abc import Iterable, Iterator, Mapping, Sequence

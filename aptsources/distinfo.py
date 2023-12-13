@@ -29,10 +29,6 @@ from subprocess import Popen, PIPE
 import re
 from typing import (
     cast,
-    Dict,
-    List,
-    Optional,
-    Tuple,
 )
 from collections.abc import Iterator
 

@@ -9,7 +9,6 @@
 # notice and this notice are preserved.
 """Unit tests for verifying the correctness of apt_pkg.TagFile"""
 
-import io
 import glob
 import os
 import shutil

@@ -29,7 +29,6 @@ def main():
             # print records.filename
             x = records.filename
             y = records.long_desc
-            pass
         print(
             "\r%i/%i=%.3f%%    "
             % (i, cache.package_count, (float(i) / float(cache.package_count) * 100))

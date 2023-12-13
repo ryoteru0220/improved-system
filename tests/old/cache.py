@@ -41,7 +41,6 @@ def main():
                             h = ver.arch
                             k = ver.depends_listStr
                             j = ver.depends_list
-                            pass
 
         print("\r%i/%i=%.3f%%    " % (i, all, (float(i) / float(all) * 100)))
 

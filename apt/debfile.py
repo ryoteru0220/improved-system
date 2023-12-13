@@ -25,7 +25,7 @@ import apt_pkg
 import gzip
 import os
 import sys
-from typing import Dict, List, Optional, Set, Tuple, Union, cast
+from typing import cast
 from collections.abc import Iterable
 
 from apt_pkg import gettext as _
