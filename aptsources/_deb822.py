@@ -105,8 +105,20 @@ class File:
     """
 
     def __init__(self, fobj: io.TextIOBase):
-        sections = fobj.read().split("\n\n")
-        self.sections = [Section(s) for s in sections]
+        self.sections = []
+        section = ""
+        for line in fobj:
+            if not line.isspace():
+                # A line is part of the section if it has non-whitespace characters
+                section += line
+            elif section:
+                # Our line is just whitespace and we have gathered section content, so let's write out the section
+                self.sections.append(Section(section))
+                section = ""
+
+        # The final section may not be terminated by an empty line
+        if section:
+            self.sections.append(Section(section))
 
     def __iter__(self) -> typing.Iterator[Section]:
         return iter(self.sections)
