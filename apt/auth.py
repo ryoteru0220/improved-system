@@ -50,21 +50,18 @@ class TrustedKey(object):
 
     """Represents a trusted key."""
 
-    def __init__(self, name, keyid, date):
-        # type: (str, str, str) -> None
+    def __init__(self, name: str, keyid: str, date: str) -> None:
         self.raw_name = name
         # Allow to translated some known keys
         self.name = _(name)
         self.keyid = keyid
         self.date = date
 
-    def __str__(self):
-        # type: () -> str
+    def __str__(self) -> str:
         return "%s\n%s %s" % (self.name, self.keyid, self.date)
 
 
-def _call_apt_key_script(*args, **kwargs):
-    # type: (str, Optional[str]) -> str
+def _call_apt_key_script(*args: str, **kwargs: Optional[str]) -> str:
     """Run the apt-key script with the given arguments."""
     conf = None
     cmd = [apt_pkg.config.find_file("Dir::Bin::Apt-Key", "/usr/bin/apt-key")]
@@ -111,8 +108,7 @@ def _call_apt_key_script(*args, **kwargs):
             conf.close()
 
 
-def add_key_from_file(filename):
-    # type: (str) -> None
+def add_key_from_file(filename: str) -> None:
     """Import a GnuPG key file to trust repositores signed by it.
 
     Keyword arguments:
@@ -125,8 +121,7 @@ def add_key_from_file(filename):
     _call_apt_key_script("add", filename)
 
 
-def add_key_from_keyserver(keyid, keyserver):
-    # type: (str, str) -> None
+def add_key_from_keyserver(keyid: str, keyserver: str) -> None:
     """Import a GnuPG key file to trust repositores signed by it.
 
     Keyword arguments:
@@ -142,8 +137,9 @@ def add_key_from_keyserver(keyid, keyserver):
     finally:
         # We are racing with gpg when removing sockets, so ignore
         # failure to delete non-existing files.
-        def onerror(func, path, exc_info):
-            # type: (object, str, Tuple[type, Exception, object]) -> None
+        def onerror(
+            func: object, path: str, exc_info: Tuple[type, Exception, object]
+        ) -> None:
             if isinstance(exc_info[1], OSError) and exc_info[1].errno == errno.ENOENT:
                 return
             raise
@@ -151,8 +147,7 @@ def add_key_from_keyserver(keyid, keyserver):
         shutil.rmtree(tmp_keyring_dir, onerror=onerror)
 
 
-def _add_key_from_keyserver(keyid, keyserver, tmp_keyring_dir):
-    # type: (str, str, str) -> None
+def _add_key_from_keyserver(keyid: str, keyserver: str, tmp_keyring_dir: str) -> None:
     if len(keyid.replace(" ", "").replace("0x", "")) < (160 / 4):
         raise AptKeyIDTooShortError("Only fingerprints (v4, 160bit) are supported")
     # create a temp keyring dir
@@ -239,8 +234,7 @@ def _add_key_from_keyserver(keyid, keyserver, tmp_keyring_dir):
     add_key_from_file(tmp_export_keyring)
 
 
-def add_key(content):
-    # type: (str) -> None
+def add_key(content: str) -> None:
     """Import a GnuPG key to trust repositores signed by it.
 
     Keyword arguments:
@@ -249,8 +243,7 @@ def add_key(content):
     _call_apt_key_script("adv", "--quiet", "--batch", "--import", "-", stdin=content)
 
 
-def remove_key(fingerprint):
-    # type: (str) -> None
+def remove_key(fingerprint: str) -> None:
     """Remove a GnuPG key to no longer trust repositores signed by it.
 
     Keyword arguments:
@@ -259,8 +252,7 @@ def remove_key(fingerprint):
     _call_apt_key_script("rm", fingerprint)
 
 
-def export_key(fingerprint):
-    # type: (str) -> str
+def export_key(fingerprint: str) -> str:
     """Return the GnuPG key in text format.
 
     Keyword arguments:
@@ -269,8 +261,7 @@ def export_key(fingerprint):
     return _call_apt_key_script("export", fingerprint)
 
 
-def update():
-    # type: () -> str
+def update() -> str:
     """Update the local keyring with the archive keyring and remove from
     the local keyring the archive keys which are no longer valid. The
     archive keyring is shipped in the archive-keyring package of your
@@ -279,8 +270,7 @@ def update():
     return _call_apt_key_script("update")
 
 
-def net_update():
-    # type: () -> str
+def net_update() -> str:
     """Work similar to the update command above, but get the archive
     keyring from an URI instead and validate it against a master key.
     This requires an installed wget(1) and an APT build configured to
@@ -291,8 +281,7 @@ def net_update():
     return _call_apt_key_script("net-update")
 
 
-def list_keys():
-    # type: () -> List[TrustedKey]
+def list_keys() -> List[TrustedKey]:
     """Returns a list of TrustedKey instances for each key which is
     used to trust repositories.
     """

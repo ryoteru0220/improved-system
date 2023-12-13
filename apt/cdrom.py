@@ -44,8 +44,12 @@ class Cdrom(apt_pkg.Cdrom):
     mounted. This is the default behaviour.
     """
 
-    def __init__(self, progress=None, mountpoint=None, nomount=True):
-        # type: (Optional[CdromProgress], Optional[str], bool) -> None
+    def __init__(
+        self,
+        progress: Optional[CdromProgress] = None,
+        mountpoint: Optional[str] = None,
+        nomount: bool = True,
+    ) -> None:
         apt_pkg.Cdrom.__init__(self)
         if progress is None:
             self._progress = CdromProgress()
@@ -60,19 +64,16 @@ class Cdrom(apt_pkg.Cdrom):
         else:
             apt_pkg.config.set("APT::CDROM::NoMount", "false")
 
-    def add(self, progress=None):
-        # type: (Optional[CdromProgress]) -> bool
+    def add(self, progress: Optional[CdromProgress] = None) -> bool:
         """Add cdrom to the sources.list."""
         return apt_pkg.Cdrom.add(self, progress or self._progress)
 
-    def ident(self, progress=None):
-        # type: (Optional[CdromProgress]) -> str
+    def ident(self, progress: Optional[CdromProgress] = None) -> str:
         """Identify the cdrom."""
         return apt_pkg.Cdrom.ident(self, progress or self._progress)
 
     @property
-    def in_sources_list(self):
-        # type: () -> bool
+    def in_sources_list(self) -> bool:
         """Check if the cdrom is already in the current sources.list."""
         cd_id = self.ident()
         if cd_id is None:

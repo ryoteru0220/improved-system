@@ -22,6 +22,7 @@
 Custom progress classes should inherit from these classes. They can also be
 used as dummy progress classes which simply do nothing.
 """
+from __future__ import annotations
 import errno
 import fcntl
 import io
@@ -47,20 +48,16 @@ class AcquireProgress(object):
     current_bytes = current_cps = fetched_bytes = last_bytes = total_bytes = 0.0
     current_items = elapsed_time = total_items = 0
 
-    def done(self, item):
-        # type: (apt_pkg.AcquireItemDesc) -> None
+    def done(self, item: apt_pkg.AcquireItemDesc) -> None:
         """Invoked when an item is successfully and completely fetched."""
 
-    def fail(self, item):
-        # type: (apt_pkg.AcquireItemDesc) -> None
+    def fail(self, item: apt_pkg.AcquireItemDesc) -> None:
         """Invoked when an item could not be fetched."""
 
-    def fetch(self, item):
-        # type: (apt_pkg.AcquireItemDesc) -> None
+    def fetch(self, item: apt_pkg.AcquireItemDesc) -> None:
         """Invoked when some of the item's data is fetched."""
 
-    def ims_hit(self, item):
-        # type: (apt_pkg.AcquireItemDesc) -> None
+    def ims_hit(self, item: apt_pkg.AcquireItemDesc) -> None:
         """Invoked when an item is confirmed to be up-to-date.
 
         Invoked when an item is confirmed to be up-to-date. For instance,
@@ -68,8 +65,7 @@ class AcquireProgress(object):
         not modified.
         """
 
-    def media_change(self, media, drive):
-        # type: (str, str) -> bool
+    def media_change(self, media: str, drive: str) -> bool:
         """Prompt the user to change the inserted removable media.
 
         The parameter 'media' decribes the name of the media type that
@@ -82,8 +78,7 @@ class AcquireProgress(object):
         """
         return False
 
-    def pulse(self, owner):
-        # type: (apt_pkg.Acquire) -> bool
+    def pulse(self, owner: apt_pkg.Acquire) -> bool:
         """Periodically invoked while the Acquire process is underway.
 
         This method gets invoked while the Acquire progress given by the
@@ -95,8 +90,7 @@ class AcquireProgress(object):
         """
         return True
 
-    def start(self):
-        # type: () -> None
+    def start(self) -> None:
         """Invoked when the Acquire process starts running."""
         # Reset all our values.
         self.current_bytes = 0.0
@@ -108,8 +102,7 @@ class AcquireProgress(object):
         self.total_bytes = 0.0
         self.total_items = 0
 
-    def stop(self):
-        # type: () -> None
+    def stop(self) -> None:
         """Invoked when the Acquire process stops running."""
 
 
@@ -123,16 +116,14 @@ class CdromProgress(object):
 
     total_steps = 0
 
-    def ask_cdrom_name(self):
-        # type: () -> Optional[str]
+    def ask_cdrom_name(self) -> Optional[str]:
         """Ask for the name of the cdrom.
 
         If a name has been provided, return it. Otherwise, return None to
         cancel the operation.
         """
 
-    def change_cdrom(self):
-        # type: () -> bool
+    def change_cdrom(self) -> bool:
         """Ask for the CD-ROM to be changed.
 
         Return True once the cdrom has been changed or False to cancel the
@@ -140,8 +131,7 @@ class CdromProgress(object):
         """
         return False
 
-    def update(self, text, current):
-        # type: (str, int) -> None
+    def update(self, text: str, current: int) -> None:
         """Periodically invoked to update the interface.
 
         The string 'text' defines the text which should be displayed. The
@@ -154,49 +144,39 @@ class InstallProgress(object):
 
     child_pid, percent, select_timeout, status = 0, 0.0, 0.1, ""
 
-    def __init__(self):
-        # type: () -> None
+    def __init__(self) -> None:
         (self.statusfd, self.writefd) = os.pipe()
         # These will leak fds, but fixing this safely requires API changes.
-        self.write_stream = os.fdopen(self.writefd, "w")  # type: io.TextIOBase
-        self.status_stream = os.fdopen(self.statusfd, "r")  # type: io.TextIOBase # noqa
+        self.write_stream: io.TextIOBase = os.fdopen(self.writefd, "w")
+        self.status_stream: io.TextIOBase = os.fdopen(self.statusfd, "r")  # noqa
         fcntl.fcntl(self.statusfd, fcntl.F_SETFL, os.O_NONBLOCK)
 
-    def start_update(self):
-        # type: () -> None
+    def start_update(self) -> None:
         """(Abstract) Start update."""
 
-    def finish_update(self):
-        # type: () -> None
+    def finish_update(self) -> None:
         """(Abstract) Called when update has finished."""
 
-    def __enter__(self):
-        # type: () -> InstallProgress
+    def __enter__(self) -> InstallProgress:
         return self
 
-    def __exit__(self, type, value, traceback):
-        # type: (object, object, object) -> None
+    def __exit__(self, type: object, value: object, traceback: object) -> None:
         self.write_stream.close()
         self.status_stream.close()
 
-    def error(self, pkg, errormsg):
-        # type: (str, str) -> None
+    def error(self, pkg: str, errormsg: str) -> None:
         """(Abstract) Called when a error is detected during the install."""
 
-    def conffile(self, current, new):
-        # type: (str, str) -> None
+    def conffile(self, current: str, new: str) -> None:
         """(Abstract) Called when a conffile question from dpkg is detected."""
 
-    def status_change(self, pkg, percent, status):
-        # type: (str, float, str) -> None
+    def status_change(self, pkg: str, percent: float, status: str) -> None:
         """(Abstract) Called when the APT status changed."""
 
-    def dpkg_status_change(self, pkg, status):
-        # type: (str, str) -> None
+    def dpkg_status_change(self, pkg: str, status: str) -> None:
         """(Abstract) Called when the dpkg status changed."""
 
-    def processing(self, pkg, stage):
-        # type: (str, str) -> None
+    def processing(self, pkg: str, stage: str) -> None:
         """(Abstract) Sent just before a processing stage starts.
 
         The parameter 'stage' is one of "upgrade", "install"
@@ -204,8 +184,7 @@ class InstallProgress(object):
         "purge". This method is used for dpkg only.
         """
 
-    def run(self, obj):
-        # type: (Union[apt_pkg.PackageManager, Union[bytes, str]]) -> int
+    def run(self, obj: Union[apt_pkg.PackageManager, Union[bytes, str]]) -> int:
         """Install using the object 'obj'.
 
         This functions runs install actions. The parameter 'obj' may either
@@ -253,13 +232,11 @@ class InstallProgress(object):
         res = self.wait_child()
         return os.WEXITSTATUS(res)
 
-    def fork(self):
-        # type: () -> int
+    def fork(self) -> int:
         """Fork."""
         return os.fork()
 
-    def update_interface(self):
-        # type: () -> None
+    def update_interface(self) -> None:
         """Update the interface."""
         try:
             line = self.status_stream.readline()
@@ -306,8 +283,7 @@ class InstallProgress(object):
         elif base == "status":
             self.dpkg_status_change(pkgname, status)
 
-    def wait_child(self):
-        # type: () -> int
+    def wait_child(self) -> int:
         """Wait for child progress to exit.
 
         This method is responsible for calling update_interface() from time to
@@ -344,8 +320,7 @@ class OpProgress(object):
 
     major_change, op, percent, subop = False, "", 0.0, ""
 
-    def update(self, percent=None):
-        # type: (Optional[float]) -> None
+    def update(self, percent: Optional[float] = None) -> None:
         """Called periodically to update the user interface.
 
         You may use the optional argument 'percent' to set the attribute
@@ -354,6 +329,5 @@ class OpProgress(object):
         if percent is not None:
             self.percent = percent
 
-    def done(self):
-        # type: () -> None
+    def done(self) -> None:
         """Called once an operation has been completed."""

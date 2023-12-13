@@ -3,7 +3,6 @@
 import io
 import unittest
 import os
-import copy
 import tempfile
 
 import apt_pkg
