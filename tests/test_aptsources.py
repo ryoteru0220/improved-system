@@ -1060,6 +1060,236 @@ class TestAptSources(testcommon.TestCase):
         self.assertEqual(count, len(sources.list))
         self.assertEqual(sourceslist_wslash, sourceslist_woslash)
 
+    def test_deb822_distro_enable_disable_component(self):
+        """Test enabling and disabling a component in the distro sources.
+
+        This ensures reasonable behavior when enabling and then disabling a component"""
+        with tempfile.NamedTemporaryFile("w", suffix=".sources") as file:
+            file.write(
+                "# main archive\n"
+                "Types: deb deb-src\n"
+                "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                "Suites: noble noble-updates\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                "\n"
+                "# security\n"
+                "Types: deb deb-src\n"
+                "URIs: http://security.ubuntu.com/ubuntu/\n"
+                "Suites: noble-security\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+            )
+            file.flush()
+
+            apt_pkg.config.set("Dir::Etc::sourcelist", file.name)
+            sources = aptsources.sourceslist.SourcesList(
+                True, self.templates, deb822=True
+            )
+            distro = aptsources.distro.get_distro(
+                id="Ubuntu",
+                codename="noble",
+            )
+
+            self.assertEqual(len(sources.list), 2)
+            distro.get_sources(sources)
+            distro.enable_component("multiverse")
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe multiverse\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe multiverse\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            # Disable it again
+            # FIXME: The child entries will no longer be valid at this point, so we have to call
+            #        get_sources(), but it's not clear whether this should be considered a bug -
+            #        there may have been other changes rendering entries no longer valid that distro
+            #        is holding on to.
+            distro.get_sources(sources)
+            distro.disable_component("multiverse")
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            # Disable universe as well
+            distro.get_sources(sources)
+            distro.disable_component("universe")
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+    def test_deb822_distro_enable_disable_component_mixed_origin(self):
+        """Test enabling and disabling a component in the distro sources, with mixed origin
+
+        Here we ensure that we still get idempotent behavior of disable after enable even if the
+        entry we were modifying also had a non-official repository in it."""
+        with tempfile.NamedTemporaryFile("w", suffix=".sources") as file:
+            file.write(
+                "# main archive\n"
+                "Types: deb deb-src\n"
+                "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                "Suites: noble noble-updates\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                "\n"
+                "# security\n"
+                "Types: deb deb-src\n"
+                "URIs: http://security.ubuntu.com/ubuntu/\n"
+                "Suites: noble-security\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+            )
+            file.flush()
+
+            apt_pkg.config.set("Dir::Etc::sourcelist", file.name)
+            sources = aptsources.sourceslist.SourcesList(
+                True, self.templates, deb822=True
+            )
+            distro = aptsources.distro.get_distro(
+                id="Ubuntu",
+                codename="noble",
+            )
+
+            self.assertEqual(len(sources.list), 2)
+            distro.get_sources(sources)
+            distro.enable_component("multiverse")
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe multiverse\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe multiverse\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            # Disable it again
+            # FIXME: The child entries will no longer be valid at this point, so we have to call
+            #        get_sources(), but it's not clear whether this should be considered a bug -
+            #        there may have been other changes rendering entries no longer valid that distro
+            #        is holding on to.
+            distro.get_sources(sources)
+            distro.disable_component("multiverse")
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            # Disable universe too. The behaviour here is interesting: Distro only disables
+            # universe for the official source, so we end up with the non-official source split out.
+            distro.get_sources(sources)
+            distro.disable_component("universe")
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# main archive\n"  # note it keeps the comment on the split out child
+                    "Types: deb deb-src\n"
+                    "URIs: http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
 
 if __name__ == "__main__":
     os.chdir(os.path.dirname(__file__))
