@@ -1,9 +1,11 @@
 #!/usr/bin/python3
 # this is a example how to access the build dependencies of a package
 
-import apt
-import apt_pkg
 import sys
+
+import apt_pkg
+
+import apt
 
 # main
 cache = apt.Cache()

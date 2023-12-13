@@ -3,10 +3,10 @@
 # Test for the pkgCache code
 #
 
-import apt_pkg
-import sys
 import os
+import sys
 
+import apt_pkg
 
 if __name__ == "__main__":
     lock = "/tmp/test.lck"

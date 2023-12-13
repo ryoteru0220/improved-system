@@ -2,8 +2,8 @@
 
 import unittest
 import warnings
-import apt_pkg
 
+import apt_pkg
 import testcommon
 
 

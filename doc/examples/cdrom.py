@@ -1,11 +1,10 @@
 #!/usr/bin/python3
 # example how to deal with the depcache
 
-import apt_pkg
 import sys
 
+import apt_pkg
 from progress import TextCdromProgress
-
 
 # init
 apt_pkg.init()

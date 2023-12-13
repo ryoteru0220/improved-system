@@ -1,8 +1,10 @@
 #!/usr/bin/python3
+import os
+
+import apt_pkg
+
 import apt
 import apt.progress.text
-import apt_pkg
-import os
 
 
 def get_file(fetcher, uri, destfile):

@@ -20,6 +20,7 @@
 import collections
 import sys
 import urllib.request
+
 from debian import deb822
 
 mirrors = collections.defaultdict(set)

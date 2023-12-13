@@ -6,12 +6,11 @@
 
 """deb822 parser with support for comment headers and footers."""
 
-import io
 import collections
+import io
 import typing
 
 import apt_pkg
-
 
 T = typing.TypeVar("T")
 

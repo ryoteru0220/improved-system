@@ -1,9 +1,9 @@
 """Common testing stuff"""
 
-import apt_pkg
 import os
-
 import unittest
+
+import apt_pkg
 
 
 class TestCase(unittest.TestCase):

@@ -20,33 +20,25 @@
 #  USA
 """Functionality related to packages."""
 from __future__ import annotations
+
 import logging
 import os
-import sys
 import re
 import socket
 import subprocess
+import sys
 import threading
-
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from http.client import BadStatusLine
+from typing import Any, no_type_check
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
-from typing import (
-    Any,
-    no_type_check,
-)
-from collections.abc import Iterable, Iterator, Mapping, Sequence
-
 import apt_pkg
-import apt.progress.text
-
-from apt.progress.base import (
-    AcquireProgress,
-    InstallProgress,
-)
-
 from apt_pkg import gettext as _
+
+import apt.progress.text
+from apt.progress.base import AcquireProgress, InstallProgress
 
 __all__ = (
     "BaseDependency",

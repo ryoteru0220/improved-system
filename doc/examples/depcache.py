@@ -4,7 +4,6 @@
 import apt_pkg
 from progress import TextProgress
 
-
 # init
 apt_pkg.init()
 

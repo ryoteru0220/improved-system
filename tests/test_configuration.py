@@ -7,8 +7,8 @@
 # notice and this notice are preserved.
 """Unit tests for verifying the correctness of apt_pkg.Configuration"""
 import unittest
-import apt_pkg
 
+import apt_pkg
 import testcommon
 
 

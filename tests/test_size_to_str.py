@@ -5,7 +5,6 @@ __author__ = "Barry Warsaw <barry@ubuntu.com>, James Hunt, Michael Vogt"
 import unittest
 
 import apt_pkg
-
 import testcommon
 
 

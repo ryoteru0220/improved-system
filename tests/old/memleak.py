@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 
-import apt
-import apt_pkg
-import time
 import gc
+import time
 
+import apt_pkg
+
+import apt
 
 cache = apt.Cache()
 

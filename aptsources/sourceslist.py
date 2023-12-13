@@ -31,19 +31,14 @@ import os.path
 import re
 import shutil
 import time
-from typing import (
-    Any,
-    Generic,
-    Optional,
-    TypeVar,
-    Union,
-)
-from collections.abc import Callable, Iterable, Iterator
 import weakref
+from collections.abc import Callable, Iterable, Iterator
+from typing import Any, Generic, Optional, TypeVar, Union
 
 import apt_pkg
-from .distinfo import DistInfo, Template
+
 from . import _deb822
+from .distinfo import DistInfo, Template
 
 # from apt_pkg import gettext as _
 

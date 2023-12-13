@@ -1,15 +1,15 @@
 #!/usr/bin/python3
 
 import io
-import unittest
 import os
 import tempfile
+import unittest
 
 import apt_pkg
-import aptsources.sourceslist
-import aptsources.distro
-
 import testcommon
+
+import aptsources.distro
+import aptsources.sourceslist
 
 
 class TestAptSources(testcommon.TestCase):

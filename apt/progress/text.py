@@ -19,14 +19,12 @@ import io
 import os
 import signal
 import sys
-
 import types
 from collections.abc import Callable
 
-
 import apt_pkg
-from apt.progress import base
 
+from apt.progress import base
 
 __all__ = ["AcquireProgress", "CdromProgress", "OpProgress"]
 
@@ -118,8 +116,8 @@ class AcquireProgress(base.AcquireProgress, TextProgress):
         """Signal handler for window resize signals."""
         if hasattr(self._file, "fileno") and os.isatty(self._file.fileno()):
             import fcntl
-            import termios
             import struct
+            import termios
 
             buf = fcntl.ioctl(self._file, termios.TIOCGWINSZ, 8 * b" ")  # noqa
             dummy, col, dummy, dummy = struct.unpack("hhhh", buf)

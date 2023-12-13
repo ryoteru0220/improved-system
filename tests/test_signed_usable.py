@@ -12,11 +12,11 @@ import tempfile
 import unittest
 
 import apt_pkg
+import testcommon
+
 import apt
 import apt.progress.base
 import apt.progress.text
-
-import testcommon
 
 # A change in APT to early fail acquire items with weak hashes caused it
 # to call progress methods before calling Start(), which confused python-apt's

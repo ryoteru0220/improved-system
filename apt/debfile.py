@@ -18,18 +18,18 @@
 #  USA
 """Classes for working with locally available Debian packages."""
 
-import apt
-import apt_inst
-import apt_pkg
-
 import gzip
 import os
 import sys
-from typing import cast
 from collections.abc import Iterable
-
-from apt_pkg import gettext as _
 from io import BytesIO
+from typing import cast
+
+import apt_inst
+import apt_pkg
+from apt_pkg import gettext as _
+
+import apt
 
 
 class NoDebArchiveException(IOError):

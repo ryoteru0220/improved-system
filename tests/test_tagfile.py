@@ -23,7 +23,6 @@ if libdir:
     sys.path.insert(0, libdir)
 
 import apt_pkg
-
 import testcommon
 
 

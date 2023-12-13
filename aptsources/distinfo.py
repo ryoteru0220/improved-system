@@ -25,15 +25,12 @@ import csv
 import errno
 import logging
 import os
-from subprocess import Popen, PIPE
 import re
-from typing import (
-    cast,
-)
 from collections.abc import Iterator
+from subprocess import PIPE, Popen
+from typing import cast
 
 import apt_pkg
-
 from apt_pkg import gettext as _
 
 

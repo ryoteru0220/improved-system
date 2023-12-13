@@ -10,12 +10,9 @@ import datetime
 import os
 import unittest
 
-from apt.utils import (
-    get_maintenance_end_date,
-    get_release_date_from_release_file,
-)
-
 import testcommon
+
+from apt.utils import get_maintenance_end_date, get_release_date_from_release_file
 
 
 class TestUtils(testcommon.TestCase):

@@ -8,8 +8,9 @@
 # doc/examples/ftp-archive.conf
 # or a bind8 config file..
 
-import apt_pkg
 import sys
+
+import apt_pkg
 
 ConfigFile = apt_pkg.parse_commandline(apt_pkg.config, [], sys.argv)
 

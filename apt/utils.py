@@ -19,9 +19,9 @@
 import datetime
 import os
 
+import apt_pkg
 
 import apt
-import apt_pkg
 
 
 def get_maintenance_end_date(

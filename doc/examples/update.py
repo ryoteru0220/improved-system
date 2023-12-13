@@ -1,7 +1,9 @@
 #!/usr/bin/python3
-import apt
-import apt_pkg
 import os.path
+
+import apt_pkg
+
+import apt
 
 if __name__ == "__main__":
     apt_pkg.config.set("APT::Update::Pre-Invoke::", "touch /tmp/update-about-to-run")

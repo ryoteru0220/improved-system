@@ -7,8 +7,8 @@
 # notice and this notice are preserved.
 """Helper checking argv[1] is a valid, writable, file descriptor"""
 
-from sys import argv
 import os
+from sys import argv
 
 assert len(argv) == 2
 with os.fdopen(int(argv[1]), "w") as f:

@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 # some example for apt_inst
 
-import apt_pkg
-import apt_inst
-import sys
 import os.path
+import sys
+
+import apt_inst
+import apt_pkg
 
 
 def Callback(member, data):

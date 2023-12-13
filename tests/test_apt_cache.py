@@ -16,17 +16,16 @@ import sys
 import tempfile
 import unittest
 
-
 from test_all import get_library_dir
 
 libdir = get_library_dir()
 if libdir:
     sys.path.insert(0, libdir)
 
-import apt
 import apt_pkg
-
 import testcommon
+
+import apt
 
 
 def if_sources_list_is_readable(f):

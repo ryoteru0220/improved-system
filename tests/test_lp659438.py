@@ -27,9 +27,9 @@ import tempfile
 import unittest
 
 import apt_pkg
-import apt
-
 import testcommon
+
+import apt
 
 
 class RegressionTestCase(testcommon.TestCase):

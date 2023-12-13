@@ -7,8 +7,9 @@
 # but with a nicer API
 
 import apt_pkg
-from apt.progress.text import OpProgress
 from progress import TextFetchProgress
+
+from apt.progress.text import OpProgress
 
 # init
 apt_pkg.init()

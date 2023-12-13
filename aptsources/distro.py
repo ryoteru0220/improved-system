@@ -25,10 +25,9 @@
 
 import gettext
 import logging
+import os
 import re
 import shlex
-import os
-
 from xml.etree.ElementTree import ElementTree
 
 from apt_pkg import gettext as _
@@ -502,8 +501,8 @@ class UbuntuRTMDistribution(UbuntuDistribution):
 
 def _lsb_release():
     """Call lsb_release --idrc and return a mapping."""
-    from subprocess import Popen, PIPE
     import errno
+    from subprocess import PIPE, Popen
 
     result = {
         "Codename": "sid",
@@ -524,8 +523,8 @@ def _lsb_release():
 
 def _system_image_channel():
     """Get the current channel from system-image-cli -i if possible."""
-    from subprocess import Popen, PIPE, DEVNULL
     import errno
+    from subprocess import DEVNULL, PIPE, Popen
 
     try:
         out = Popen(

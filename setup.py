@@ -4,17 +4,17 @@
 import glob
 import os
 import shutil
-import sys
 import subprocess
+import sys
 
-from setuptools import setup, Extension
+from setuptools import Extension, setup
 from setuptools.command.install import install
 
 cmdclass = {}
 
 try:
-    from DistUtilsExtra.command import build_extra, build_i18n
     from DistUtilsExtra.auto import clean_build_tree
+    from DistUtilsExtra.command import build_extra, build_i18n
 except ImportError:
     print("W: [python%s] DistUtilsExtra import error." % sys.version[:3])
 else:

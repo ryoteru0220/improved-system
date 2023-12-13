@@ -6,9 +6,9 @@
 # notice and this notice are preserved.
 """Run all available unit tests."""
 import os
-import unittest.runner
-import unittest
 import sys
+import unittest
+import unittest.runner
 
 # Python 3 only provides abiflags since 3.2
 if not hasattr(sys, "pydebug"):

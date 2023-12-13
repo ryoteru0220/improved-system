@@ -23,6 +23,7 @@
 import glob
 
 import apt_pkg
+
 from apt.progress.base import CdromProgress
 
 

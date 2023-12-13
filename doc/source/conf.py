@@ -14,8 +14,8 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
-import os
 import glob
+import os
 import sys
 
 # Find the path to the built apt_pkg and apt_inst extensions
@@ -73,7 +73,7 @@ copyright = "2009-2010, Julian Andres Klode <jak@debian.org>"
 try:
     release = os.environ["DEBVER"]
 except KeyError:
-    from subprocess import Popen, PIPE
+    from subprocess import PIPE, Popen
 
     p1 = Popen(["dpkg-parsechangelog", "-l../../debian/changelog"], stdout=PIPE)
     p2 = Popen(["sed", "-n", "s/^Version: //p"], stdin=p1.stdout, stdout=PIPE)

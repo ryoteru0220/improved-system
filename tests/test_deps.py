@@ -10,9 +10,9 @@ import itertools
 import unittest
 
 import apt_pkg
-import apt.package
-
 import testcommon
+
+import apt.package
 
 
 class TestDependencies(testcommon.TestCase):

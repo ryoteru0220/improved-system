@@ -23,6 +23,7 @@ Custom progress classes should inherit from these classes. They can also be
 used as dummy progress classes which simply do nothing.
 """
 from __future__ import annotations
+
 import errno
 import fcntl
 import io
@@ -30,7 +31,6 @@ import os
 import re
 import select
 import sys
-
 
 import apt_pkg
 

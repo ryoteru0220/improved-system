@@ -3,8 +3,9 @@
 # Test for the pkgCache code
 #
 
-import apt_pkg
 import sys
+
+import apt_pkg
 
 
 def main():

@@ -7,7 +7,6 @@ import unittest
 
 import apt_inst
 import apt_pkg
-
 import testcommon
 
 

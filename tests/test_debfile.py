@@ -6,20 +6,20 @@
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.
 """Unit tests for verifying the correctness of DebPackage in apt.debfile."""
-import os
 import logging
+import os
+import sys
 import unittest
 
 from test_all import get_library_dir
-import sys
 
 libdir = get_library_dir()
 if libdir:
     sys.path.insert(0, libdir)
 import apt_pkg
-import apt.debfile
-
 import testcommon
+
+import apt.debfile
 
 
 class TestDebfile(testcommon.TestCase):

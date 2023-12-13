@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 
 # This is a simple clone of tests/versiontest.cc
-import apt_pkg
-import sys
 import re
+import sys
+
+import apt_pkg
 
 apt_pkg.init_config()
 apt_pkg.init_system()

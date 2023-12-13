@@ -9,12 +9,11 @@
 
 Unit tests to verify the correctness of Hashes, HashString and the various
 functions like md5sum."""
-import unittest
 import hashlib
+import unittest
 import warnings
 
 import apt_pkg
-
 import testcommon
 
 

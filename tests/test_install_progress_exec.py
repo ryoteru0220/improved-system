@@ -8,17 +8,17 @@
 """Unit tests for verifying InstallProgress works when spawning dpkg directly
 (i.e. when installing standalone .debs)."""
 import os
+import sys
 import unittest
 
 from test_all import get_library_dir
-import sys
 
 libdir = get_library_dir()
 if libdir:
     sys.path.insert(0, libdir)
-from apt.progress.base import InstallProgress
-
 import testcommon
+
+from apt.progress.base import InstallProgress
 
 
 class RunHelper:

@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 # example how to deal with the depcache
 
-import apt
 import sys
 
+import apt
 from apt.progress import InstallProgress
 
 

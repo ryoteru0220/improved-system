@@ -4,8 +4,9 @@
 # it segfaults for python-apt < 0.5.37
 #
 
-import apt_pkg
 import sys
+
+import apt_pkg
 
 
 def main():

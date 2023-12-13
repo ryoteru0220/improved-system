@@ -9,14 +9,13 @@ import sys
 import tempfile
 import time
 import unittest
-
 from http.server import HTTPServer
 from http.server import SimpleHTTPRequestHandler as HTTPRequestHandler
 
 import apt_pkg
-import apt.auth
-
 import testcommon
+
+import apt.auth
 
 WHEEZY_KEYID = "8B48AD6246925553"
 WHEEZY_KEYDATE = "1335553717"

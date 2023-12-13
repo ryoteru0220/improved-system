@@ -25,17 +25,13 @@ import fnmatch
 import os
 import warnings
 import weakref
-
-
-from typing import (
-    Any,
-    cast,
-)
 from collections.abc import Callable, Iterator, KeysView
+from typing import Any, cast
 
 import apt_pkg
-from apt.package import Package, Version
+
 import apt.progress.text
+from apt.package import Package, Version
 from apt.progress.base import AcquireProgress, InstallProgress, OpProgress
 
 

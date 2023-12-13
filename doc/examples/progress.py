@@ -4,6 +4,7 @@ import sys
 import time
 
 import apt_pkg
+
 import apt
 import apt.progress.base
 

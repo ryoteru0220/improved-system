@@ -2,7 +2,6 @@
 import unittest
 
 import apt_pkg
-
 import testcommon
 
 

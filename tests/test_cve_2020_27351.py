@@ -7,19 +7,20 @@
 # notice and this notice are preserved.
 """Unit tests for verifying the correctness of DebFile descriptor handling."""
 import os
+import sys
 import unittest
 
 from test_all import get_library_dir
-import sys
 
 libdir = get_library_dir()
 if libdir:
     sys.path.insert(0, libdir)
-import apt_inst
 import gc
 import subprocess
 import tempfile
 import warnings
+
+import apt_inst
 
 
 @unittest.skipIf(not os.path.exists("/proc/self/fd"), "no /proc/self/fd available")
