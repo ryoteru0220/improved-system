@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 
 # This is a simple clone of tests/versiontest.cc
-import apt_pkg
-import sys
 import re
+import sys
+
+import apt_pkg
 
 apt_pkg.init_config()
 apt_pkg.init_system()
@@ -14,7 +15,7 @@ if len(TestFile) != 1:
     sys.exit(0)
 
 # Go over the file..
-list = open(TestFile[0], "r")
+list = open(TestFile[0])
 CurLine = 0
 while True:
     Line = list.readline()

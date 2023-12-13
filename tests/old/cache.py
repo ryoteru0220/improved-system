@@ -3,8 +3,9 @@
 # Test for the pkgCache code
 #
 
-import apt_pkg
 import sys
+
+import apt_pkg
 
 
 def main():
@@ -41,7 +42,6 @@ def main():
                             h = ver.arch
                             k = ver.depends_listStr
                             j = ver.depends_list
-                            pass
 
         print("\r%i/%i=%.3f%%    " % (i, all, (float(i) / float(all) * 100)))
 

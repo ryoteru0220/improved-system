@@ -4,7 +4,6 @@ import sys
 import unittest
 
 import apt_inst
-
 import testcommon
 
 IS_NOT_32BIT = sys.maxsize > 2**32

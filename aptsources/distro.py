@@ -25,10 +25,9 @@
 
 import gettext
 import logging
+import os
 import re
 import shlex
-import os
-
 from xml.etree.ElementTree import ElementTree
 
 from apt_pkg import gettext as _
@@ -38,7 +37,7 @@ class NoDistroTemplateException(Exception):
     pass
 
 
-class Distribution(object):
+class Distribution:
     def __init__(self, id, codename, description, release, is_like=[]):
         """Container for distribution specific informations"""
         # LSB information
@@ -502,8 +501,8 @@ class UbuntuRTMDistribution(UbuntuDistribution):
 
 def _lsb_release():
     """Call lsb_release --idrc and return a mapping."""
-    from subprocess import Popen, PIPE
     import errno
+    from subprocess import PIPE, Popen
 
     result = {
         "Codename": "sid",
@@ -524,8 +523,8 @@ def _lsb_release():
 
 def _system_image_channel():
     """Get the current channel from system-image-cli -i if possible."""
-    from subprocess import Popen, PIPE, DEVNULL
     import errno
+    from subprocess import DEVNULL, PIPE, Popen
 
     try:
         out = Popen(
@@ -572,7 +571,7 @@ class _OSRelease:
         self.result["Release"] = self.result.get("VERSION_ID")
 
     def parse(self):
-        f = open(self.file, "r")
+        f = open(self.file)
         for line in f:
             line = line.strip()
             if not line:

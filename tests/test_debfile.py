@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2010 Michael Vogt <mvo@ubuntu.com>
 #
@@ -7,20 +6,20 @@
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.
 """Unit tests for verifying the correctness of DebPackage in apt.debfile."""
-import os
 import logging
+import os
+import sys
 import unittest
 
 from test_all import get_library_dir
-import sys
 
 libdir = get_library_dir()
 if libdir:
     sys.path.insert(0, libdir)
 import apt_pkg
-import apt.debfile
-
 import testcommon
+
+import apt.debfile
 
 
 class TestDebfile(testcommon.TestCase):
@@ -69,7 +68,7 @@ class TestDebfile(testcommon.TestCase):
         deb = apt.debfile.DscSrcPackage(cache=self.cache)
         deb.open(os.path.join("data", "test_debs", filename))
         self.assertTrue(deb.check(), "got failure '%s'" % deb._failure_string)
-        missing = set(["autotools-dev"])
+        missing = {"autotools-dev"}
         self.assertEqual(set(deb.missing_deps), missing)
         # specialized properties
         self.assertEqual(deb.pkgname, "hello")
@@ -96,7 +95,7 @@ class TestDebfile(testcommon.TestCase):
     def test_deb_file(self):
         deb = apt.debfile.DebPackage(cache=self.cache)
         for filename, expected_res in self.TEST_DEBS:
-            logging.debug("testing %s, expecting %s" % (filename, expected_res))
+            logging.debug(f"testing {filename}, expecting {expected_res}")
             deb.open(os.path.join("data", "test_debs", filename))
             res = deb.check()
             self.assertEqual(

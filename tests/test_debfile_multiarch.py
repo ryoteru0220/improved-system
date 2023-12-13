@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2010 Michael Vogt <mvo@ubuntu.com>
 #
@@ -7,19 +6,19 @@
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.
 """Unit tests for verifying the correctness of DebPackage in apt.debfile."""
+import sys
 import unittest
 
 from test_all import get_library_dir
-import sys
 
 libdir = get_library_dir()
 if libdir:
     sys.path.insert(0, libdir)
-import apt
 import apt_pkg
-import apt.debfile
-
 import testcommon
+
+import apt
+import apt.debfile
 
 
 class TestDebfileMultiarch(testcommon.TestCase):

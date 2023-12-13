@@ -8,8 +8,9 @@
 # doc/examples/ftp-archive.conf
 # or a bind8 config file..
 
-import apt_pkg
 import sys
+
+import apt_pkg
 
 ConfigFile = apt_pkg.parse_commandline(apt_pkg.config, [], sys.argv)
 
@@ -32,7 +33,9 @@ if "Zone" in Cnf:
         SubCnf = Cnf.sub_tree(item)
         if SubCnf.find("type") == "slave":
             print(
-                "Masters for %s: %s" % (SubCnf.my_tag(), SubCnf.value_list("masters"))
+                "Masters for {}: {}".format(
+                    SubCnf.my_tag(), SubCnf.value_list("masters")
+                )
             )
 else:
     print("Tree definitions:")

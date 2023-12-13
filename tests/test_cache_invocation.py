@@ -2,9 +2,9 @@
 import unittest
 
 import apt_pkg
-import apt.progress.base
-
 import testcommon
+
+import apt.progress.base
 
 
 class TestCache(testcommon.TestCase):

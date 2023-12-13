@@ -19,29 +19,19 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 #  USA
 
+from __future__ import annotations
+
 import fnmatch
 import os
 import warnings
 import weakref
-
-
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-    cast,
-    KeysView,
-)
+from collections.abc import Callable, Iterator, KeysView
+from typing import Any, cast
 
 import apt_pkg
-from apt.package import Package, Version
+
 import apt.progress.text
+from apt.package import Package, Version
 from apt.progress.base import AcquireProgress, InstallProgress, OpProgress
 
 
@@ -65,18 +55,16 @@ class CacheClosedException(Exception):
     """Exception that is thrown when the cache is used after close()."""
 
 
-class _WrappedLock(object):
+class _WrappedLock:
     """Wraps an apt_pkg.FileLock to raise LockFailedException.
 
     Initialized using a directory path."""
 
-    def __init__(self, path):
-        # type: (str) -> None
+    def __init__(self, path: str) -> None:
         self._path = path
         self._lock = apt_pkg.FileLock(os.path.join(path, "lock"))
 
-    def __enter__(self):
-        # type: () -> None
+    def __enter__(self) -> None:
         try:
             return self._lock.__enter__()
         except apt_pkg.Error as e:
@@ -84,12 +72,11 @@ class _WrappedLock(object):
                 ("Failed to lock directory %s: %s") % (self._path, e)
             )
 
-    def __exit__(self, typ, value, traceback):
-        # type: (object, object, object) -> None
+    def __exit__(self, typ: object, value: object, traceback: object) -> None:
         return self._lock.__exit__(typ, value, traceback)
 
 
-class Cache(object):
+class Cache:
     """Dictionary-like package cache.
 
     The APT cache file contains a hash table mapping names of binary
@@ -115,26 +102,28 @@ class Cache(object):
         in :meth:`keys()`, though, to keep :meth:`keys()` a unique set.
     """
 
-    def __init__(self, progress=None, rootdir=None, memonly=False):
-        # type: (Optional[OpProgress], Optional[str], bool) -> None
-        self._cache = cast(apt_pkg.Cache, None)  # type: apt_pkg.Cache
-        self._depcache = cast(apt_pkg.DepCache, None)  # type: apt_pkg.DepCache
-        self._records = cast(
+    def __init__(
+        self,
+        progress: OpProgress | None = None,
+        rootdir: str | None = None,
+        memonly: bool = False,
+    ) -> None:
+        self._cache: apt_pkg.Cache = cast(apt_pkg.Cache, None)
+        self._depcache: apt_pkg.DepCache = cast(apt_pkg.DepCache, None)
+        self._records: apt_pkg.PackageRecords = cast(
             apt_pkg.PackageRecords, None
-        )  # type: apt_pkg.PackageRecords # noqa
-        self._list = cast(apt_pkg.SourceList, None)  # type: apt_pkg.SourceList
-        self._callbacks = (
-            {}
-        )  # type: Dict[str, List[Union[Callable[..., None],str]]] # noqa
-        self._callbacks2 = (
-            {}
-        )  # type: Dict[str, List[Tuple[Callable[..., Any], Tuple[Any, ...], Dict[Any,Any]]]] # noqa
-        self._weakref = (
-            weakref.WeakValueDictionary()
-        )  # type: weakref.WeakValueDictionary[str, apt.Package] # noqa
-        self._weakversions = weakref.WeakSet()  # type: weakref.WeakSet[Version] # noqa
+        )  # noqa
+        self._list: apt_pkg.SourceList = cast(apt_pkg.SourceList, None)
+        self._callbacks: dict[str, list[Callable[..., None] | str]] = {}  # noqa
+        self._callbacks2: dict[
+            str, list[tuple[Callable[..., Any], tuple[Any, ...], dict[Any, Any]]]
+        ] = {}  # noqa
+        self._weakref: weakref.WeakValueDictionary[
+            str, apt.Package
+        ] = weakref.WeakValueDictionary()  # noqa
+        self._weakversions: weakref.WeakSet[Version] = weakref.WeakSet()  # noqa
         self._changes_count = -1
-        self._sorted_set = None  # type: Optional[List[str]]
+        self._sorted_set: list[str] | None = None
 
         self.connect("cache_post_open", "_inc_changes_count")
         self.connect("cache_post_change", "_inc_changes_count")
@@ -167,18 +156,15 @@ class Cache(object):
 
         self.open(progress)
 
-    def fix_broken(self):
-        # type: () -> None
+    def fix_broken(self) -> None:
         """Fix broken packages."""
         self._depcache.fix_broken()
 
-    def _inc_changes_count(self):
-        # type: () -> None
+    def _inc_changes_count(self) -> None:
         """Increase the number of changes"""
         self._changes_count += 1
 
-    def _check_and_create_required_dirs(self, rootdir):
-        # type: (str) -> None
+    def _check_and_create_required_dirs(self, rootdir: str) -> None:
         """
         check if the required apt directories/files are there and if
         not create them
@@ -201,8 +187,7 @@ class Cache(object):
             if not os.path.exists(rootdir + f):
                 open(rootdir + f, "w").close()
 
-    def _run_callbacks(self, name):
-        # type: (str) -> None
+    def _run_callbacks(self, name: str) -> None:
         """internal helper to run a callback"""
         if name in self._callbacks:
             for callback in self._callbacks[name]:
@@ -215,8 +200,7 @@ class Cache(object):
             for callback, args, kwds in self._callbacks2[name]:
                 callback(self, *args, **kwds)
 
-    def open(self, progress=None):
-        # type: (Optional[OpProgress]) -> None
+    def open(self, progress: OpProgress | None = None) -> None:
         """Open the package cache, after that it can be used like
         a dictionary
         """
@@ -240,8 +224,7 @@ class Cache(object):
         progress.done()
         self._run_callbacks("cache_post_open")
 
-    def __remap(self):
-        # type: () -> None
+    def __remap(self) -> None:
         """Called after cache reopen() to relocate to new cache.
 
         Relocate objects like packages and versions from the old
@@ -273,25 +256,21 @@ class Cache(object):
             else:
                 self._weakversions.remove(ver)
 
-    def close(self):
-        # type: () -> None
+    def close(self) -> None:
         """Close the package cache"""
         # explicitely free the FDs that _records has open
         del self._records
         self._records = cast(apt_pkg.PackageRecords, None)
 
-    def __enter__(self):
-        # type: () -> Cache
+    def __enter__(self) -> Cache:
         """Enter the with statement"""
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        # type: (object, object, object) -> None
+    def __exit__(self, exc_type: object, exc_value: object, traceback: object) -> None:
         """Exit the with statement"""
         self.close()
 
-    def __getitem__(self, key):
-        # type: (object) -> Package
+    def __getitem__(self, key: object) -> Package:
         """look like a dictionary (get key)"""
         try:
             key = str(key)
@@ -307,8 +286,7 @@ class Cache(object):
 
         return pkg
 
-    def get(self, key, default=None):
-        # type: (object, object) -> Any
+    def get(self, key: object, default: object = None) -> Any:
         """Return *self*[*key*] or *default* if *key* not in *self*.
 
         .. versionadded:: 1.1
@@ -318,8 +296,7 @@ class Cache(object):
         except KeyError:
             return default
 
-    def _rawpkg_to_pkg(self, rawpkg):
-        # type: (apt_pkg.Package) -> Package
+    def _rawpkg_to_pkg(self, rawpkg: apt_pkg.Package) -> Package:
         """Returns the apt.Package object for an apt_pkg.Package object.
 
         .. versionadded:: 1.0.0
@@ -328,8 +305,7 @@ class Cache(object):
 
         return self._weakref.setdefault(fullname, Package(self, rawpkg))
 
-    def __iter__(self):
-        # type: () -> Iterator[Package]
+    def __iter__(self) -> Iterator[Package]:
         # We iterate sorted over package names here. With this we read the
         # package lists linearly if we need to access the package records,
         # instead of having to do thousands of random seeks; the latter
@@ -339,28 +315,23 @@ class Cache(object):
             pkg = Package(self, self._cache[pkgname])
             yield self._weakref.setdefault(pkgname, pkg)
 
-    def __is_real_pkg(self, rawpkg):
-        # type: (apt_pkg.Package) -> bool
+    def __is_real_pkg(self, rawpkg: apt_pkg.Package) -> bool:
         """Check if the apt_pkg.Package provided is a real package."""
         return rawpkg.has_versions
 
-    def has_key(self, key):
-        # type: (object) -> bool
+    def has_key(self, key: object) -> bool:
         return key in self
 
-    def __contains__(self, key):
-        # type: (object) -> bool
+    def __contains__(self, key: object) -> bool:
         try:
             return self.__is_real_pkg(self._cache[str(key)])
         except KeyError:
             return False
 
-    def __len__(self):
-        # type: () -> int
+    def __len__(self) -> int:
         return len(self.keys())
 
-    def keys(self):
-        # type: () -> List[str]
+    def keys(self) -> list[str]:
         if self._sorted_set is None:
             self._sorted_set = sorted(
                 p.get_fullname(pretty=True)
@@ -369,8 +340,7 @@ class Cache(object):
             )
         return list(self._sorted_set)  # We need a copy here, caller may modify
 
-    def get_changes(self):
-        # type: () -> List[Package]
+    def get_changes(self) -> list[Package]:
         """Get the marked changes"""
         changes = []
         marked_keep = self._depcache.marked_keep
@@ -379,8 +349,7 @@ class Cache(object):
                 changes.append(self._rawpkg_to_pkg(rawpkg))
         return changes
 
-    def upgrade(self, dist_upgrade=False):
-        # type: (bool) -> None
+    def upgrade(self, dist_upgrade: bool = False) -> None:
         """Upgrade all packages.
 
         If the parameter *dist_upgrade* is True, new dependencies will be
@@ -392,8 +361,7 @@ class Cache(object):
         self.cache_post_change()
 
     @property
-    def required_download(self):
-        # type: () -> int
+    def required_download(self) -> int:
         """Get the size of the packages that are required to download."""
         if self._records is None:
             raise CacheClosedException("Cache object used after close() called")
@@ -403,14 +371,12 @@ class Cache(object):
         return fetcher.fetch_needed
 
     @property
-    def required_space(self):
-        # type: () -> int
+    def required_space(self) -> int:
         """Get the size of the additional required space on the fs."""
         return self._depcache.usr_size
 
     @property
-    def req_reinstall_pkgs(self):
-        # type: () -> Set[str]
+    def req_reinstall_pkgs(self) -> set[str]:
         """Return the packages not downloadable packages in reqreinst state."""
         reqreinst = set()
         get_candidate_ver = self._depcache.get_candidate_ver
@@ -423,8 +389,9 @@ class Cache(object):
                 reqreinst.add(pkg.get_fullname(pretty=True))
         return reqreinst
 
-    def _run_fetcher(self, fetcher, allow_unauthenticated):
-        # type: (apt_pkg.Acquire, Optional[bool]) -> int
+    def _run_fetcher(
+        self, fetcher: apt_pkg.Acquire, allow_unauthenticated: bool | None
+    ) -> int:
         if allow_unauthenticated is None:
             allow_unauthenticated = apt_pkg.config.find_b(
                 "APT::Get::" "AllowUnauthenticated", False
@@ -447,7 +414,7 @@ class Cache(object):
                 continue
             if item.STAT_IDLE:
                 continue
-            err_msg += "Failed to fetch %s %s\n" % (item.desc_uri, item.error_text)
+            err_msg += f"Failed to fetch {item.desc_uri} {item.error_text}\n"
             failed = True
 
         # we raise a exception if the download failed or it was cancelt
@@ -459,11 +426,10 @@ class Cache(object):
 
     def _fetch_archives(
         self,
-        fetcher,  # type: apt_pkg.Acquire
-        pm,  # type: apt_pkg.PackageManager
-        allow_unauthenticated=None,  # type: Optional[bool]
-    ):
-        # type: (...) -> int
+        fetcher: apt_pkg.Acquire,
+        pm: apt_pkg.PackageManager,
+        allow_unauthenticated: bool | None = None,
+    ) -> int:
         """fetch the needed archives"""
         if self._records is None:
             raise CacheClosedException("Cache object used after close() called")
@@ -478,11 +444,10 @@ class Cache(object):
 
     def fetch_archives(
         self,
-        progress=None,  # type: Optional[AcquireProgress]
-        fetcher=None,  # type: Optional[apt_pkg.Acquire]
-        allow_unauthenticated=None,  # type: Optional[bool]
-    ):
-        # type: (...) -> int
+        progress: AcquireProgress | None = None,
+        fetcher: apt_pkg.Acquire | None = None,
+        allow_unauthenticated: bool | None = None,
+    ) -> int:
         """Fetch the archives for all packages marked for install/upgrade.
 
         You can specify either an :class:`apt.progress.base.AcquireProgress()`
@@ -511,8 +476,7 @@ class Cache(object):
                 fetcher, apt_pkg.PackageManager(self._depcache), allow_unauthenticated
             )
 
-    def is_virtual_package(self, pkgname):
-        # type: (str) -> bool
+    def is_virtual_package(self, pkgname: str) -> bool:
         """Return whether the package is a virtual package."""
         try:
             pkg = self._cache[pkgname]
@@ -522,9 +486,11 @@ class Cache(object):
             return bool(pkg.has_provides and not pkg.has_versions)
 
     def get_providing_packages(
-        self, pkgname, candidate_only=True, include_nonvirtual=False
-    ):
-        # type: (str, bool, bool) -> List[Package]
+        self,
+        pkgname: str,
+        candidate_only: bool = True,
+        include_nonvirtual: bool = False,
+    ) -> list[Package]:
         """Return a list of all packages providing a package.
 
         Return a list of packages which provide the virtual package of the
@@ -540,7 +506,7 @@ class Cache(object):
         a virtual pkg.
         """
 
-        providers = set()  # type: Set[Package]
+        providers: set[Package] = set()
         get_candidate_ver = self._depcache.get_candidate_ver
         try:
             vp = self._cache[pkgname]
@@ -557,12 +523,11 @@ class Cache(object):
 
     def update(
         self,
-        fetch_progress=None,
-        pulse_interval=0,
-        raise_on_error=True,
-        sources_list=None,
-    ):
-        # type: (Optional[AcquireProgress], int, bool, Optional[str]) -> int
+        fetch_progress: AcquireProgress | None = None,
+        pulse_interval: int = 0,
+        raise_on_error: bool = True,
+        sources_list: str | None = None,
+    ) -> int:
         """Run the equivalent of apt-get update.
 
         You probably want to call open() afterwards, in order to utilise the
@@ -607,8 +572,9 @@ class Cache(object):
                     apt_pkg.config.set("Dir::Etc::sourceparts", old_sources_list_d)
                     apt_pkg.config.set("APT::List-Cleanup", old_cleanup)
 
-    def install_archives(self, pm, install_progress):
-        # type: (apt_pkg.PackageManager, InstallProgress) -> int
+    def install_archives(
+        self, pm: apt_pkg.PackageManager, install_progress: InstallProgress
+    ) -> int:
         """
         The first parameter *pm* refers to an object returned by
         apt_pkg.PackageManager().
@@ -643,11 +609,10 @@ class Cache(object):
 
     def commit(
         self,
-        fetch_progress=None,  # type: Optional[AcquireProgress]
-        install_progress=None,  # type: Optional[InstallProgress]
-        allow_unauthenticated=None,  # type: Optional[bool]
-    ):
-        # type: (...) -> bool
+        fetch_progress: AcquireProgress | None = None,
+        install_progress: InstallProgress | None = None,
+        allow_unauthenticated: bool | None = None,
+    ) -> bool:
         """Apply the marked changes to the cache.
 
         The first parameter, *fetch_progress*, refers to a FetchProgress()
@@ -700,26 +665,22 @@ class Cache(object):
                     fetcher.shutdown()
         return res == pm.RESULT_COMPLETED
 
-    def clear(self):
-        # type: () -> None
+    def clear(self) -> None:
         """Unmark all changes"""
         self._depcache.init()
 
     # cache changes
 
-    def cache_post_change(self):
-        # type: () -> None
+    def cache_post_change(self) -> None:
         "called internally if the cache has changed, emit a signal then"
         self._run_callbacks("cache_post_change")
 
-    def cache_pre_change(self):
-        # type: () -> None
+    def cache_pre_change(self) -> None:
         """called internally if the cache is about to change, emit
         a signal then"""
         self._run_callbacks("cache_pre_change")
 
-    def connect(self, name, callback):
-        # type: (str, Union[Callable[..., None],str]) -> None
+    def connect(self, name: str, callback: Callable[..., None] | str) -> None:
         """Connect to a signal.
 
         .. deprecated:: 1.0
@@ -737,8 +698,9 @@ class Cache(object):
             self._callbacks[name] = []
         self._callbacks[name].append(callback)
 
-    def connect2(self, name, callback, *args, **kwds):
-        # type: (str, Callable[..., Any], object, object) -> None
+    def connect2(
+        self, name: str, callback: Callable[..., Any], *args: object, **kwds: object
+    ) -> None:
         """Connect to a signal.
 
         The callback will be passed the cache as an argument, and
@@ -758,8 +720,7 @@ class Cache(object):
             self._callbacks2[name] = []
         self._callbacks2[name].append((callback, args, kwds))
 
-    def actiongroup(self):
-        # type: () -> apt_pkg.ActionGroup
+    def actiongroup(self) -> apt_pkg.ActionGroup:
         """Return an `ActionGroup` object for the current cache.
 
         Action groups can be used to speedup actions. The action group is
@@ -781,8 +742,7 @@ class Cache(object):
         return apt_pkg.ActionGroup(self._depcache)
 
     @property
-    def dpkg_journal_dirty(self):
-        # type: () -> bool
+    def dpkg_journal_dirty(self) -> bool:
         """Return True if the dpkg was interrupted
 
         All dpkg operations will fail until this is fixed, the action to
@@ -798,65 +758,55 @@ class Cache(object):
         return False
 
     @property
-    def broken_count(self):
-        # type: () -> int
+    def broken_count(self) -> int:
         """Return the number of packages with broken dependencies."""
         return self._depcache.broken_count
 
     @property
-    def delete_count(self):
-        # type: () -> int
+    def delete_count(self) -> int:
         """Return the number of packages marked for deletion."""
         return self._depcache.del_count
 
     @property
-    def install_count(self):
-        # type: () -> int
+    def install_count(self) -> int:
         """Return the number of packages marked for installation."""
         return self._depcache.inst_count
 
     @property
-    def keep_count(self):
-        # type: () -> int
+    def keep_count(self) -> int:
         """Return the number of packages marked as keep."""
         return self._depcache.keep_count
 
 
-class ProblemResolver(object):
+class ProblemResolver:
     """Resolve problems due to dependencies and conflicts.
 
     The first argument 'cache' is an instance of apt.Cache.
     """
 
-    def __init__(self, cache):
-        # type: (Cache) -> None
+    def __init__(self, cache: Cache) -> None:
         self._resolver = apt_pkg.ProblemResolver(cache._depcache)
         self._cache = cache
 
-    def clear(self, package):
-        # type: (Package) -> None
+    def clear(self, package: Package) -> None:
         """Reset the package to the default state."""
         self._resolver.clear(package._pkg)
 
-    def protect(self, package):
-        # type: (Package) -> None
+    def protect(self, package: Package) -> None:
         """Protect a package so it won't be removed."""
         self._resolver.protect(package._pkg)
 
-    def remove(self, package):
-        # type: (Package) -> None
+    def remove(self, package: Package) -> None:
         """Mark a package for removal."""
         self._resolver.remove(package._pkg)
 
-    def resolve(self):
-        # type: () -> None
+    def resolve(self) -> None:
         """Resolve dependencies, try to remove packages where needed."""
         self._cache.cache_pre_change()
         self._resolver.resolve()
         self._cache.cache_post_change()
 
-    def resolve_by_keep(self):
-        # type: () -> None
+    def resolve_by_keep(self) -> None:
         """Resolve dependencies, do not try to remove packages."""
         self._cache.cache_pre_change()
         self._resolver.resolve_by_keep()
@@ -866,11 +816,10 @@ class ProblemResolver(object):
 # ----------------------------- experimental interface
 
 
-class Filter(object):
+class Filter:
     """Filter base class"""
 
-    def apply(self, pkg):
-        # type: (Package) -> bool
+    def apply(self, pkg: Package) -> bool:
         """Filter function, return True if the package matchs a
         filter criteria and False otherwise
         """
@@ -880,8 +829,7 @@ class Filter(object):
 class MarkedChangesFilter(Filter):
     """Filter that returns all marked changes"""
 
-    def apply(self, pkg):
-        # type: (Package) -> bool
+    def apply(self, pkg: Package) -> bool:
         if pkg.marked_install or pkg.marked_delete or pkg.marked_upgrade:
             return True
         else:
@@ -894,25 +842,22 @@ class InstalledFilter(Filter):
     .. versionadded:: 1.0.0
     """
 
-    def apply(self, pkg):
-        # type: (Package) -> bool
+    def apply(self, pkg: Package) -> bool:
         return pkg.is_installed
 
 
-class _FilteredCacheHelper(object):
+class _FilteredCacheHelper:
     """Helper class for FilteredCache to break a reference cycle."""
 
-    def __init__(self, cache):
-        # type: (Cache) -> None
+    def __init__(self, cache: Cache) -> None:
         # Do not keep a reference to the cache, or you have a cycle!
 
-        self._filtered = {}  # type: Dict[str,bool]
-        self._filters = []  # type: List[Filter]
+        self._filtered: dict[str, bool] = {}
+        self._filters: list[Filter] = []
         cache.connect2("cache_post_change", self.filter_cache_post_change)
         cache.connect2("cache_post_open", self.filter_cache_post_change)
 
-    def _reapply_filter(self, cache):
-        # type: (Cache) -> None
+    def _reapply_filter(self, cache: Cache) -> None:
         "internal helper to refilter"
         # Do not keep a reference to the cache, or you have a cycle!
         self._filtered = {}
@@ -922,98 +867,85 @@ class _FilteredCacheHelper(object):
                     self._filtered[pkg.name] = True
                     break
 
-    def set_filter(self, filter):
-        # type: (Filter) -> None
+    def set_filter(self, filter: Filter) -> None:
         """Set the current active filter."""
         self._filters = []
         self._filters.append(filter)
 
-    def filter_cache_post_change(self, cache):
-        # type: (Cache) -> None
+    def filter_cache_post_change(self, cache: Cache) -> None:
         """Called internally if the cache changes, emit a signal then."""
         # Do not keep a reference to the cache, or you have a cycle!
         self._reapply_filter(cache)
 
 
-class FilteredCache(object):
+class FilteredCache:
     """A package cache that is filtered.
 
     Can work on a existing cache or create a new one
     """
 
-    def __init__(self, cache=None, progress=None):
-        # type: (Optional[Cache], Optional[OpProgress]) -> None
+    def __init__(
+        self, cache: Cache | None = None, progress: OpProgress | None = None
+    ) -> None:
         if cache is None:
             self.cache = Cache(progress)
         else:
             self.cache = cache
         self._helper = _FilteredCacheHelper(self.cache)
 
-    def __len__(self):
-        # type: () -> int
+    def __len__(self) -> int:
         return len(self._helper._filtered)
 
-    def __getitem__(self, key):
-        # type: (str) -> Package
+    def __getitem__(self, key: str) -> Package:
         return self.cache[key]
 
-    def __iter__(self):
-        # type: () -> Iterator[Package]
+    def __iter__(self) -> Iterator[Package]:
         for pkgname in self._helper._filtered:
             yield self.cache[pkgname]
 
-    def keys(self):
-        # type: () -> KeysView[str]
+    def keys(self) -> KeysView[str]:
         return self._helper._filtered.keys()
 
-    def has_key(self, key):
-        # type: (object) -> bool
+    def has_key(self, key: object) -> bool:
         return key in self
 
-    def __contains__(self, key):
-        # type: (object) -> bool
+    def __contains__(self, key: object) -> bool:
         try:
             # Normalize package name for multi arch
             return self.cache[key].name in self._helper._filtered
         except KeyError:
             return False
 
-    def set_filter(self, filter):
-        # type: (Filter) -> None
+    def set_filter(self, filter: Filter) -> None:
         """Set the current active filter."""
         self._helper.set_filter(filter)
         self.cache.cache_post_change()
 
-    def filter_cache_post_change(self):
-        # type: () -> None
+    def filter_cache_post_change(self) -> None:
         """Called internally if the cache changes, emit a signal then."""
         self._helper.filter_cache_post_change(self.cache)
 
-    def __getattr__(self, key):
-        # type: (str) -> Any
+    def __getattr__(self, key: str) -> Any:
         """we try to look exactly like a real cache."""
         return getattr(self.cache, key)
 
 
-def cache_pre_changed(cache):
-    # type: (Cache) -> None
+def cache_pre_changed(cache: Cache) -> None:
     print("cache pre changed")
 
 
-def cache_post_changed(cache):
-    # type: (Cache) -> None
+def cache_post_changed(cache: Cache) -> None:
     print("cache post changed")
 
 
-def _test():
-    # type: () -> None
+def _test() -> None:
     """Internal test code."""
     print("Cache self test")
     apt_pkg.init()
     cache = Cache(apt.progress.text.OpProgress())
     cache.connect2("cache_pre_change", cache_pre_changed)
     cache.connect2("cache_post_change", cache_post_changed)
-    print(("aptitude" in cache))
+    print("aptitude" in cache)
     pkg = cache["aptitude"]
     print(pkg.name)
     print(len(cache))

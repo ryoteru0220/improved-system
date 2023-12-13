@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 
-import apt
 import sys
+
+import apt
 
 pkgs = set()
 cache = apt.Cache()

@@ -4,6 +4,7 @@ import sys
 import time
 
 import apt_pkg
+
 import apt
 import apt.progress.base
 
@@ -57,7 +58,7 @@ class TextFetchProgress(apt.progress.base.AcquireProgress):
         return True
 
     def media_change(self, medium, drive):
-        print("Please insert medium %s in drive %s" % (medium, drive))
+        print(f"Please insert medium {medium} in drive {drive}")
         sys.stdin.readline()
         # return False
 
@@ -65,7 +66,6 @@ class TextFetchProgress(apt.progress.base.AcquireProgress):
 class TextInstallProgress(apt.progress.base.InstallProgress):
     def __init__(self):
         apt.progress.base.InstallProgress.__init__(self)
-        pass
 
     def start_update(self):
         print("start_update")
@@ -74,7 +74,7 @@ class TextInstallProgress(apt.progress.base.InstallProgress):
         print("finish_update")
 
     def status_change(self, pkg, percent, status):
-        print("[%s] %s: %s" % (percent, pkg, status))
+        print(f"[{percent}] {pkg}: {status}")
 
     def update_interface(self):
         apt.progress.base.InstallProgress.update_interface(self)
@@ -91,7 +91,7 @@ class TextCdromProgress(apt.progress.base.CdromProgress):
     def update(self, text, step):
         # check if we actually have some text to display
         if text != "":
-            print("Update: %s %s" % (text.strip(), step))
+            print(f"Update: {text.strip()} {step}")
 
     def ask_cdrom_name(self):
         sys.stdout.write("Please enter cd-name: ")

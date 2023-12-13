@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2019 Colomban Wendling <cwendling@hypra.fr>
 #
@@ -8,8 +7,8 @@
 # notice and this notice are preserved.
 """Helper checking argv[1] is a valid, writable, file descriptor"""
 
-from sys import argv
 import os
+from sys import argv
 
 assert len(argv) == 2
 with os.fdopen(int(argv[1]), "w") as f:

@@ -6,13 +6,13 @@
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.
 """Unit tests for verifying the correctness of apt.progress"""
+import os
 import unittest
 
-import apt
 import apt_pkg
-import os
-
 import testcommon
+
+import apt
 
 
 class TestAcquireProgress(apt.progress.base.AcquireProgress):

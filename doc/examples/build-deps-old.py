@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 # this is a example how to access the build dependencies of a package
 
-import apt_pkg
 import sys
+
+import apt_pkg
 
 
 def get_source_pkg(pkg, records, depcache):

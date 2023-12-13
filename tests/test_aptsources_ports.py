@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 import os
-import unittest
 import tempfile
+import unittest
 
 import apt_pkg
-import aptsources.sourceslist
-import aptsources.distro
-
 import testcommon
+
+import aptsources.distro
+import aptsources.sourceslist
 
 
 class TestAptSourcesPorts(testcommon.TestCase):

@@ -1,14 +1,16 @@
 #!/usr/bin/python3
+import os
+
+import apt_pkg
+
 import apt
 import apt.progress.text
-import apt_pkg
-import os
 
 
 def get_file(fetcher, uri, destfile):
     # get the file
     af = apt_pkg.AcquireFile(fetcher, uri=uri, descr="sample descr", destfile=destfile)
-    print("desc_uri: %s -> %s" % (af.desc_uri, af.destfile))
+    print(f"desc_uri: {af.desc_uri} -> {af.destfile}")
     res = fetcher.run()
     if res != fetcher.RESULT_CONTINUE:
         return False
@@ -34,7 +36,7 @@ progress = apt.progress.text.AcquireProgress()
 fetcher = apt_pkg.Acquire(progress)
 pm = apt_pkg.PackageManager(depcache)
 pm.get_archives(fetcher, list, recs)
-print("%s (%s)" % (apt_pkg.size_to_str(fetcher.fetch_needed), fetcher.fetch_needed))
+print(f"{apt_pkg.size_to_str(fetcher.fetch_needed)} ({fetcher.fetch_needed})")
 actiongroup = apt_pkg.ActionGroup(depcache)
 for pkg in cache.packages:
     depcache.mark_keep(pkg)

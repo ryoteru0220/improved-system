@@ -6,11 +6,12 @@
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.
 
-import apt
-import apt_pkg
 import unittest
 
+import apt_pkg
 import testcommon
+
+import apt
 
 
 class TestAptPolicy(testcommon.TestCase):

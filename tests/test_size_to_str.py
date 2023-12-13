@@ -5,7 +5,6 @@ __author__ = "Barry Warsaw <barry@ubuntu.com>, James Hunt, Michael Vogt"
 import unittest
 
 import apt_pkg
-
 import testcommon
 
 
@@ -83,7 +82,7 @@ class SizeToStrTestCase(testcommon.TestCase):
     def test_from_data(self):
         for k, v in self.DATA.items():
             size = apt_pkg.size_to_str(k)
-            msg = "size_to_str(%s) returned '%s', expected '%s'" % (k, size, v)
+            msg = f"size_to_str({k}) returned '{size}', expected '{v}'"
             self.assertEqual(size, v, msg)
 
     def test_raise_on_unsupported(self):

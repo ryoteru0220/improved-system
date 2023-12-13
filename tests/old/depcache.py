@@ -3,8 +3,9 @@
 # Test for the DepCache code
 #
 
-import apt_pkg
 import sys
+
+import apt_pkg
 
 
 def main():

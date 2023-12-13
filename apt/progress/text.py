@@ -19,20 +19,17 @@ import io
 import os
 import signal
 import sys
-
 import types
-from typing import Callable, Optional, Union
-
+from collections.abc import Callable
 
 import apt_pkg
-from apt.progress import base
 
+from apt.progress import base
 
 __all__ = ["AcquireProgress", "CdromProgress", "OpProgress"]
 
 
-def _(msg):
-    # type: (str) -> str
+def _(msg: str) -> str:
     """Translate the message, also try apt if translation is missing."""
     res = apt_pkg.gettext(msg)
     if res == msg:
@@ -40,16 +37,14 @@ def _(msg):
     return res
 
 
-class TextProgress(object):
+class TextProgress:
     """Internal Base class for text progress classes."""
 
-    def __init__(self, outfile=None):
-        # type: (Optional[io.TextIOBase]) -> None
+    def __init__(self, outfile: io.TextIOBase | None = None) -> None:
         self._file = outfile or sys.stdout
         self._width = 0
 
-    def _write(self, msg, newline=True, maximize=False):
-        # type: (str, bool, bool) -> None
+    def _write(self, msg: str, newline: bool = True, maximize: bool = False) -> None:
         """Write the message on the terminal, fill remaining space."""
         self._file.write("\r")
         self._file.write(msg)
@@ -72,14 +67,12 @@ class OpProgress(base.OpProgress, TextProgress):
     This closely resembles OpTextProgress in libapt-pkg.
     """
 
-    def __init__(self, outfile=None):
-        # type: (Optional[io.TextIOBase]) -> None
+    def __init__(self, outfile: io.TextIOBase | None = None) -> None:
         TextProgress.__init__(self, outfile)
         base.OpProgress.__init__(self)
         self.old_op = ""
 
-    def update(self, percent=None):
-        # type: (Optional[float]) -> None
+    def update(self, percent: float | None = None) -> None:
         """Called periodically to update the user interface."""
         base.OpProgress.update(self, percent)
         if self.major_change and self.old_op:
@@ -87,8 +80,7 @@ class OpProgress(base.OpProgress, TextProgress):
         self._write("%s... %i%%\r" % (self.op, self.percent), False, True)
         self.old_op = self.op
 
-    def done(self):
-        # type: () -> None
+    def done(self) -> None:
         """Called once an operation has been completed."""
         base.OpProgress.done(self)
         if self.old_op:
@@ -99,18 +91,16 @@ class OpProgress(base.OpProgress, TextProgress):
 class AcquireProgress(base.AcquireProgress, TextProgress):
     """AcquireProgress for the text interface."""
 
-    def __init__(self, outfile=None):
-        # type: (Optional[io.TextIOBase]) -> None
+    def __init__(self, outfile: io.TextIOBase | None = None) -> None:
         TextProgress.__init__(self, outfile)
         base.AcquireProgress.__init__(self)
-        self._signal = (
-            None
-        )  # type: Union[Callable[[int, Optional[types.FrameType]], None], int, signal.Handlers, None] # noqa
+        self._signal: (
+            Callable[[int, types.FrameType | None], None] | int | signal.Handlers | None
+        ) = None  # noqa
         self._width = 80
         self._id = 1
 
-    def start(self):
-        # type: () -> None
+    def start(self) -> None:
         """Start an Acquire progress.
 
         In this case, the function sets up a signal handler for SIGWINCH, i.e.
@@ -122,20 +112,18 @@ class AcquireProgress(base.AcquireProgress, TextProgress):
         self._winch()
         self._id = 1
 
-    def _winch(self, *dummy):
-        # type: (object) -> None
+    def _winch(self, *dummy: object) -> None:
         """Signal handler for window resize signals."""
         if hasattr(self._file, "fileno") and os.isatty(self._file.fileno()):
             import fcntl
-            import termios
             import struct
+            import termios
 
             buf = fcntl.ioctl(self._file, termios.TIOCGWINSZ, 8 * b" ")  # noqa
             dummy, col, dummy, dummy = struct.unpack("hhhh", buf)
             self._width = col - 1  # 1 for the cursor
 
-    def ims_hit(self, item):
-        # type: (apt_pkg.AcquireItemDesc) -> None
+    def ims_hit(self, item: apt_pkg.AcquireItemDesc) -> None:
         """Called when an item is update (e.g. not modified on the server)."""
         base.AcquireProgress.ims_hit(self, item)
         line = _("Hit ") + item.description
@@ -143,8 +131,7 @@ class AcquireProgress(base.AcquireProgress, TextProgress):
             line += " [%sB]" % apt_pkg.size_to_str(item.owner.filesize)
         self._write(line)
 
-    def fail(self, item):
-        # type: (apt_pkg.AcquireItemDesc) -> None
+    def fail(self, item: apt_pkg.AcquireItemDesc) -> None:
         """Called when an item is failed."""
         base.AcquireProgress.fail(self, item)
         if item.owner.status == item.owner.STAT_DONE:
@@ -153,8 +140,7 @@ class AcquireProgress(base.AcquireProgress, TextProgress):
             self._write(_("Err ") + item.description)
             self._write("  %s" % item.owner.error_text)
 
-    def fetch(self, item):
-        # type: (apt_pkg.AcquireItemDesc) -> None
+    def fetch(self, item: apt_pkg.AcquireItemDesc) -> None:
         """Called when some of the item's data is fetched."""
         base.AcquireProgress.fetch(self, item)
         # It's complete already (e.g. Hit)
@@ -162,14 +148,13 @@ class AcquireProgress(base.AcquireProgress, TextProgress):
             return
         item.owner.id = self._id
         self._id += 1
-        line = _("Get:") + "%s %s" % (item.owner.id, item.description)
+        line = _("Get:") + f"{item.owner.id} {item.description}"
         if item.owner.filesize:
             line += " [%sB]" % apt_pkg.size_to_str(item.owner.filesize)
 
         self._write(line)
 
-    def pulse(self, owner):
-        # type: (apt_pkg.Acquire) -> bool
+    def pulse(self, owner: apt_pkg.Acquire) -> bool:
         """Periodically invoked while the Acquire process is underway.
 
         Return False if the user asked to cancel the whole Acquire process."""
@@ -188,7 +173,7 @@ class AcquireProgress(base.AcquireProgress, TextProgress):
         end = ""
         if self.current_cps:
             eta = int(float(self.total_bytes - self.current_bytes) / self.current_cps)
-            end = " %sB/s %s" % (
+            end = " {}B/s {}".format(
                 apt_pkg.size_to_str(self.current_cps),
                 apt_pkg.time_to_str(eta),
             )
@@ -241,8 +226,7 @@ class AcquireProgress(base.AcquireProgress, TextProgress):
         self._write(tval, False)
         return True
 
-    def media_change(self, medium, drive):
-        # type: (str, str) -> bool
+    def media_change(self, medium: str, drive: str) -> bool:
         """Prompt the user to change the inserted removable media."""
         base.AcquireProgress.media_change(self, medium, drive)
         self._write(
@@ -255,8 +239,7 @@ class AcquireProgress(base.AcquireProgress, TextProgress):
         )
         return input() not in ("c", "C")
 
-    def stop(self):
-        # type: () -> None
+    def stop(self) -> None:
         """Invoked when the Acquire process stops running."""
         base.AcquireProgress.stop(self)
         # Trick for getting a translation from apt
@@ -280,8 +263,7 @@ class AcquireProgress(base.AcquireProgress, TextProgress):
 class CdromProgress(base.CdromProgress, TextProgress):
     """Text CD-ROM progress."""
 
-    def ask_cdrom_name(self):
-        # type: () -> Optional[str]
+    def ask_cdrom_name(self) -> str | None:
         """Ask the user to provide a name for the disc."""
         base.CdromProgress.ask_cdrom_name(self)
         self._write(
@@ -296,15 +278,13 @@ class CdromProgress(base.CdromProgress, TextProgress):
         except KeyboardInterrupt:
             return None
 
-    def update(self, text, current):
-        # type: (str, int) -> None
+    def update(self, text: str, current: int) -> None:
         """Set the current progress."""
         base.CdromProgress.update(self, text, current)
         if text:
             self._write(text, False)
 
-    def change_cdrom(self):
-        # type: () -> bool
+    def change_cdrom(self) -> bool:
         """Ask the user to change the CD-ROM."""
         base.CdromProgress.change_cdrom(self)
         self._write(_("Please insert an installation medium and press enter"), False)

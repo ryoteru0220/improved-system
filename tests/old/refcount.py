@@ -1,9 +1,10 @@
 #!/usr/bin/python-dbg
 
-from pprint import pprint
-import apt
-import sys
 import gc
+import sys
+from pprint import pprint
+
+import apt
 
 # get initial cache
 print(sys.gettotalrefcount())

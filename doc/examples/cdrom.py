@@ -1,11 +1,10 @@
 #!/usr/bin/python3
 # example how to deal with the depcache
 
-import apt_pkg
 import sys
 
+import apt_pkg
 from progress import TextCdromProgress
-
 
 # init
 apt_pkg.init()
@@ -16,7 +15,7 @@ print(cdrom)
 progress = TextCdromProgress()
 
 (res, ident) = cdrom.ident(progress)
-print("ident result is: %s (%s) " % (res, ident))
+print(f"ident result is: {res} ({ident}) ")
 
 apt_pkg.config["APT::CDROM::Rename"] = "True"
 cdrom.add(progress)

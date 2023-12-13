@@ -20,6 +20,7 @@
 import collections
 import sys
 import urllib.request
+
 from debian import deb822
 
 mirrors = collections.defaultdict(set)
@@ -35,7 +36,7 @@ for mirror in deb822.Deb822.iter_paragraphs(masterlist):
     for proto in "http", "ftp":
         if "Archive-%s" % proto in mirror:
             mirrors[country].add(
-                "%s://%s%s" % (proto, site, mirror["Archive-%s" % proto])
+                "{}://{}{}".format(proto, site, mirror["Archive-%s" % proto])
             )
 
 if len(mirrors) == 0:

@@ -6,9 +6,9 @@
 # notice and this notice are preserved.
 """Run all available unit tests."""
 import os
-import unittest.runner
-import unittest
 import sys
+import unittest
+import unittest.runner
 
 # Python 3 only provides abiflags since 3.2
 if not hasattr(sys, "pydebug"):
@@ -25,8 +25,8 @@ def get_library_dir():
     from sysconfig import get_platform, get_python_version
 
     # Set the path to the build directory.
-    plat_specifier = ".%s-%s" % (get_platform(), get_python_version())
-    library_dir = "../build/lib%s%s" % (
+    plat_specifier = f".{get_platform()}-{get_python_version()}"
+    library_dir = "../build/lib{}{}".format(
         plat_specifier,
         (sys.pydebug and "-pydebug" or ""),
     )
@@ -36,7 +36,7 @@ def get_library_dir():
 class MyTestRunner(unittest.runner.TextTestRunner):
     def __init__(self, *args, **kwargs):
         kwargs["stream"] = sys.stdout
-        super(MyTestRunner, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 if __name__ == "__main__":

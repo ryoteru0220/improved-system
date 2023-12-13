@@ -42,7 +42,7 @@ def format_mode(member):
 def callback(member, data):
     """callback for deb_extract"""
     s_mode = format_mode(member)
-    s_owner = "%s/%s" % (pwd.getpwuid(member.uid)[0], grp.getgrgid(member.gid)[0])
+    s_owner = f"{pwd.getpwuid(member.uid)[0]}/{grp.getgrgid(member.gid)[0]}"
     s_size = "%9d" % member.size
     s_time = time.strftime("%Y-%m-%d %H:%M", time.localtime(member.mtime))
     s_name = member.name if member.name.startswith(".") else ("./" + member.name)

@@ -7,8 +7,9 @@
 # but with a nicer API
 
 import apt_pkg
-from apt.progress.text import OpProgress
 from progress import TextFetchProgress
+
+from apt.progress.text import OpProgress
 
 # init
 apt_pkg.init()
@@ -42,28 +43,28 @@ ver = depcache.get_candidate_ver(iter)
 print("Candidate version: %s " % ver)
 
 print("\n\nQuerry interface")
-print("%s.is_upgradable(): %s" % (iter.name, depcache.is_upgradable(iter)))
+print(f"{iter.name}.is_upgradable(): {depcache.is_upgradable(iter)}")
 
 print("\nMarking interface")
 print("Marking '%s' for install" % iter.name)
 depcache.mark_install(iter)
 print("Install count: %s " % depcache.inst_count)
-print("%s.marked_install(): %s" % (iter.name, depcache.marked_install(iter)))
-print("%s.marked_upgrade(): %s" % (iter.name, depcache.marked_upgrade(iter)))
-print("%s.marked_delete(): %s" % (iter.name, depcache.marked_delete(iter)))
+print(f"{iter.name}.marked_install(): {depcache.marked_install(iter)}")
+print(f"{iter.name}.marked_upgrade(): {depcache.marked_upgrade(iter)}")
+print(f"{iter.name}.marked_delete(): {depcache.marked_delete(iter)}")
 
 print("Marking %s for delete" % iter.name)
 depcache.mark_delete(iter)
 print("del_count: %s " % depcache.del_count)
-print("%s.marked_delete(): %s" % (iter.name, depcache.marked_delete(iter)))
+print(f"{iter.name}.marked_delete(): {depcache.marked_delete(iter)}")
 
 iter = cache["apt"]
 print("\nMarking '%s' for install" % iter.name)
 depcache.mark_install(iter)
 print("Install count: %s " % depcache.inst_count)
-print("%s.marked_install(): %s" % (iter.name, depcache.marked_install(iter)))
-print("%s.marked_upgrade(): %s" % (iter.name, depcache.marked_upgrade(iter)))
-print("%s.marked_delete(): %s" % (iter.name, depcache.marked_delete(iter)))
+print(f"{iter.name}.marked_install(): {depcache.marked_install(iter)}")
+print(f"{iter.name}.marked_upgrade(): {depcache.marked_upgrade(iter)}")
+print(f"{iter.name}.marked_delete(): {depcache.marked_delete(iter)}")
 
 print("Marking %s for keep" % iter.name)
 depcache.mark_keep(iter)

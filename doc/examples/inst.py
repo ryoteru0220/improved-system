@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 # example how to deal with the depcache
 
-import apt
 import sys
 
+import apt
 from apt.progress import InstallProgress
 
 
@@ -16,12 +16,12 @@ class TextInstallProgress(InstallProgress):
         InstallProgress.updateInterface(self)
         if self.last >= self.percent:
             return
-        sys.stdout.write("\r[%s] %s\n" % (self.percent, self.status))
+        sys.stdout.write(f"\r[{self.percent}] {self.status}\n")
         sys.stdout.flush()
         self.last = self.percent
 
     def conffile(self, current, new):
-        print("conffile prompt: %s %s" % (current, new))
+        print(f"conffile prompt: {current} {new}")
 
     def error(self, errorstr):
         print("got dpkg error: '%s'" % errorstr)

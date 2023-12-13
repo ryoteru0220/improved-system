@@ -4,8 +4,9 @@
 # it segfaults for python-apt < 0.5.37
 #
 
-import apt_pkg
 import sys
+
+import apt_pkg
 
 
 def main():
@@ -29,7 +30,6 @@ def main():
             # print records.filename
             x = records.filename
             y = records.long_desc
-            pass
         print(
             "\r%i/%i=%.3f%%    "
             % (i, cache.package_count, (float(i) / float(cache.package_count) * 100))
