@@ -6,7 +6,9 @@ import apt
 
 
 def show_help():
-    print("apt %s compiled on %s %s" % (apt_pkg.VERSION, apt_pkg.DATE, apt_pkg.TIME))
+    print(
+        "apt {} compiled on {} {}".format(apt_pkg.VERSION, apt_pkg.DATE, apt_pkg.TIME)
+    )
     if apt_pkg.config.find_b("version"):
         return 0
 

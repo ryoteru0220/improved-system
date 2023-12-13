@@ -16,7 +16,7 @@ print(cdrom)
 progress = TextCdromProgress()
 
 (res, ident) = cdrom.ident(progress)
-print("ident result is: %s (%s) " % (res, ident))
+print("ident result is: {} ({}) ".format(res, ident))
 
 apt_pkg.config["APT::CDROM::Rename"] = "True"
 cdrom.add(progress)

@@ -83,7 +83,7 @@ class UntrustedError(FetchError):
     """Raised when a file did not have a trusted hash."""
 
 
-class BaseDependency(object):
+class BaseDependency:
     """A single dependency."""
 
     class __dstr(str):
@@ -115,10 +115,10 @@ class BaseDependency(object):
         self._dep = dep  # apt_pkg.Dependency
 
     def __str__(self) -> str:
-        return "%s: %s" % (self.rawtype, self.rawstr)
+        return "{}: {}".format(self.rawtype, self.rawstr)
 
     def __repr__(self) -> str:
-        return "<BaseDependency: name:%r relation:%r version:%r rawtype:%r>" % (
+        return "<BaseDependency: name:{!r} relation:{!r} version:{!r} rawtype:{!r}>".format(
             self.name,
             self.relation,
             self.version,
@@ -161,13 +161,13 @@ class BaseDependency(object):
         return self._dep.target_ver
 
     @property
-    def target_versions(self) -> List[Version]:
+    def target_versions(self) -> list[Version]:
         """A list of all Version objects which satisfy this dependency.
 
         .. versionadded:: 1.0.0
         """
         tvers = []
-        _tvers: List[apt_pkg.Version] = self._dep.all_targets()
+        _tvers: list[apt_pkg.Version] = self._dep.all_targets()
         for _tver in _tvers:  # type: apt_pkg.Version
             _pkg: apt_pkg.Package = _tver.parent_pkg
             cache = self._version.package._pcache  # apt.cache.Cache
@@ -177,7 +177,7 @@ class BaseDependency(object):
         return tvers
 
     @property
-    def installed_target_versions(self) -> List[Version]:
+    def installed_target_versions(self) -> list[Version]:
         """A list of all installed Version objects which satisfy this dep.
 
         .. versionadded:: 1.0.0
@@ -201,7 +201,7 @@ class BaseDependency(object):
         .. versionadded:: 1.0.0
         """
         if self.version:
-            return "%s %s %s" % (self.name, self.relation_deb, self.version)
+            return "{} {} {}".format(self.name, self.relation_deb, self.version)
         else:
             return self.name
 
@@ -233,14 +233,14 @@ class Dependency(List[BaseDependency]):
     """
 
     def __init__(
-        self, version: Version, base_deps: List[BaseDependency], rawtype: str
+        self, version: Version, base_deps: list[BaseDependency], rawtype: str
     ) -> None:
-        super(Dependency, self).__init__(base_deps)
+        super().__init__(base_deps)
         self._version = version  # apt.package.Version
         self._rawtype = rawtype
 
     def __str__(self) -> str:
-        return "%s: %s" % (self.rawtype, self.rawstr)
+        return "{}: {}".format(self.rawtype, self.rawstr)
 
     def __repr__(self) -> str:
         return "<Dependency: [%s]>" % (", ".join(repr(bd) for bd in self))
@@ -278,12 +278,12 @@ class Dependency(List[BaseDependency]):
         return self._rawtype
 
     @property
-    def target_versions(self) -> List[Version]:
+    def target_versions(self) -> list[Version]:
         """A list of all Version objects which satisfy this Or-group of deps.
 
         .. versionadded:: 1.0.0
         """
-        tvers: List[Version] = []
+        tvers: list[Version] = []
         for bd in self:  # apt.package.Dependency
             for tver in bd.target_versions:  # apt.package.Version
                 if tver not in tvers:
@@ -291,7 +291,7 @@ class Dependency(List[BaseDependency]):
         return tvers
 
     @property
-    def installed_target_versions(self) -> List[Version]:
+    def installed_target_versions(self) -> list[Version]:
         """A list of all installed Version objects which satisfy this dep.
 
         .. versionadded:: 1.0.0
@@ -299,7 +299,7 @@ class Dependency(List[BaseDependency]):
         return [tver for tver in self.target_versions if tver.is_installed]
 
 
-class Origin(object):
+class Origin:
     """The origin of a version.
 
     Attributes defined here:
@@ -379,7 +379,7 @@ class Record(Mapping[Any, Any]):
     def __iter__(self) -> Iterator[str]:
         return iter(self._rec.keys())
 
-    def iteritems(self) -> Iterable[Tuple[object, str]]:
+    def iteritems(self) -> Iterable[tuple[object, str]]:
         """An iterator over the (key, value) items of the record."""
         for key in self._rec.keys():
             yield key, self._rec[key]
@@ -399,7 +399,7 @@ class Record(Mapping[Any, Any]):
         return len(self._rec)
 
 
-class Version(object):
+class Version:
     """Representation of a package version.
 
     The Version class contains all information related to a
@@ -413,7 +413,7 @@ class Version(object):
         self._cand = cand
         self.package._pcache._weakversions.add(self)
 
-    def _cmp(self, other: Any) -> Union[int, Any]:
+    def _cmp(self, other: Any) -> int | Any:
         """Compares against another apt.Version object or a version string.
 
         This method behaves like Python 2's cmp builtin and returns an integer
@@ -457,7 +457,7 @@ class Version(object):
     def __lt__(self, other: Version) -> bool:
         return self._cmp(other) < 0
 
-    def __ne__(self, other: object) -> Union[bool, Any]:
+    def __ne__(self, other: object) -> bool | Any:
         try:
             return self._cmp(other) != 0
         except TypeError:
@@ -467,10 +467,12 @@ class Version(object):
         return self._cand.hash
 
     def __str__(self) -> str:
-        return "%s=%s" % (self.package.name, self.version)
+        return "{}={}".format(self.package.name, self.version)
 
     def __repr__(self) -> str:
-        return "<Version: package:%r version:%r>" % (self.package.name, self.version)
+        return "<Version: package:{!r} version:{!r}>".format(
+            self.package.name, self.version
+        )
 
     @property
     def _records(self) -> apt_pkg.PackageRecords:
@@ -482,7 +484,7 @@ class Version(object):
         return self.package._pcache._records
 
     @property
-    def _translated_records(self) -> Optional[apt_pkg.PackageRecords]:
+    def _translated_records(self) -> apt_pkg.PackageRecords | None:
         """Internal helper to get the translated description."""
         desc_iter = self._cand.translated_description
         if self.package._pcache._records.lookup(desc_iter.file_list.pop(0)):
@@ -529,7 +531,7 @@ class Version(object):
         return self._cand.ver_str
 
     @property
-    def summary(self) -> Optional[str]:
+    def summary(self) -> str | None:
         """Return the short description (one line summary)."""
         records = self._translated_records
         return records.short_desc if records is not None else None
@@ -636,7 +638,7 @@ class Version(object):
         """
         return Record(self._records.record)
 
-    def get_dependencies(self, *types: str) -> List[Dependency]:
+    def get_dependencies(self, *types: str) -> list[Dependency]:
         """Return a list of Dependency objects for the given types.
 
         Multiple types can be specified. Possible types are:
@@ -659,32 +661,32 @@ class Version(object):
         return depends_list
 
     @property
-    def provides(self) -> List[str]:
+    def provides(self) -> list[str]:
         """Return a list of names that this version provides."""
         return [p[0] for p in self._cand.provides_list]
 
     @property
-    def enhances(self) -> List[Dependency]:
+    def enhances(self) -> list[Dependency]:
         """Return the list of enhances for the package version."""
         return self.get_dependencies("Enhances")
 
     @property
-    def dependencies(self) -> List[Dependency]:
+    def dependencies(self) -> list[Dependency]:
         """Return the dependencies of the package version."""
         return self.get_dependencies("PreDepends", "Depends")
 
     @property
-    def recommends(self) -> List[Dependency]:
+    def recommends(self) -> list[Dependency]:
         """Return the recommends of the package version."""
         return self.get_dependencies("Recommends")
 
     @property
-    def suggests(self) -> List[Dependency]:
+    def suggests(self) -> list[Dependency]:
         """Return the suggests of the package version."""
         return self.get_dependencies("Suggests")
 
     @property
-    def origins(self) -> List[Origin]:
+    def origins(self) -> list[Origin]:
         """Return a list of origins for the package version."""
         origins = []
         for packagefile, _unused in self._cand.file_list:
@@ -724,7 +726,7 @@ class Version(object):
         return self._records.sha256_hash
 
     @property
-    def tasks(self) -> Set[str]:
+    def tasks(self) -> set[str]:
         """Get the tasks of the package.
 
         A set of the names of the tasks this package belongs to.
@@ -744,7 +746,7 @@ class Version(object):
                 yield indexfile.archive_uri(self._records.filename)
 
     @property
-    def uris(self) -> List[str]:
+    def uris(self) -> list[str]:
         """Return a list of all available uris for the binary.
 
         .. versionadded:: 0.7.10
@@ -752,7 +754,7 @@ class Version(object):
         return list(self._uris())
 
     @property
-    def uri(self) -> Optional[str]:
+    def uri(self) -> str | None:
         """Return a single URI for the binary.
 
         .. versionadded:: 0.7.10
@@ -765,8 +767,8 @@ class Version(object):
     def fetch_binary(
         self,
         destdir: str = "",
-        progress: Optional[AcquireProgress] = None,
-        allow_unauthenticated: Optional[bool] = None,
+        progress: AcquireProgress | None = None,
+        allow_unauthenticated: bool | None = None,
     ) -> str:
         """Fetch the binary version of the package.
 
@@ -831,9 +833,9 @@ class Version(object):
     def fetch_source(
         self,
         destdir: str = "",
-        progress: Optional[AcquireProgress] = None,
+        progress: AcquireProgress | None = None,
         unpack: bool = True,
-        allow_unauthenticated: Optional[bool] = None,
+        allow_unauthenticated: bool | None = None,
     ) -> str:
         """Get the source code of a package.
 
@@ -945,13 +947,13 @@ class VersionList(Sequence[Version]):
         max(package.versions)
     """
 
-    def __init__(self, package: Package, slice_: Optional[slice] = None) -> None:
+    def __init__(self, package: Package, slice_: slice | None = None) -> None:
         self._package = package  # apt.package.Package()
         self._versions = package._pkg.version_list  # [apt_pkg.Version(), ...]
         if slice_:
             self._versions = self._versions[slice_]
 
-    def __getitem__(self, item: Union[int, slice, str]) -> Any:
+    def __getitem__(self, item: int | slice | str) -> Any:
         # FIXME: Should not be returning Any, should have overloads; but
         # pyflakes complains
         if isinstance(item, slice):
@@ -993,11 +995,11 @@ class VersionList(Sequence[Version]):
 
     # Mapping interface
 
-    def keys(self) -> List[str]:
+    def keys(self) -> list[str]:
         """Return a list of all versions, as strings."""
         return [ver.ver_str for ver in self._versions]
 
-    def get(self, key: str, default: Optional[Version] = None) -> Optional[Version]:
+    def get(self, key: str, default: Version | None = None) -> Version | None:
         """Return the key or the default."""
         try:
             return self[key]  # type: ignore  # FIXME: should be deterined automatically # noqa
@@ -1005,7 +1007,7 @@ class VersionList(Sequence[Version]):
             return default
 
 
-class Package(object):
+class Package:
     """Representation of a package in a cache.
 
     This class provides methods and properties for working with a package. It
@@ -1023,7 +1025,7 @@ class Package(object):
         return self.name
 
     def __repr__(self) -> str:
-        return "<Package: name:%r architecture=%r id:%r>" % (
+        return "<Package: name:{!r} architecture={!r} id:{!r}>".format(
             self._pkg.name,
             self._pkg.architecture,
             self._pkg.id,
@@ -1033,7 +1035,7 @@ class Package(object):
         return self.name < other.name
 
     @property
-    def candidate(self) -> Optional[Version]:
+    def candidate(self) -> Version | None:
         """Return the candidate version of the package.
 
         This property is writeable to allow you to set the candidate version
@@ -1053,7 +1055,7 @@ class Package(object):
         self._pcache.cache_post_change()
 
     @property
-    def installed(self) -> Optional[Version]:
+    def installed(self) -> Version | None:
         """Return the currently installed version of the package.
 
         .. versionadded:: 0.7.9
@@ -1183,7 +1185,7 @@ class Package(object):
     # sizes
 
     @property
-    def installed_files(self) -> List[str]:
+    def installed_files(self) -> list[str]:
         """Return a list of files installed by the package.
 
         Return a list of unicode names of the files which have
@@ -1194,13 +1196,13 @@ class Package(object):
             try:
                 with open(path, "rb") as file_list:
                     return file_list.read().decode("utf-8").strip().split("\n")
-            except EnvironmentError:
+            except OSError:
                 continue
 
         return []
 
     def get_changelog(
-        self, uri: Optional[str] = None, cancel_lock: Optional[threading.Event] = None
+        self, uri: str | None = None, cancel_lock: threading.Event | None = None
     ) -> str:
         """
         Download the changelog of the package and return it as unicode
@@ -1373,7 +1375,7 @@ class Package(object):
                     return res
                 else:
                     return res.decode("utf-8")
-            except (IOError, BadStatusLine):
+            except (OSError, BadStatusLine):
                 res = _(
                     "Failed to download the list of changes. \nPlease "
                     "check your Internet connection."
@@ -1527,7 +1529,7 @@ def _test():
     for dep in pkg.candidate.dependencies:
         print(
             ",".join(
-                "%s (%s) (%s) (%s)" % (o.name, o.version, o.relation, o.pre_depend)
+                "{} ({}) ({}) ({})".format(o.name, o.version, o.relation, o.pre_depend)
                 for o in dep.or_dependencies
             )
         )

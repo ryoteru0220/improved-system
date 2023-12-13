@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2020 Canonical Ltd
 #
@@ -44,7 +43,7 @@ class TestCVE_2020_27351(unittest.TestCase):
     def test_regression_bug_977000_2(self):
         """file object <-> debfile cycles should be collected by gc."""
 
-        class Cycle(object):
+        class Cycle:
             def __init__(self, fname):
                 self.file = open(fname)
                 self.deb = apt_inst.DebFile(self)
@@ -63,7 +62,7 @@ class TestCVE_2020_27351(unittest.TestCase):
     def test_regression_bug_977000_2_ar(self):
         """file object <-> debfile cycles should be collected by gc."""
 
-        class Cycle(object):
+        class Cycle:
             def __init__(self, fname):
                 self.file = open(fname)
                 self.deb = apt_inst.ArArchive(self)

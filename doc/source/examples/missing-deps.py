@@ -7,7 +7,7 @@ def fmt_dep(dep):
     """Format a Dependency object [of apt_pkg] as a string."""
     ret = dep.target_pkg.name
     if dep.target_ver:
-        ret += " (%s %s)" % (dep.comp_type, dep.target_ver)
+        ret += " ({} {})".format(dep.comp_type, dep.target_ver)
     return ret
 
 

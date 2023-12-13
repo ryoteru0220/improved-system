@@ -274,7 +274,7 @@ class TestAuthKeys(testcommon.TestCase):
                 try:
                     httpd = HTTPServer(("localhost", port), HTTPRequestHandler)
                     break
-                except IOError as e:
+                except OSError as e:
                     if e.errno != errno.EADDRINUSE:
                         raise
             keyserver_write = os.fdopen(keyserver_pipe[1], "w")

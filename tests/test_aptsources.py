@@ -183,8 +183,8 @@ class TestAptSources(testcommon.TestCase):
                 entry.type == "deb"
                 and entry.uri == "http://de.archive.ubuntu.com/ubuntu/"
                 and entry.dist == "natty"
-                and set(entry.architectures) == set(["amd64", "i386"])
-                and set(entry.comps) == set(["main", "universe"])
+                and set(entry.architectures) == {"amd64", "i386"}
+                and set(entry.comps) == {"main", "universe"}
             ):
                 found = True
                 break
@@ -290,8 +290,8 @@ class TestAptSources(testcommon.TestCase):
                 entry.type == "deb"
                 and entry.uri == "http://de.archive.ubuntu.com/ubuntu/"
                 and entry.dist == "natty"
-                and set(entry.architectures) == set(["amd64", "i386"])
-                and set(entry.comps) == set(["main", "universe"])
+                and set(entry.architectures) == {"amd64", "i386"}
+                and set(entry.comps) == {"main", "universe"}
             ):
                 found = True
                 break
@@ -1096,7 +1096,7 @@ class TestAptSources(testcommon.TestCase):
             distro.enable_component("multiverse")
             sources.save()
 
-            with open(file.name, "r") as readonly:
+            with open(file.name) as readonly:
                 self.maxDiff = None
                 self.assertEqual(
                     readonly.read(),
@@ -1124,7 +1124,7 @@ class TestAptSources(testcommon.TestCase):
             distro.disable_component("multiverse")
             sources.save()
 
-            with open(file.name, "r") as readonly:
+            with open(file.name) as readonly:
                 self.maxDiff = None
                 self.assertEqual(
                     readonly.read(),
@@ -1148,7 +1148,7 @@ class TestAptSources(testcommon.TestCase):
             distro.disable_component("universe")
             sources.save()
 
-            with open(file.name, "r") as readonly:
+            with open(file.name) as readonly:
                 self.maxDiff = None
                 self.assertEqual(
                     readonly.read(),
@@ -1204,7 +1204,7 @@ class TestAptSources(testcommon.TestCase):
             distro.enable_component("multiverse")
             sources.save()
 
-            with open(file.name, "r") as readonly:
+            with open(file.name) as readonly:
                 self.maxDiff = None
                 self.assertEqual(
                     readonly.read(),
@@ -1239,7 +1239,7 @@ class TestAptSources(testcommon.TestCase):
             distro.disable_component("multiverse")
             sources.save()
 
-            with open(file.name, "r") as readonly:
+            with open(file.name) as readonly:
                 self.maxDiff = None
                 self.assertEqual(
                     readonly.read(),
@@ -1264,7 +1264,7 @@ class TestAptSources(testcommon.TestCase):
             distro.disable_component("universe")
             sources.save()
 
-            with open(file.name, "r") as readonly:
+            with open(file.name) as readonly:
                 self.maxDiff = None
                 self.assertEqual(
                     readonly.read(),
@@ -1332,7 +1332,7 @@ class TestAptSources(testcommon.TestCase):
                 entry.comps = sorted(entry.comps)
             sources.save()
 
-            with open(file.name, "r") as readonly:
+            with open(file.name) as readonly:
                 self.maxDiff = None
 
                 # FIXME: In an optimal world it would look like this
@@ -1360,7 +1360,7 @@ class TestAptSources(testcommon.TestCase):
                     "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
                 )
 
-            with open(file.name, "r") as readonly:
+            with open(file.name) as readonly:
                 self.maxDiff = None
                 # Sadly our merge algorithm does not always produce optimal merges, because it merges the unofficial entry first
                 self.assertEqual(
@@ -1397,7 +1397,7 @@ class TestAptSources(testcommon.TestCase):
                     sources.remove(child)
             sources.save()
 
-            with open(file.name, "r") as readonly:
+            with open(file.name) as readonly:
                 self.maxDiff = None
                 self.assertEqual(
                     readonly.read(),
@@ -1459,7 +1459,7 @@ class TestAptSources(testcommon.TestCase):
                 entry.comps = sorted(entry.comps)
             sources.save()
 
-            with open(file.name, "r") as readonly:
+            with open(file.name) as readonly:
                 self.maxDiff = None
 
                 # FIXME: In an optimal world it would look like this
@@ -1487,7 +1487,7 @@ class TestAptSources(testcommon.TestCase):
                     "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
                 )
 
-            with open(file.name, "r") as readonly:
+            with open(file.name) as readonly:
                 self.maxDiff = None
                 # Sadly our merge algorithm does not always produce optimal merges, because it merges the unofficial entry first
                 self.assertEqual(
@@ -1524,7 +1524,7 @@ class TestAptSources(testcommon.TestCase):
                     sources.remove(child)
             sources.save()
 
-            with open(file.name, "r") as readonly:
+            with open(file.name) as readonly:
                 self.maxDiff = None
                 self.assertEqual(
                     readonly.read(),

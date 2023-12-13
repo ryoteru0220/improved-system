@@ -38,7 +38,7 @@ import apt_pkg
 __all__ = ["AcquireProgress", "CdromProgress", "InstallProgress", "OpProgress"]
 
 
-class AcquireProgress(object):
+class AcquireProgress:
     """Monitor object for downloads controlled by the Acquire class.
 
     This is an mostly abstract class. You should subclass it and implement the
@@ -106,7 +106,7 @@ class AcquireProgress(object):
         """Invoked when the Acquire process stops running."""
 
 
-class CdromProgress(object):
+class CdromProgress:
     """Base class for reporting the progress of adding a cdrom.
 
     Can be used with apt_pkg.Cdrom to produce an utility like apt-cdrom. The
@@ -116,7 +116,7 @@ class CdromProgress(object):
 
     total_steps = 0
 
-    def ask_cdrom_name(self) -> Optional[str]:
+    def ask_cdrom_name(self) -> str | None:
         """Ask for the name of the cdrom.
 
         If a name has been provided, return it. Otherwise, return None to
@@ -139,7 +139,7 @@ class CdromProgress(object):
         """
 
 
-class InstallProgress(object):
+class InstallProgress:
     """Class to report the progress of installing packages."""
 
     child_pid, percent, select_timeout, status = 0, 0.0, 0.1, ""
@@ -184,7 +184,7 @@ class InstallProgress(object):
         "purge". This method is used for dpkg only.
         """
 
-    def run(self, obj: Union[apt_pkg.PackageManager, Union[bytes, str]]) -> int:
+    def run(self, obj: apt_pkg.PackageManager | bytes | str) -> int:
         """Install using the object 'obj'.
 
         This functions runs install actions. The parameter 'obj' may either
@@ -240,7 +240,7 @@ class InstallProgress(object):
         """Update the interface."""
         try:
             line = self.status_stream.readline()
-        except IOError as err:
+        except OSError as err:
             # resource temporarly unavailable is ignored
             if err.errno != errno.EAGAIN and err.errno != errno.EWOULDBLOCK:
                 print(err.strerror)
@@ -294,7 +294,7 @@ class InstallProgress(object):
         while True:
             try:
                 select.select([self.status_stream], [], [], self.select_timeout)
-            except select.error as error:
+            except OSError as error:
                 (errno_, _errstr) = error.args
                 if errno_ != errno.EINTR:
                     raise
@@ -313,14 +313,14 @@ class InstallProgress(object):
         return res
 
 
-class OpProgress(object):
+class OpProgress:
     """Monitor objects for operations.
 
     Display the progress of operations such as opening the cache."""
 
     major_change, op, percent, subop = False, "", 0.0, ""
 
-    def update(self, percent: Optional[float] = None) -> None:
+    def update(self, percent: float | None = None) -> None:
         """Called periodically to update the user interface.
 
         You may use the optional argument 'percent' to set the attribute

@@ -38,7 +38,7 @@ class NoDistroTemplateException(Exception):
     pass
 
 
-class Distribution(object):
+class Distribution:
     def __init__(self, id, codename, description, release, is_like=[]):
         """Container for distribution specific informations"""
         # LSB information
@@ -572,7 +572,7 @@ class _OSRelease:
         self.result["Release"] = self.result.get("VERSION_ID")
 
     def parse(self):
-        f = open(self.file, "r")
+        f = open(self.file)
         for line in f:
             line = line.strip()
             if not line:

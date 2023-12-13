@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2010 Michael Vogt <mvo@ubuntu.com>
 #
@@ -69,7 +68,7 @@ class TestDebfile(testcommon.TestCase):
         deb = apt.debfile.DscSrcPackage(cache=self.cache)
         deb.open(os.path.join("data", "test_debs", filename))
         self.assertTrue(deb.check(), "got failure '%s'" % deb._failure_string)
-        missing = set(["autotools-dev"])
+        missing = {"autotools-dev"}
         self.assertEqual(set(deb.missing_deps), missing)
         # specialized properties
         self.assertEqual(deb.pkgname, "hello")
@@ -96,7 +95,7 @@ class TestDebfile(testcommon.TestCase):
     def test_deb_file(self):
         deb = apt.debfile.DebPackage(cache=self.cache)
         for filename, expected_res in self.TEST_DEBS:
-            logging.debug("testing %s, expecting %s" % (filename, expected_res))
+            logging.debug("testing {}, expecting {}".format(filename, expected_res))
             deb.open(os.path.join("data", "test_debs", filename))
             res = deb.check()
             self.assertEqual(

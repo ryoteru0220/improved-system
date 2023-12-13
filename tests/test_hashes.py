@@ -129,7 +129,7 @@ class TestHashString(testcommon.TestCase):
     def test_wrong(self):
         """hashes: Test apt_pkg.HashString(wrong_type)."""
         self.assertRaises(TypeError, apt_pkg.HashString, 0)
-        self.assertRaises(TypeError, apt_pkg.HashString, bytes())
+        self.assertRaises(TypeError, apt_pkg.HashString, b"")
 
 
 class TestHashStringList(testcommon.TestCase):

@@ -35,7 +35,7 @@ class NoDebArchiveException(IOError):
     """Exception which is raised if a file is no Debian archive."""
 
 
-class DebPackage(object):
+class DebPackage:
     """A Debian Package (.deb file)."""
 
     # Constants for comparing the local package file with the version
@@ -121,7 +121,7 @@ class DebPackage(object):
         ):
             return pkgname
         # now do the real multiarch checking
-        multiarch_pkgname = "%s:%s" % (pkgname, self._multiarch)
+        multiarch_pkgname = "{}:{}".format(pkgname, self._multiarch)
         # the upper layers will handle this
         if multiarch_pkgname not in self._cache:
             return multiarch_pkgname
@@ -228,7 +228,7 @@ class DebPackage(object):
         for dep in or_group:
             or_str += dep[0]
             if ver and oper:
-                or_str += " (%s %s)" % (dep[2], dep[1])
+                or_str += " ({} {})".format(dep[2], dep[1])
             if dep != or_group[len(or_group) - 1]:
                 or_str += "|"
         self._failure_string += _("Dependency is not satisfiable: %s\n") % or_str
@@ -343,7 +343,7 @@ class DebPackage(object):
         Return True if the deb packages replaces a real (not virtual)
         packages named (pkgname, oper, ver).
         """
-        self._dbg(3, "replaces_real_pkg() %s %s %s" % (pkgname, oper, ver))
+        self._dbg(3, "replaces_real_pkg() {} {} {}".format(pkgname, oper, ver))
         pkg = self._cache[pkgname]
         pkgver: Optional[str] = None
         if pkg.is_installed:
@@ -527,7 +527,7 @@ class DebPackage(object):
         if arch != "all" and arch != apt_pkg.config.find("APT::Architecture"):
             if arch in apt_pkg.get_architectures():
                 self._multiarch = arch
-                self.pkgname = "%s:%s" % (self.pkgname, self._multiarch)
+                self.pkgname = "{}:{}".format(self.pkgname, self._multiarch)
                 self._dbg(1, "Found multiarch arch: '%s'" % arch)
             else:
                 self._dbg(1, "ERROR: Wrong architecture dude!")
@@ -826,7 +826,7 @@ def _test() -> None:
     cache = Cache()
 
     vp = "www-browser"
-    print("%s virtual: %s" % (vp, cache.is_virtual_package(vp)))
+    print("{} virtual: {}".format(vp, cache.is_virtual_package(vp)))
     providers = cache.get_providing_packages(vp)
     print("Providers for %s :" % vp)
     for pkg in providers:

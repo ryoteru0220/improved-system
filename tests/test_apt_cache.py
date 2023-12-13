@@ -44,7 +44,7 @@ def get_open_file_descriptors():
         fds = os.listdir("/proc/self/fd")
     except OSError:
         logging.warning("failed to list /proc/self/fd")
-        return set([])
+        return set()
     return set(map(int, fds))
 
 
@@ -337,7 +337,7 @@ class TestAptCache(testcommon.TestCase):
             p = c["a"]
             a_id = p.id
             p_hash = hash(p)
-            set_of_p = set([p])
+            set_of_p = {p}
             self.write_status_file("baz")
             apt_pkg.init_system()
             c.open()

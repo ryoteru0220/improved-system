@@ -127,7 +127,7 @@ def _expand_template(template: str, csv_path: str) -> Iterator[str]:
             yield from str(section).splitlines()
 
 
-class Template(object):
+class Template:
     def __init__(self) -> None:
         self.name: Optional[str] = None
         self.child = False
@@ -157,7 +157,7 @@ class Template(object):
             return False
 
 
-class Component(object):
+class Component:
     def __init__(
         self,
         name: str,
@@ -194,7 +194,7 @@ class Component(object):
         return self.description_long
 
 
-class Mirror(object):
+class Mirror:
     """Storage for mirror related information"""
 
     def __init__(
@@ -229,7 +229,7 @@ class Mirror(object):
         self.location = location
 
 
-class Repository(object):
+class Repository:
     def __init__(self, proto: str, dir: str) -> None:
         self.proto = proto
         self.dir = dir
@@ -238,7 +238,7 @@ class Repository(object):
         return self.proto, self.dir
 
     def get_url(self, hostname: str) -> str:
-        return "%s://%s/%s" % (self.proto, hostname, self.dir)
+        return "{}://{}/{}".format(self.proto, hostname, self.dir)
 
 
 def split_url(url: str) -> List[str]:
@@ -249,7 +249,7 @@ def split_url(url: str) -> List[str]:
     return split
 
 
-class DistInfo(object):
+class DistInfo:
     def __init__(
         self,
         dist: Optional[str] = None,
@@ -278,7 +278,7 @@ class DistInfo(object):
                     .communicate()[0]
                     .strip()
                 )
-            except (OSError, IOError) as exc:
+            except OSError as exc:
                 if exc.errno != errno.ENOENT:
                     logging.warning("lsb_release failed, using defaults: %s" % exc)
                 dist = "Debian"
@@ -287,7 +287,7 @@ class DistInfo(object):
 
         map_mirror_sets = {}
 
-        dist_fname = "%s/%s.info" % (base_dir, dist)
+        dist_fname = "{}/{}.info".format(base_dir, dist)
         csv_fname = "/usr/share/distro-info/{}.csv".format(dist.lower())
 
         # FIXME: Logic doesn't work with types.
@@ -420,7 +420,7 @@ if __name__ == "__main__":
             logging.info("Mirrors: %s" % list(template.mirror_set.keys()))
         for comp in template.components:
             logging.info(
-                " %s -%s -%s" % (comp.name, comp.description, comp.description_long)
+                " {} -{} -{}".format(comp.name, comp.description, comp.description_long)
             )
         for child in template.children:
             logging.info("  %s" % child.description)

@@ -39,7 +39,7 @@ def _(msg: str) -> str:
     return res
 
 
-class TextProgress(object):
+class TextProgress:
     """Internal Base class for text progress classes."""
 
     def __init__(self, outfile: Optional[io.TextIOBase] = None) -> None:
@@ -150,7 +150,7 @@ class AcquireProgress(base.AcquireProgress, TextProgress):
             return
         item.owner.id = self._id
         self._id += 1
-        line = _("Get:") + "%s %s" % (item.owner.id, item.description)
+        line = _("Get:") + "{} {}".format(item.owner.id, item.description)
         if item.owner.filesize:
             line += " [%sB]" % apt_pkg.size_to_str(item.owner.filesize)
 
@@ -175,7 +175,7 @@ class AcquireProgress(base.AcquireProgress, TextProgress):
         end = ""
         if self.current_cps:
             eta = int(float(self.total_bytes - self.current_bytes) / self.current_cps)
-            end = " %sB/s %s" % (
+            end = " {}B/s {}".format(
                 apt_pkg.size_to_str(self.current_cps),
                 apt_pkg.time_to_str(eta),
             )

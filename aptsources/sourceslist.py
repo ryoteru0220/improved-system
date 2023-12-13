@@ -660,7 +660,7 @@ class SourceEntry:
         line += self.type
 
         if self.architectures and self.trusted is not None:
-            line += " [arch=%s trusted=%s]" % (
+            line += " [arch={} trusted={}]".format(
                 ",".join(self.architectures),
                 "yes" if self.trusted else "no",
             )
@@ -668,7 +668,7 @@ class SourceEntry:
             line += " [trusted=%s]" % ("yes" if self.trusted else "no")
         elif self.architectures:
             line += " [arch=%s]" % ",".join(self.architectures)
-        line += " %s %s" % (self.uri, self.dist)
+        line += " {} {}".format(self.uri, self.dist)
         if len(self.comps) > 0:
             line += " " + " ".join(self.comps)
         if self.comment != "":
@@ -698,14 +698,14 @@ AnyExplodedSourceEntry = Union[
 ]
 
 
-class NullMatcher(object):
+class NullMatcher:
     """a Matcher that does nothing"""
 
     def match(self, s: AnyExplodedSourceEntry) -> bool:
         return True
 
 
-class SourcesList(object):
+class SourcesList:
     """represents the full sources.list + sources.list.d file"""
 
     def __init__(
@@ -747,8 +747,7 @@ class SourcesList(object):
     def __iter__(self) -> Iterator[AnySourceEntry]:
         """simple iterator to go over self.list, returns SourceEntry
         types"""
-        for entry in self.list:
-            yield entry
+        yield from self.list
 
     def __find(
         self, *predicates: Callable[[AnyExplodedSourceEntry], bool], **attrs: Any
@@ -893,13 +892,13 @@ class SourcesList(object):
             backup_ext = time.strftime("%y%m%d.%H%M")
         for source in self.list:
             if source.file not in already_backuped and os.path.exists(source.file):
-                shutil.copy(source.file, "%s%s" % (source.file, backup_ext))
+                shutil.copy(source.file, "{}{}".format(source.file, backup_ext))
         return backup_ext
 
     def load(self, file: str) -> None:
         """(re)load the current sources"""
         try:
-            with open(file, "r") as f:
+            with open(file) as f:
                 if file.endswith(".sources"):
                     for section in _deb822.File(f):
                         self.list.append(Deb822SourceEntry(section, file, list=self))
@@ -908,7 +907,7 @@ class SourcesList(object):
                         source = SourceEntry(line, file)
                         self.list.append(source)
         except Exception as exc:
-            logging.warning("could not open file '%s': %s\n" % (file, exc))
+            logging.warning("could not open file '{}': {}\n".format(file, exc))
 
     def index(self, entry: AnyExplodedSourceEntry) -> int:
         if isinstance(entry, ExplodedDeb822SourceEntry):
@@ -1014,7 +1013,7 @@ class SourcesList(object):
         return res
 
 
-class SourceEntryMatcher(object):
+class SourceEntryMatcher:
     """matcher class to make a source entry look nice
     lots of predefined matchers to make it i18n/gettext friendly
     """

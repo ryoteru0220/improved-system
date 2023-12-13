@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 # auth - authentication key management
 #
 #  Copyright (c) 2004 Canonical
@@ -46,7 +45,7 @@ class AptKeyIDTooShortError(AptKeyError):
     """Internal class do not rely on it."""
 
 
-class TrustedKey(object):
+class TrustedKey:
 
     """Represents a trusted key."""
 
@@ -58,7 +57,7 @@ class TrustedKey(object):
         self.date = date
 
     def __str__(self) -> str:
-        return "%s\n%s %s" % (self.name, self.keyid, self.date)
+        return "{}\n{} {}".format(self.name, self.keyid, self.date)
 
 
 def _call_apt_key_script(*args: str, **kwargs: Optional[str]) -> str:
@@ -176,7 +175,7 @@ def _add_key_from_keyserver(keyid: str, keyserver: str, tmp_keyring_dir: str) ->
         ]
     )
     if res != 0:
-        raise AptKeyError("recv from '%s' failed for '%s'" % (keyserver, keyid))
+        raise AptKeyError("recv from '{}' failed for '{}'".format(keyserver, keyid))
     # FIXME:
     # - with gnupg 1.4.18 the downloaded key is actually checked(!),
     #   i.e. gnupg will not import anything that the server sends
@@ -228,7 +227,7 @@ def _add_key_from_keyserver(keyid: str, keyserver: str, tmp_keyring_dir: str) ->
         # make the error match what gnupg >= 1.4.18 will output when
         # it checks the key itself before importing it
         raise AptKeyError(
-            "recv from '%s' failed for '%s'" % (keyserver, signing_key_fingerprint)
+            "recv from '{}' failed for '{}'".format(keyserver, signing_key_fingerprint)
         )
     # finally add it
     add_key_from_file(tmp_export_keyring)

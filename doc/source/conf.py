@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # python-apt documentation build configuration file, created by
 # sphinx-quickstart on Wed Jan  7 17:04:36 2009.

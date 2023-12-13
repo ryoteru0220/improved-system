@@ -56,4 +56,4 @@ print("No help for you, try -h")
 # Print the configuration space
 print("The Configuration space looks like:")
 for item in list(Cnf.keys()):
-    print('%s "%s";' % (item, Cnf[item]))
+    print('{} "{}";'.format(item, Cnf[item]))

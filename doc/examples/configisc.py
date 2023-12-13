@@ -32,7 +32,9 @@ if "Zone" in Cnf:
         SubCnf = Cnf.sub_tree(item)
         if SubCnf.find("type") == "slave":
             print(
-                "Masters for %s: %s" % (SubCnf.my_tag(), SubCnf.value_list("masters"))
+                "Masters for {}: {}".format(
+                    SubCnf.my_tag(), SubCnf.value_list("masters")
+                )
             )
 else:
     print("Tree definitions:")

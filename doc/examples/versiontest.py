@@ -14,7 +14,7 @@ if len(TestFile) != 1:
     sys.exit(0)
 
 # Go over the file..
-list = open(TestFile[0], "r")
+list = open(TestFile[0])
 CurLine = 0
 while True:
     Line = list.readline()

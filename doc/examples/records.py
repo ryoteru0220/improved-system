@@ -9,6 +9,8 @@ for pkg in cache:
         continue
     if "Task" in pkg.candidate.record:
         print(
-            "Pkg %s is part of '%s'" % (pkg.name, pkg.candidate.record["Task"].split())
+            "Pkg {} is part of '{}'".format(
+                pkg.name, pkg.candidate.record["Task"].split()
+            )
         )
         # print pkg.candidateRecord

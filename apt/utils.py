@@ -90,7 +90,9 @@ def get_release_filename_for_pkg(
             if indexfile and indexfile.describe == m.describe and indexfile.is_trusted:
                 dirname = apt_pkg.config.find_dir("Dir::State::lists")
                 for relfile in ["InRelease", "Release"]:
-                    name = apt_pkg.uri_to_filename(metaindex.uri) + "dists_%s_%s" % (
+                    name = apt_pkg.uri_to_filename(
+                        metaindex.uri
+                    ) + "dists_{}_{}".format(
                         metaindex.dist,
                         relfile,
                     )
