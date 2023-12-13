@@ -1,3 +1,45 @@
+python-apt (2.7.1) unstable; urgency=medium
+
+  [ Aristo Chen ]
+  * apt/package.py: fix typo from 'unkown' to 'unknown'
+
+  [ Julian Andres Klode ]
+  * Issue warnings as apt_pkg.Warning instead of discarding when there is no error
+  * deb822: Allow copying a section by constructor
+  * aptsources.distro: Order parent components predictable when adding
+  * Added exploded views to deb822 sources to support aptsources.distro which
+    will manage potentially only parts of a single paragraph:
+    - Initial support for exploded views of deb822 entries
+    - sourceslist: add parent argument to add() to copy fields
+    - sourceslist: Allow merging official distro sources
+    - ExplodedDeb822SourceEntry: Add file property
+    - Draft: sourceslist: add: Check for matches in the exploded list
+    - sourceslist: Add SourcesList.index() method to index items
+    - sourceslist: Fix merging of entries
+    - distro: add_source: Insert new source after last official source
+    - distro: Handle .comps being a property, not updatable in-place
+    - sourceslist: Skip sourceslist, sourcesparts being /dev/null
+    - deb822: Improve parsing of section separators
+    - deb822: Fix File.__str__() to not include 2 empty lines
+    - tests: deb822: Check enable/disable component layout behavior
+    - SourcesList.index: Return int in index(), not bool
+    - tests: deb822: Check enabling proposed and disabling it
+
+  [ Jeroen Dekkers ]
+  * Do not return the empty string in installed_files
+
+  [ Bruce Duncan ]
+  * Remove abandoned debugging messages
+  * Remove unused debugging
+
+  [ Max-Julian Pogner ]
+  * FIX: write snake_case in documentation, as this is the documented method name.
+
+  [ Alexandre Detiste ]
+  * remove Python2 crumbs
+
+ -- Julian Andres Klode <juliank@ubuntu.com>  Wed, 13 Dec 2023 14:15:56 +0100
+
 python-apt (2.7.0) unstable; urgency=medium
 
   [ Cory Todd ]
