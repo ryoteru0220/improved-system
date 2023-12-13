@@ -56,8 +56,7 @@ class TestAptSources(testcommon.TestCase):
 
                 self.assertEqual(file.sections[0]["key"], "value")
                 self.assertEqual(file.sections[1]["otherkey"], "othervalue")
-                # FIXME: This should always be \n\n (one empty line), not \n\n\n (two empty lines)
-                self.assertEqual(str(file), "key: value\n\n\notherkey: othervalue\n")
+                self.assertEqual(str(file), "key: value\n\notherkey: othervalue\n")
 
 
 if __name__ == "__main__":

@@ -124,7 +124,7 @@ class File:
         return iter(self.sections)
 
     def __str__(self) -> str:
-        return "\n\n".join(str(s) for s in self.sections)
+        return "\n".join(str(s) for s in self.sections)
 
 
 if __name__ == "__main__":
