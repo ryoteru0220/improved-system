@@ -1,37 +1,25 @@
 image: debian:unstable
 variables:
   DEBIAN_FRONTEND: noninteractive
-
-typing:
+pre-commit:
   script:
-  - apt update
-  - apt install -q -y python3-full
-  - mkdir -p venv
-  - python3 -m venv venv
-  - ./venv/bin/pip install -U mypy
-  - env MYPYPATH=$PWD/typehinting/ ./venv/bin/mypy --strict ./apt
-
-pep8:
-  script:
-  - apt update
-  - apt install -q -y black
-  - black --check --diff .
-
+    - apt update
+    - apt install -q -y pre-commit git
+    - pre-commit run -a --show-diff-on-failure
 test:
   script:
-  - apt update
-  - apt build-dep -q -y ./
-  - dpkg-buildpackage
+    - apt update
+    - apt build-dep -q -y ./
+    - dpkg-buildpackage
   artifacts:
     paths:
-    - build/sphinx/html/
-
+      - build/sphinx/html/
 pages:
   stage: deploy
   script:
-  - mv build/sphinx/html/ public
+    - mv build/sphinx/html/ public
   artifacts:
     paths:
-    - public
+      - public
   rules:
-  - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
