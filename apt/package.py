@@ -1296,7 +1296,7 @@ class Package(object):
             path = "/var/lib/dpkg/info/%s.list" % name
             try:
                 with open(path, "rb") as file_list:
-                    return file_list.read().decode("utf-8").split("\n")
+                    return file_list.read().decode("utf-8").strip().split("\n")
             except EnvironmentError:
                 continue
 
