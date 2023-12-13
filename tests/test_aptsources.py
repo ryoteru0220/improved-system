@@ -648,6 +648,263 @@ class TestAptSources(testcommon.TestCase):
         self.assertTrue("multiverse" in comps)
         self.assertTrue("universe" in comps)
 
+    def test_enable_component_deb822_multi(self):
+        apt_pkg.config.set("Dir::Etc::sourcelist", "/dev/null")
+
+        target = (
+            apt_pkg.config.find_dir("dir::etc::sourceparts") + "enable_comps.sources"
+        )
+        line = "Types: deb\nURIs: http://archive.ubuntu.com/ubuntu\nSuites: lucid lucid-updates\nComponents: main\n"
+        with open(target, "w") as target_file:
+            target_file.write(line)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
+        distro = aptsources.distro.get_distro(id="Ubuntu")
+        # make sure we are using the right distro
+        distro.codename = "lucid"
+        distro.id = "Ubuntu"
+        distro.release = "10.04"
+        # and get the sources
+        distro.get_sources(sources)
+        self.assertEqual(len(distro.main_sources), 1)
+        self.assertEqual(len(sources.list), 1)
+        # test enable_component
+        comp = "multiverse"
+        distro.enable_component(comp)
+        self.assertEqual(len(sources.list), 2)  # split into two
+
+        self.assertEqual(
+            "Types: deb\n"
+            "URIs: http://archive.ubuntu.com/ubuntu\n"
+            "Suites: lucid\n"
+            "Components: main multiverse universe",
+            str(sources.list[0]),
+        )
+        self.assertEqual(
+            "Types: deb\n"
+            "URIs: http://archive.ubuntu.com/ubuntu\n"
+            "Suites: lucid-updates\n"
+            "Components: main multiverse universe",
+            str(sources.list[1]),
+        )
+
+        comps = set()
+        for entry in sources:
+            comps = comps.union(set(entry.comps))
+        self.assertTrue("multiverse" in comps)
+        self.assertTrue("universe" in comps)
+
+        sources.save()
+        self.assertEqual(
+            "Types: deb\n"
+            "URIs: http://archive.ubuntu.com/ubuntu\n"
+            "Suites: lucid lucid-updates\n"
+            "Components: main multiverse universe",
+            str(sources.list[0]),
+        )
+
+    def test_enable_component_deb822_multi_mixed_origin(self):
+        apt_pkg.config.set("Dir::Etc::sourcelist", "/dev/null")
+
+        target = (
+            apt_pkg.config.find_dir("dir::etc::sourceparts") + "enable_comps.sources"
+        )
+        line = "Types: deb\nURIs: http://archive.ubuntu.com/ubuntu http://example.com/\nSuites: lucid\nComponents: main\n"
+        with open(target, "w") as target_file:
+            target_file.write(line)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
+        distro = aptsources.distro.get_distro(id="Ubuntu")
+        # make sure we are using the right distro
+        distro.codename = "lucid"
+        distro.id = "Ubuntu"
+        distro.release = "10.04"
+        # and get the sources
+        distro.get_sources(sources)
+        self.assertEqual(len(distro.main_sources), 2)
+        self.assertEqual(len(sources.list), 1)
+        # test enable_component
+        comp = "multiverse"
+        distro.enable_component(comp)
+        self.assertEqual(len(sources.list), 2)  # split into two
+
+        self.assertEqual(
+            "Types: deb\n"
+            "URIs: http://archive.ubuntu.com/ubuntu\n"
+            "Suites: lucid\n"
+            "Components: main multiverse universe",
+            str(sources.list[0]),
+        )
+        self.assertEqual(
+            "Types: deb\n"
+            "URIs: http://example.com/\n"
+            "Suites: lucid\n"
+            "Components: main",
+            str(sources.list[1]),
+        )
+
+        sources.save()
+        self.assertEqual(
+            "Types: deb\n"
+            "URIs: http://archive.ubuntu.com/ubuntu\n"
+            "Suites: lucid\n"
+            "Components: main multiverse universe",
+            str(sources.list[0]),
+        )
+        self.assertEqual(
+            "Types: deb\n"
+            "URIs: http://example.com/\n"
+            "Suites: lucid\n"
+            "Components: main",
+            str(sources.list[1]),
+        )
+
+    def test_enable_component_deb822_multi_mixed_ultimate(self):
+        apt_pkg.config.set("Dir::Etc::sourcelist", "/dev/null")
+
+        target = (
+            apt_pkg.config.find_dir("dir::etc::sourceparts") + "enable_comps.sources"
+        )
+        line = "Types: deb deb-src\nURIs: http://archive.ubuntu.com/ubuntu http://example.com/\nSuites: lucid lucid-updates notalucid\nComponents: main\n"
+        with open(target, "w") as target_file:
+            target_file.write(line)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
+        distro = aptsources.distro.get_distro(id="Ubuntu")
+        # make sure we are using the right distro
+        distro.codename = "lucid"
+        distro.id = "Ubuntu"
+        distro.release = "10.04"
+        # and get the sources
+        distro.get_sources(sources)
+        self.assertEqual(len(distro.main_sources), 1)
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 12)
+        # test enable_component
+        comp = "multiverse"
+        distro.enable_component(comp)
+        self.assertEqual(len(sources.list), 12)  # split into two
+
+        expected = []
+        for typ in "deb", "deb-src":
+            for uri in "http://archive.ubuntu.com/ubuntu", "http://example.com/":
+                for suite in "lucid", "lucid-updates", "notalucid":
+                    comps = "main multiverse universe"
+                    # unofficial source ends up without enablement
+                    if uri == "http://example.com/" or suite == "notalucid":
+                        comps = "main"
+                    expected.append(
+                        f"Types: {typ}\n"
+                        f"URIs: {uri}\n"
+                        f"Suites: {suite}\n"
+                        f"Components: {comps}"
+                    )
+
+        self.maxDiff = None
+        self.assertEqual(expected, list(map(str, sources.list)))
+        sources.save()
+
+        expected = [
+            "Types: deb deb-src\n"
+            "URIs: http://archive.ubuntu.com/ubuntu\n"
+            "Suites: lucid lucid-updates\n"
+            "Components: main multiverse universe",
+            # unofficial suite
+            "Types: deb deb-src\n"
+            "URIs: http://archive.ubuntu.com/ubuntu http://example.com/\n"
+            "Suites: notalucid\n"
+            "Components: main",
+            # unofficial mirror, FIXME: We'd rather merge the notalucid into here
+            "Types: deb deb-src\n"
+            "URIs: http://example.com/\n"
+            "Suites: lucid lucid-updates\n"
+            "Components: main",
+        ]
+        self.maxDiff = None
+        self.assertEqual(expected, list(map(str, sources.list)))
+
+    def test_deb822_explode(self):
+        apt_pkg.config.set("Dir::Etc::sourcelist", "/dev/null")
+        target = (
+            apt_pkg.config.find_dir("dir::etc::sourceparts") + "enable_comps.sources"
+        )
+        line = "Types: deb\nURIs: http://archive.ubuntu.com/ubuntu\nSuites: lucid\nComponents: main\n"
+        with open(target, "w") as target_file:
+            target_file.write(line)
+        sources = aptsources.sourceslist.SourcesList(True, self.templates, deb822=True)
+
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 1)
+        self.assertIsInstance(
+            sources.exploded_list()[0], aptsources.sourceslist.Deb822SourceEntry
+        )
+
+        sources.list[0].suites += ["fakesuite"]
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 2)
+        self.assertIsInstance(
+            sources.exploded_list()[0], aptsources.sourceslist.ExplodedDeb822SourceEntry
+        )
+        self.assertIsInstance(
+            sources.exploded_list()[1], aptsources.sourceslist.ExplodedDeb822SourceEntry
+        )
+        self.assertEqual(sources.list[0].suites, ["lucid", "fakesuite"])
+        sources.remove(sources.exploded_list()[1])
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 1)
+        self.assertEqual(sources.list[0].suites, ["lucid"])
+
+        sources.list[0].types += ["deb-src"]
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 2)
+        self.assertIsInstance(
+            sources.exploded_list()[0], aptsources.sourceslist.ExplodedDeb822SourceEntry
+        )
+        self.assertIsInstance(
+            sources.exploded_list()[1], aptsources.sourceslist.ExplodedDeb822SourceEntry
+        )
+        self.assertEqual(sources.list[0].types, ["deb", "deb-src"])
+        sources.remove(sources.exploded_list()[1])
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 1)
+        self.assertEqual(sources.list[0].types, ["deb"])
+
+        sources.list[0].uris += ["http://example.com"]
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 2)
+        self.assertIsInstance(
+            sources.exploded_list()[0], aptsources.sourceslist.ExplodedDeb822SourceEntry
+        )
+        self.assertIsInstance(
+            sources.exploded_list()[1], aptsources.sourceslist.ExplodedDeb822SourceEntry
+        )
+        self.assertEqual(
+            sources.list[0].uris,
+            ["http://archive.ubuntu.com/ubuntu", "http://example.com"],
+        )
+        sources.remove(sources.exploded_list()[1])
+        self.assertEqual(len(sources.list), 1)
+        self.assertEqual(len(sources.exploded_list()), 1)
+        self.assertEqual(sources.list[0].uris, ["http://archive.ubuntu.com/ubuntu"])
+
+        # test setting attributes
+        sources.list[0].uris += ["http://example.com"]
+        with self.assertRaises(AttributeError):
+            sources.exploded_list()[0].types = ["does not work"]
+        with self.assertRaises(AttributeError):
+            sources.exploded_list()[0].uris = ["does not work"]
+        with self.assertRaises(AttributeError):
+            sources.exploded_list()[0].suites = ["does not work"]
+        with self.assertRaises(AttributeError):
+            sources.exploded_list()[0].doesnotexist = ["does not work"]
+
+        # test overriding
+        sources.exploded_list()[0].type = "faketype"
+        self.assertEqual(sources.list[0].type, "faketype")
+        self.assertEqual(sources.list[1].type, "deb")
+        sources.exploded_list()[0].type = "deb"
+        self.assertEqual(sources.list[0].type, "deb")
+        self.assertEqual(sources.list[1].type, "deb")
+        sources.save()
+        self.assertEqual(len(sources.list), 1)
+
     def testDistribution_short(self):
         """aptsources: Test distribution detection."""
         apt_pkg.config.set(
@@ -802,6 +1059,489 @@ class TestAptSources(testcommon.TestCase):
         )
         self.assertEqual(count, len(sources.list))
         self.assertEqual(sourceslist_wslash, sourceslist_woslash)
+
+    def test_deb822_distro_enable_disable_component(self):
+        """Test enabling and disabling a component in the distro sources.
+
+        This ensures reasonable behavior when enabling and then disabling a component"""
+        with tempfile.NamedTemporaryFile("w", suffix=".sources") as file:
+            file.write(
+                "# main archive\n"
+                "Types: deb deb-src\n"
+                "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                "Suites: noble noble-updates\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                "\n"
+                "# security\n"
+                "Types: deb deb-src\n"
+                "URIs: http://security.ubuntu.com/ubuntu/\n"
+                "Suites: noble-security\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+            )
+            file.flush()
+
+            apt_pkg.config.set("Dir::Etc::sourcelist", file.name)
+            sources = aptsources.sourceslist.SourcesList(
+                True, self.templates, deb822=True
+            )
+            distro = aptsources.distro.get_distro(
+                id="Ubuntu",
+                codename="noble",
+            )
+
+            self.assertEqual(len(sources.list), 2)
+            distro.get_sources(sources)
+            distro.enable_component("multiverse")
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe multiverse\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe multiverse\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            # Disable it again
+            # FIXME: The child entries will no longer be valid at this point, so we have to call
+            #        get_sources(), but it's not clear whether this should be considered a bug -
+            #        there may have been other changes rendering entries no longer valid that distro
+            #        is holding on to.
+            distro.get_sources(sources)
+            distro.disable_component("multiverse")
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            # Disable universe as well
+            distro.get_sources(sources)
+            distro.disable_component("universe")
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+    def test_deb822_distro_enable_disable_component_mixed_origin(self):
+        """Test enabling and disabling a component in the distro sources, with mixed origin
+
+        Here we ensure that we still get idempotent behavior of disable after enable even if the
+        entry we were modifying also had a non-official repository in it."""
+        with tempfile.NamedTemporaryFile("w", suffix=".sources") as file:
+            file.write(
+                "# main archive\n"
+                "Types: deb deb-src\n"
+                "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                "Suites: noble noble-updates\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                "\n"
+                "# security\n"
+                "Types: deb deb-src\n"
+                "URIs: http://security.ubuntu.com/ubuntu/\n"
+                "Suites: noble-security\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+            )
+            file.flush()
+
+            apt_pkg.config.set("Dir::Etc::sourcelist", file.name)
+            sources = aptsources.sourceslist.SourcesList(
+                True, self.templates, deb822=True
+            )
+            distro = aptsources.distro.get_distro(
+                id="Ubuntu",
+                codename="noble",
+            )
+
+            self.assertEqual(len(sources.list), 2)
+            distro.get_sources(sources)
+            distro.enable_component("multiverse")
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe multiverse\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe multiverse\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            # Disable it again
+            # FIXME: The child entries will no longer be valid at this point, so we have to call
+            #        get_sources(), but it's not clear whether this should be considered a bug -
+            #        there may have been other changes rendering entries no longer valid that distro
+            #        is holding on to.
+            distro.get_sources(sources)
+            distro.disable_component("multiverse")
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            # Disable universe too. The behaviour here is interesting: Distro only disables
+            # universe for the official source, so we end up with the non-official source split out.
+            distro.get_sources(sources)
+            distro.disable_component("universe")
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# main archive\n"  # note it keeps the comment on the split out child
+                    "Types: deb deb-src\n"
+                    "URIs: http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+    def test_deb822_distro_enable_disable_child_source_mixed_origins(self):
+        """Test enabling and disabling a child source (proposed) in the distro sources, with mixed origin
+
+        Here we ensure that we still get idempotent behavior of disable after enable even if the
+        entry we were modifying also had a non-official repository in it."""
+        with tempfile.NamedTemporaryFile("w", suffix=".sources") as file:
+            file.write(
+                "# main archive\n"
+                "Types: deb deb-src\n"
+                "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                "Suites: noble noble-updates\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                "\n"
+                "# security\n"
+                "Types: deb deb-src\n"
+                "URIs: http://security.ubuntu.com/ubuntu/\n"
+                "Suites: noble-security\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+            )
+            file.flush()
+
+            apt_pkg.config.set("Dir::Etc::sourcelist", file.name)
+            sources = aptsources.sourceslist.SourcesList(
+                True, self.templates, deb822=True
+            )
+            distro = aptsources.distro.get_distro(
+                id="Ubuntu",
+                codename="noble",
+            )
+
+            self.assertEqual(len(sources.list), 2)
+            distro.get_sources(sources)
+            distro.get_source_code = True
+            distro.add_source(dist="noble-proposed")
+
+            # FIXME: Component ordering is not stable right now
+            for entry in sources.list:
+                entry.comps = sorted(entry.comps)
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+
+                # FIXME: In an optimal world it would look like this
+                self.assertNotEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble noble-updates noble-proposed\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                # Sadly our merge algorithm does not always produce optimal merges, because it merges the unofficial entry first
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-proposed\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            # Disable it again
+            # FIXME: The child entries will no longer be valid at this point, so we have to call
+            #        get_sources(), but it's not clear whether this should be considered a bug -
+            #        there may have been other changes rendering entries no longer valid that distro
+            #        is holding on to.
+            distro.get_sources(sources)
+            for child in distro.child_sources + distro.source_code_sources:
+                if child.dist.endswith("proposed"):
+                    sources.remove(child)
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb deb-src\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+    def test_deb822_distro_enable_disable_child_source_mixed_origins_no_source_code(
+        self,
+    ):
+        """Test enabling and disabling a child source (proposed) in the distro sources, with mixed origin
+
+        Here we ensure that we still get idempotent behavior of disable after enable even if the
+        entry we were modifying also had a non-official repository in it."""
+        with tempfile.NamedTemporaryFile("w", suffix=".sources") as file:
+            file.write(
+                "# main archive\n"
+                "Types: deb\n"
+                "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                "Suites: noble noble-updates\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                "\n"
+                "# security\n"
+                "Types: deb\n"
+                "URIs: http://security.ubuntu.com/ubuntu/\n"
+                "Suites: noble-security\n"
+                "Components: main universe\n"
+                "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+            )
+            file.flush()
+
+            apt_pkg.config.set("Dir::Etc::sourcelist", file.name)
+            sources = aptsources.sourceslist.SourcesList(
+                True, self.templates, deb822=True
+            )
+            distro = aptsources.distro.get_distro(
+                id="Ubuntu",
+                codename="noble",
+            )
+
+            self.assertEqual(len(sources.list), 2)
+            distro.get_sources(sources)
+            distro.add_source(dist="noble-proposed")
+
+            # FIXME: Component ordering is not stable right now
+            for entry in sources.list:
+                entry.comps = sorted(entry.comps)
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+
+                # FIXME: In an optimal world it would look like this
+                self.assertNotEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble noble-updates noble-proposed\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# main archive\n"
+                    "Types: deb\n"
+                    "URIs: http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                # Sadly our merge algorithm does not always produce optimal merges, because it merges the unofficial entry first
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "Types: deb\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-proposed\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
+
+            # Disable it again
+            # FIXME: The child entries will no longer be valid at this point, so we have to call
+            #        get_sources(), but it's not clear whether this should be considered a bug -
+            #        there may have been other changes rendering entries no longer valid that distro
+            #        is holding on to.
+            distro.get_sources(sources)
+            for child in distro.child_sources + distro.source_code_sources:
+                if child.dist.endswith("proposed"):
+                    sources.remove(child)
+            sources.save()
+
+            with open(file.name, "r") as readonly:
+                self.maxDiff = None
+                self.assertEqual(
+                    readonly.read(),
+                    "# main archive\n"
+                    "Types: deb\n"
+                    "URIs: http://archive.ubuntu.com/ubuntu/ http://unofficial.example.com/\n"
+                    "Suites: noble noble-updates\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n"
+                    "\n"
+                    "# security\n"
+                    "Types: deb\n"
+                    "URIs: http://security.ubuntu.com/ubuntu/\n"
+                    "Suites: noble-security\n"
+                    "Components: main universe\n"
+                    "Signed-By: /usr/share/keyrings/ubuntu-archive-keyrings.gpg\n",
+                )
 
 
 if __name__ == "__main__":

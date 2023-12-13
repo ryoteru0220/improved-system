@@ -97,7 +97,7 @@ class Distribution(object):
         cdrom_comps = []
         enabled_comps = []
         # source_code = []
-        for source in self.sourceslist.list:
+        for source in self.sourceslist.exploded_list():
             if (
                 not source.invalid
                 and self.is_codename(source.dist)
@@ -289,7 +289,16 @@ class Distribution(object):
             comps = list(self.enabled_comps)
         if type is None:
             type = self.binary_type
-        new_source = self.sourceslist.add(type, uri, dist, comps, comment)
+
+        parent = None
+        file = None
+        for parent in reversed(self.child_sources) or reversed(self.main_sources):
+            file = parent.file
+            break
+
+        new_source = self.sourceslist.add(
+            type, uri, dist, comps, comment, parent=parent, file=file
+        )
         # if source code is enabled add a deb-src line after the new
         # source
         if self.get_source_code and type == self.binary_type:
@@ -310,12 +319,13 @@ class Distribution(object):
 
         comp:         the component that should be enabled
         """
-        comps = set([comp])
+        comps = list([comp])
         # look for parent components that we may have to add
         for source in self.main_sources:
             for c in source.template.components:
                 if c.name == comp and c.parent_component:
-                    comps.add(c.parent_component)
+                    if c.parent_component not in comps:
+                        comps.append(c.parent_component)
         for c in comps:
             self._enable_component(c)
 
@@ -335,7 +345,7 @@ class Distribution(object):
             if comp in comps_per_dist[source.dist]:
                 return
             # add it
-            source.comps += [comp]
+            source.comps = source.comps + [comp]
             comps_per_dist[source.dist].add(comp)
 
         sources = []
@@ -394,7 +404,9 @@ class Distribution(object):
             sources.extend(self.main_sources)
         for source in sources:
             if comp in source.comps:
-                source.comps.remove(comp)
+                comps = source.comps
+                comps.remove(comp)
+                source.comps = comps
                 if len(source.comps) < 1:
                     self.sourceslist.remove(source)
 
