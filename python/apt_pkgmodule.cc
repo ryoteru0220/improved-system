@@ -43,6 +43,13 @@ static char PyAptError_Doc[] =
 
 PyObject *PyAptError;
 
+static char PyAptWarning_Doc[] =
+   "Exception class for most python-apt warnings.\n"
+   "\n"
+   ".. versionadded:: 2.7";
+
+PyObject *PyAptWarning;
+
 static char PyAptCacheMismatchError_Doc[] =
    "Raised when passing an object from a different cache to\n"
    ":class:`apt_pkg.DepCache` methods\n\n"
@@ -885,6 +892,9 @@ extern "C" void initapt_pkg()
    if (PyType_Ready(&PyCacheFile_Type) == -1) INIT_ERROR;
    PyAptError = PyErr_NewExceptionWithDoc("apt_pkg.Error", PyAptError_Doc, PyExc_SystemError, NULL);
    if (PyAptError == NULL)
+      INIT_ERROR;
+   PyAptWarning = PyErr_NewExceptionWithDoc("apt_pkg.Warning", PyAptWarning_Doc, PyExc_Warning, NULL);
+   if (PyAptWarning == NULL)
       INIT_ERROR;
 
    PyAptCacheMismatchError = PyErr_NewExceptionWithDoc("apt_pkg.CacheMismatchError", PyAptCacheMismatchError_Doc, PyExc_ValueError, NULL);
