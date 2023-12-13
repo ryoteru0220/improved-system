@@ -10,8 +10,6 @@
 # notice and this notice are preserved.
 """Unit tests for verifying the correctness of apt_pkg.TagFile"""
 
-from __future__ import print_function, unicode_literals
-
 import io
 import glob
 import os
@@ -93,19 +91,10 @@ class TestTagFile(testcommon.TestCase):
         with io.open(packages, "w", encoding="UTF-8") as packages_file:
             print("Maintainer: %s" % value, file=packages_file)
             print("", file=packages_file)
-        if sys.version < "3":
-            # In Python 2, test the traditional file interface.
-            with open(packages) as packages_file:
-                tagfile = apt_pkg.TagFile(packages_file)
-                tagfile.step()
-                self.assertEqual(value.encode("UTF-8"), tagfile.section["Maintainer"])
         with io.open(packages, encoding="UTF-8") as packages_file:
             tagfile = apt_pkg.TagFile(packages_file)
             tagfile.step()
-            if sys.version < "3":
-                self.assertEqual(value.encode("UTF-8"), tagfile.section["Maintainer"])
-            else:
-                self.assertEqual(value, tagfile.section["Maintainer"])
+            self.assertEqual(value, tagfile.section["Maintainer"])
 
     def test_latin1(self):
         value = "Tést Persön <test@example.org>"
@@ -113,25 +102,14 @@ class TestTagFile(testcommon.TestCase):
         with io.open(packages, "w", encoding="ISO-8859-1") as packages_file:
             print("Maintainer: %s" % value, file=packages_file)
             print("", file=packages_file)
-        if sys.version < "3":
-            # In Python 2, test the traditional file interface.
-            with open(packages) as packages_file:
-                tagfile = apt_pkg.TagFile(packages_file)
-                tagfile.step()
-                self.assertEqual(
-                    value.encode("ISO-8859-1"), tagfile.section["Maintainer"]
-                )
         with io.open(packages) as packages_file:
             tagfile = apt_pkg.TagFile(packages_file, bytes=True)
             tagfile.step()
             self.assertEqual(value.encode("ISO-8859-1"), tagfile.section["Maintainer"])
-        if sys.version >= "3":
-            # In Python 3, TagFile can pick up the encoding of the file
-            # object.
-            with io.open(packages, encoding="ISO-8859-1") as packages_file:
-                tagfile = apt_pkg.TagFile(packages_file)
-                tagfile.step()
-                self.assertEqual(value, tagfile.section["Maintainer"])
+        with io.open(packages, encoding="ISO-8859-1") as packages_file:
+            tagfile = apt_pkg.TagFile(packages_file)
+            tagfile.step()
+            self.assertEqual(value, tagfile.section["Maintainer"])
 
     def test_mixed(self):
         value = "Tést Persön <test@example.org>"
@@ -142,16 +120,6 @@ class TestTagFile(testcommon.TestCase):
         with io.open(packages, "a", encoding="ISO-8859-1") as packages_file:
             print("Maintainer: %s" % value, file=packages_file)
             print("", file=packages_file)
-        if sys.version < "3":
-            # In Python 2, test the traditional file interface.
-            with open(packages) as packages_file:
-                tagfile = apt_pkg.TagFile(packages_file)
-                tagfile.step()
-                self.assertEqual(value.encode("UTF-8"), tagfile.section["Maintainer"])
-                tagfile.step()
-                self.assertEqual(
-                    value.encode("ISO-8859-1"), tagfile.section["Maintainer"]
-                )
         with io.open(packages) as packages_file:
             tagfile = apt_pkg.TagFile(packages_file, bytes=True)
             tagfile.step()

@@ -17,15 +17,14 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 #  USA
 """Classes for working with locally available Debian packages."""
-from __future__ import print_function
 
 import apt
 import apt_inst
 import apt_pkg
+
 import gzip
 import os
 import sys
-
 from typing import Dict, Iterable, List, Optional, Set, Tuple, Union, cast
 
 from apt_pkg import gettext as _

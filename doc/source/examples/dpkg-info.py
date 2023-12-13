@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 """Emulate dpkg --info package.deb control-file"""
 
-from __future__ import print_function
-
 import sys
 
 from apt_inst import DebFile
