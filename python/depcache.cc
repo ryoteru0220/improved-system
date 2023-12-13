@@ -107,8 +107,6 @@ static PyObject *PkgDepCacheCommit(PyObject *Self,PyObject *Args)
       return HandleErrors();
    }
 
-   //std::cout << "PM created" << std::endl;
-
    PyInstallProgress iprogress;
    iprogress.setCallbackInst(pyInstallProgressInst);
 
@@ -125,23 +123,16 @@ static PyObject *PkgDepCacheCommit(PyObject *Self,PyObject *Args)
       for (pkgAcquire::ItemIterator I = Fetcher.ItemsBegin(); I != Fetcher.ItemsEnd(); I++)
       {
 
-	 //std::cout << "looking at: " << (*I)->DestFile
-	 //	   << " status: " << (*I)->Status << std::endl;
-
 	 if ((*I)->Status == pkgAcquire::Item::StatDone &&
 	     (*I)->Complete == true)
 	    continue;
 
 	 if ((*I)->Status == pkgAcquire::Item::StatIdle)
 	 {
-	    //std::cout << "transient failure" << std::endl;
-
 	    Transient = true;
 	    //Failed = true;
 	    continue;
 	 }
-
-	 //std::cout << "something is wrong!" << std::endl;
 
 	 _error->Warning(_("Failed to fetch %s  %s\n"),(*I)->DescURI().c_str(),
 			 (*I)->ErrorText.c_str());
@@ -158,7 +149,6 @@ static PyObject *PkgDepCacheCommit(PyObject *Self,PyObject *Args)
       // Try to deal with missing package files
       if (Failed == true && PM->FixMissing() == false)
       {
-	 //std::cerr << "Unable to correct missing packages." << std::endl;
 	 _error->Error("Aborting install.");
 	 Py_INCREF(Py_None);
 	 return HandleErrors(Py_None);
@@ -171,17 +161,13 @@ static PyObject *PkgDepCacheCommit(PyObject *Self,PyObject *Args)
       _system->UnLockInner(true);
 
       pkgPackageManager::OrderResult Res = iprogress.Run(PM);
-      //std::cout << "iprogress.Run() returned: " << (int)Res << std::endl;
 
       if (Res == pkgPackageManager::Failed || _error->PendingError() == true) {
 	 return HandleErrors(PyBool_FromLong(false));
       }
       if (Res == pkgPackageManager::Completed) {
-	 //std::cout << "iprogress.Run() returned Completed " << std::endl;
      Py_RETURN_TRUE;
       }
-
-      //std::cout << "looping again, install unfinished" << std::endl;
 
       // Reload the fetcher object and loop again for media swapping
       Fetcher.Shutdown();

@@ -55,7 +55,6 @@ bool PyCallbackObj::RunSimpleCallback(const char* method_name,
 
    PyObject *method = PyObject_GetAttrString(callbackInst,(char*) method_name);
    if(method == NULL) {
-      //std::cerr << "Can't find '" << method_name << "' method" << std::endl;
       Py_XDECREF(arglist);
       if (res) {
 	 Py_INCREF(Py_None);
@@ -125,7 +124,6 @@ PyObject *PyFetchProgress::GetDesc(pkgAcquire::ItemDesc *item) {
 bool PyFetchProgress::MediaChange(std::string Media, std::string Drive)
 {
    PyCbObj_END_ALLOW_THREADS
-   //std::cout << "MediaChange" << std::endl;
    PyObject *arglist = Py_BuildValue("(ss)", Media.c_str(), Drive.c_str());
    PyObject *result = NULL;
 
@@ -147,7 +145,6 @@ bool PyFetchProgress::MediaChange(std::string Media, std::string Drive)
 
 void PyFetchProgress::UpdateStatus(pkgAcquire::ItemDesc &Itm, int status)
 {
-   //std::cout << "UpdateStatus: " << Itm.URI << " " << status << std::endl;
    // Added object file size and object partial size to
    // parameters that are passed to updateStatus.
    // -- Stephan
@@ -231,7 +228,6 @@ void PyFetchProgress::Fail(pkgAcquire::ItemDesc &Itm)
 
 void PyFetchProgress::Start()
 {
-   //std::cout << "Start" << std::endl;
    pkgAcquireStatus::Start();
 
 
@@ -252,7 +248,6 @@ void PyFetchProgress::Stop()
     */
 
    PyCbObj_END_ALLOW_THREADS
-   //std::cout << "Stop" << std::endl;
    pkgAcquireStatus::Stop();
    RunSimpleCallback("stop");
 }
@@ -262,7 +257,6 @@ bool PyFetchProgress::Pulse(pkgAcquire * Owner)
    PyCbObj_END_ALLOW_THREADS
    pkgAcquireStatus::Pulse(Owner);
 
-   //std::cout << "Pulse" << std::endl;
    if(callbackInst == 0) {
       PyCbObj_BEGIN_ALLOW_THREADS
       return false;
@@ -341,7 +335,6 @@ pkgPackageManager::OrderResult PyInstallProgress::Run(pkgPackageManager *pm)
    // support custom fork methods
    if(PyObject_HasAttrString(callbackInst, "fork")) {
       PyObject *method = PyObject_GetAttrString(callbackInst, "fork");
-      std::cerr << "custom fork found" << std::endl;
       PyObject *arglist = Py_BuildValue("()");
       PyObject *result = PyObject_CallObject(method, arglist);
       Py_DECREF(arglist);
@@ -354,9 +347,7 @@ pkgPackageManager::OrderResult PyInstallProgress::Run(pkgPackageManager *pm)
 	 std::cerr << "custom fork() result could not be parsed?"<< std::endl;
 	 return pkgPackageManager::Failed;
       }
-      std::cerr << "got pid: " << child_id << std::endl;
    } else {
-      //std::cerr << "using build-in fork()" << std::endl;
       child_id = fork();
    }
 
@@ -374,7 +365,6 @@ pkgPackageManager::OrderResult PyInstallProgress::Run(pkgPackageManager *pm)
       PyObject *v = PyObject_GetAttrString(callbackInst, "writefd");
       if(v) {
 	 int fd = PyObject_AsFileDescriptor(v);
-         std::cout << "got fd: " << fd << std::endl;
 
 	 APT::Progress::PackageManagerProgressFd progress(fd);
 	 res = pm->DoInstall(&progress);
@@ -382,7 +372,6 @@ pkgPackageManager::OrderResult PyInstallProgress::Run(pkgPackageManager *pm)
 	 APT::Progress::PackageManagerProgressFd progress(-1);
 	 res = pm->DoInstall(&progress);
       }
-      //std::cout << "res: " << res << std::endl;
       _exit(res);
    }
 
@@ -397,7 +386,6 @@ pkgPackageManager::OrderResult PyInstallProgress::Run(pkgPackageManager *pm)
           method = PyObject_GetAttrString(callbackInst, "waitChild");
       else
           method = PyObject_GetAttrString(callbackInst, "wait_child");
-      //std::cerr << "custom waitChild found" << std::endl;
       PyObject *result = PyObject_CallObject(method, NULL);
       if (result == NULL) {
 	 std::cerr << "waitChild method invalid" << std::endl;
@@ -411,9 +399,7 @@ pkgPackageManager::OrderResult PyInstallProgress::Run(pkgPackageManager *pm)
 	 return pkgPackageManager::Failed;
       }
       PyCbObj_BEGIN_ALLOW_THREADS
-      //std::cerr << "got child_res: " << res << std::endl;
    } else {
-      //std::cerr << "using build-in waitpid()" << std::endl;
       PyCbObj_BEGIN_ALLOW_THREADS
       while (waitpid(child_id, &ret, WNOHANG) == 0) {
 	 PyCbObj_END_ALLOW_THREADS
@@ -422,7 +408,6 @@ pkgPackageManager::OrderResult PyInstallProgress::Run(pkgPackageManager *pm)
       }
 
       res = (pkgPackageManager::OrderResult) WEXITSTATUS(ret);
-      //std::cerr << "build-in waitpid() got: " << res << std::endl;
    }
 
    FinishUpdate();
