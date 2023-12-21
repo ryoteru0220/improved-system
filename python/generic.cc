@@ -20,9 +20,6 @@ using namespace std;
 /* We throw away all warnings and only propogate the first error. */
 PyObject *HandleErrors(PyObject *Res)
 {
-   if (Res != 0) {
-   }
-
    string Err;
    int errcnt = 0;
    int wrncnt = 0;
@@ -52,7 +49,9 @@ PyObject *HandleErrors(PyObject *Res)
 
    return Res;
 err:
-    Py_DECREF(Res);
+   if (Res != 0)
+      Py_DECREF(Res);
+
     return nullptr;
 }
 
