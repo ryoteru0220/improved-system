@@ -1,3 +1,12 @@
+python-apt (2.7.3) unstable; urgency=medium
+
+  * Handle null pointer deference in error handler (Closes: #1058904)
+  * Actually register apt_pkg.Warning object
+  * apt_inst: Import apt_pkg.Warning and export it again (Closes: #1058657)
+  * d/tests/control: Add allow-stderr Restriction
+
+ -- Julian Andres Klode <jak@debian.org>  Thu, 21 Dec 2023 16:00:06 +0100
+
 python-apt (2.7.2) unstable; urgency=medium
 
   * Convert from type comments to type annotations (Closes: #1058118)
