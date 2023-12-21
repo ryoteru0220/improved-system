@@ -24,6 +24,7 @@
 									/*}}}*/
 
 PyObject *PyAptError;
+PyObject *PyAptWarning;
 static PyMethodDef *methods = 0;
 
 
@@ -70,8 +71,12 @@ extern "C" void initapt_inst()
    PyAptError = PyObject_GetAttrString(apt_pkg, "Error");
    if (PyAptError == NULL)
       INIT_ERROR;
+   PyAptWarning = PyObject_GetAttrString(apt_pkg, "Warning");
+   if (PyAptWarning == NULL)
+      INIT_ERROR;
 
    PyModule_AddObject(module,"Error",PyAptError);
+   PyModule_AddObject(module,"Warning",PyAptWarning);
    ADDTYPE(module,"ArMember",&PyArMember_Type);
    ADDTYPE(module,"ArArchive",&PyArArchive_Type);
    ADDTYPE(module,"DebFile",&PyDebFile_Type);
