@@ -915,6 +915,7 @@ extern "C" void initapt_pkg()
    Config->NoDelete = true;
    PyModule_AddObject(Module,"config",Config);
    PyModule_AddObject(Module,"Error",PyAptError);
+   PyModule_AddObject(Module,"Warning",PyAptWarning);
    PyModule_AddObject(Module,"CacheMismatchError", PyAptCacheMismatchError);
 
 
