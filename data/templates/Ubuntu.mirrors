@@ -69,7 +69,6 @@ http://mirror.rcg.sfu.ca/mirror/ubuntu/
 http://mirrors.layeronline.com/ubuntu/
 http://ubuntu.bhs.mirrors.ovh.net/ubuntu/
 http://ubuntu.mirror.globo.tech/
-http://ubuntu.mirror.iweb.ca/
 http://ubuntu.mirror.rafal.ca/ubuntu/
 https://mirror.0xem.ma/ubuntu/
 https://mirror.csclub.uwaterloo.ca/ubuntu/
@@ -203,6 +202,7 @@ http://mirrors.nic.funet.fi/ubuntu/
 https://mirror.5i.fi/ubuntu/
 #LOC:FR
 http://distrib-coffee.ipsl.jussieu.fr/pub/linux/ubuntu/
+http://miroir.univ-lorraine.fr/ubuntu/
 http://mirror.plusserver.com/ubuntu/ubuntu/
 http://mirrors.ircam.fr/pub/ubuntu/archive/
 http://ubuntu.mirror.serverloft.de/ubuntu/
@@ -366,6 +366,7 @@ http://mirror.hoster.kz/ubuntu/
 http://mirror.neolabs.kz/ubuntu/
 http://mirror.ps.kz/ubuntu/
 #LOC:LT
+http://ftp.litnet.lt/ubuntu/
 http://ubuntu-archive.mirror.serveriai.lt/
 http://ubuntu.mirror.vu.lt/ubuntu/
 https://mirror.vpsnet.com/ubuntu/

@@ -1,3 +1,9 @@
+python-apt (2.7.4) unstable; urgency=medium
+
+  * aptsources: Fix path to Dir::Etc::SourcesList
+
+ -- Julian Andres Klode <jak@debian.org>  Fri, 22 Dec 2023 12:14:54 +0100
+
 python-apt (2.7.3) unstable; urgency=medium
 
   * Handle null pointer deference in error handler (Closes: #1058904)
