@@ -504,9 +504,7 @@ class SourceEntry:
         self.comment = ""  # (optional) comment
         self.line = line  # the original sources.list line
         if file is None:
-            file = apt_pkg.config.find_dir("Dir::Etc") + apt_pkg.config.find(
-                "Dir::Etc::sourcelist"
-            )
+            file = apt_pkg.config.find_file("Dir::Etc::sourcelist")
         self.file = file  # the file that the entry is located in
         self.parse(line)
         self.template: Template | None = None  # type DistInfo.Suite
