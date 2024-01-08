@@ -308,6 +308,7 @@ class Distribution:
                 comps,
                 comment,
                 file=new_source.file,
+                parent=new_source,
                 pos=self.sourceslist.list.index(new_source) + 1,
             )
 
