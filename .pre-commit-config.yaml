@@ -22,4 +22,4 @@ repos:
     hooks:
       - id: mypy
         args: [--strict]
-        exclude: tests/|aptsources/|doc/|utils/|setup.py
+        exclude: tests/|aptsources/(distro.py|sourceslist.py)|doc/|utils/|setup.py
