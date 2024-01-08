@@ -505,6 +505,8 @@ class SourceEntry:
         self.line = line  # the original sources.list line
         if file is None:
             file = apt_pkg.config.find_file("Dir::Etc::sourcelist")
+        if file.endswith(".sources"):
+            raise ValueError("Classic SourceEntry cannot be written to .sources file")
         self.file = file  # the file that the entry is located in
         self.parse(line)
         self.template: Template | None = None  # type DistInfo.Suite
