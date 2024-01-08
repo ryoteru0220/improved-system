@@ -282,7 +282,7 @@ class Deb822SourceEntry:
         ):
             return False
 
-        for tag in list(self.section.tags) + list(other.section.tags):
+        for tag in set(list(self.section.tags) + list(other.section.tags)):
             if tag.lower() in (
                 "types",
                 "uris",
@@ -505,6 +505,8 @@ class SourceEntry:
         self.line = line  # the original sources.list line
         if file is None:
             file = apt_pkg.config.find_file("Dir::Etc::sourcelist")
+        if file.endswith(".sources"):
+            raise ValueError("Classic SourceEntry cannot be written to .sources file")
         self.file = file  # the file that the entry is located in
         self.parse(line)
         self.template: Template | None = None  # type DistInfo.Suite
@@ -814,13 +816,15 @@ class SourcesList:
                     return source
 
         new_entry: AnySourceEntry
-        if file is not None and file.endswith(".sources"):
+        if file is None:
+            file = apt_pkg.config.find_file("Dir::Etc::sourcelist")
+        if file.endswith(".sources"):
             new_entry = Deb822SourceEntry(None, file=file, list=self)
             if parent:
                 parent = getattr(parent, "parent", parent)
                 assert isinstance(parent, Deb822SourceEntry)
                 for k in parent.section.tags:
-                    new_entry.section.tags[k] = parent.section.tags[k]
+                    new_entry.section[k] = parent.section[k]
             new_entry.types = [type]
             new_entry.uris = [uri]
             new_entry.suites = [dist]

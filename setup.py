@@ -49,6 +49,9 @@ def get_version():
         out, _ = proc.communicate()
         if proc.returncode == 0:
             version = out.decode("utf-8")
+
+    version = version.strip()
+
     if not version:
         return version
 

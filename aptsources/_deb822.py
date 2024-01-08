@@ -22,12 +22,14 @@ class Section:
     """
 
     tags: collections.OrderedDict[str, str]
+    _case_mapping: dict[str, str]
     header: str
     footer: str
 
     def __init__(self, section: typing.Union[str, "Section"]):
         if isinstance(section, Section):
             self.tags = collections.OrderedDict(section.tags)
+            self._case_mapping = {k.casefold(): k for k in self.tags}
             self.header = section.header
             self.footer = section.footer
             return
@@ -47,19 +49,22 @@ class Section:
             trimmed_section += line + "\n"
 
         self.tags = collections.OrderedDict(apt_pkg.TagSection(trimmed_section))
+        self._case_mapping = {k.casefold(): k for k in self.tags}
         self.header, self.footer = comments
 
     def __getitem__(self, key: str) -> str:
         """Get the value of a field."""
-        return self.tags[key]
+        return self.tags[self._case_mapping.get(key.casefold(), key)]
 
     def __delitem__(self, key: str) -> None:
         """Delete a field"""
-        del self.tags[key]
+        del self.tags[self._case_mapping.get(key.casefold(), key)]
 
     def __setitem__(self, key: str, val: str) -> None:
         """Set the value of a field."""
-        self.tags[key] = val
+        if key.casefold() not in self._case_mapping:
+            self._case_mapping[key.casefold()] = key
+        self.tags[self._case_mapping[key.casefold()]] = val
 
     def __bool__(self) -> bool:
         return bool(self.tags)
@@ -74,7 +79,7 @@ class Section:
 
     def get(self, key: str, default: T | None = None) -> T | None | str:
         try:
-            return self.tags[key]
+            return self[key]
         except KeyError:
             return default
 
