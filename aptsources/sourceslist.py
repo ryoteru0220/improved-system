@@ -816,7 +816,9 @@ class SourcesList:
                     return source
 
         new_entry: AnySourceEntry
-        if file is not None and file.endswith(".sources"):
+        if file is None:
+            file = apt_pkg.config.find_file("Dir::Etc::sourcelist")
+        if file.endswith(".sources"):
             new_entry = Deb822SourceEntry(None, file=file, list=self)
             if parent:
                 parent = getattr(parent, "parent", parent)
