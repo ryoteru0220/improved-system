@@ -282,7 +282,7 @@ class Deb822SourceEntry:
         ):
             return False
 
-        for tag in list(self.section.tags) + list(other.section.tags):
+        for tag in set(list(self.section.tags) + list(other.section.tags)):
             if tag.lower() in (
                 "types",
                 "uris",
@@ -824,7 +824,7 @@ class SourcesList:
                 parent = getattr(parent, "parent", parent)
                 assert isinstance(parent, Deb822SourceEntry)
                 for k in parent.section.tags:
-                    new_entry.section.tags[k] = parent.section.tags[k]
+                    new_entry.section[k] = parent.section[k]
             new_entry.types = [type]
             new_entry.uris = [uri]
             new_entry.suites = [dist]
