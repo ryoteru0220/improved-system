@@ -1452,6 +1452,32 @@ class TestAptSources(testcommon.TestCase):
 
             self.assertEqual(len(sources.list), 2)
             distro.get_sources(sources)
+            self.assertEqual(
+                [(s.type, s.uri, s.dist, s.comps) for s in distro.main_sources]
+                + ["separator"]
+                + [(s.type, s.uri, s.dist, s.comps) for s in distro.child_sources],
+                [
+                    (
+                        "deb",
+                        "http://archive.ubuntu.com/ubuntu/",
+                        "noble",
+                        ["main", "universe"],
+                    ),
+                    "separator",
+                    (
+                        "deb",
+                        "http://archive.ubuntu.com/ubuntu/",
+                        "noble-updates",
+                        ["main", "universe"],
+                    ),
+                    (
+                        "deb",
+                        "http://security.ubuntu.com/ubuntu/",
+                        "noble-security",
+                        ["main", "universe"],
+                    ),
+                ],
+            )
             distro.add_source(dist="noble-proposed")
 
             # FIXME: Component ordering is not stable right now
