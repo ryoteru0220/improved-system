@@ -15,6 +15,7 @@ import aptsources.sourceslist
 
 socket.setdefaulttimeout(2)
 
+
 class MirrorTest:
     class PingWorker(threading.Thread):
         def __init__(self, jobs, results, id):
@@ -23,6 +24,7 @@ class MirrorTest:
             self.results = results
             self.match_result = re.compile(r"^rtt .* = [\.\d]+/([\.\d]+)/.*")
             threading.Thread.__init__(self)
+
         def run(self):
             result = None
             while MirrorTest.completed_pings < MirrorTest.todo:
@@ -31,11 +33,11 @@ class MirrorTest:
                     host = mirror.hostname
                 except:
                     continue
-                print("Pinging (Worker %s) %s (%s) ..." % (self.id,
-                                                           host,
-                                                           MirrorTest.completed_pings))
-                commando = os.popen("ping -q -c 4 -W 2 -i 0.3 %s" % host,
-                                    "r")
+                print(
+                    "Pinging (Worker %s) %s (%s) ..."
+                    % (self.id, host, MirrorTest.completed_pings)
+                )
+                commando = os.popen("ping -q -c 4 -W 2 -i 0.3 %s" % host, "r")
                 while True:
                     line = commando.readline()
                     if not line:
@@ -48,12 +50,11 @@ class MirrorTest:
                 MirrorTest.completed_pings_lock.release()
 
     def speed_test(self, mirror):
-        url = "%s/%s" % (mirror.get_repo_urls()[0],
-                         self.test_file)
+        url = f"{mirror.get_repo_urls()[0]}/{self.test_file}"
         print("Downloading %s ..." % url)
         start = time.time()
         try:
-            data = urllib.request.urlopen(url).read(51200)
+            urllib.request.urlopen(url).read(51200)
             return 50 / (time.time() - start)
         except:
             return 0
@@ -80,7 +81,7 @@ class MirrorTest:
         results.sort()
         print("\n\nTop ten RTTs:")
         for r in results[0:10]:
-            print("%s: %s" % (r[1], r[0]))
+            print(f"{r[1]}: {r[0]}")
         print("\n\n")
 
         results.insert(0, [0, "rand", hosts[random.randint(1, len(hosts))]])
@@ -91,16 +92,17 @@ class MirrorTest:
         final.reverse()
         print("\n\nBest mirrors:")
         for f in final:
-            print("%s: %s KByte/s" % (f[1].hostname, int(f[0])))
+            print(f"{f[1].hostname}: {int(f[0])} KByte/s")
+
 
 if __name__ == "__main__":
     distro = aptsources.distro.get_distro()
     distro.get_sources(aptsources.sourceslist.SourcesList())
     pipe = os.popen("dpkg --print-architecture")
     arch = pipe.read().strip()
-    test_file = "dists/%s/%s/binary-%s/Packages.gz" % \
-                (distro.source_template.name,
-                 distro.source_template.components[0].name,
-                 arch)
-    app = MirrorTest(distro.source_template.mirror_set.values(),
-                     test_file)
+    test_file = "dists/{}/{}/binary-{}/Packages.gz".format(
+        distro.source_template.name,
+        distro.source_template.components[0].name,
+        arch,
+    )
+    app = MirrorTest(distro.source_template.mirror_set.values(), test_file)

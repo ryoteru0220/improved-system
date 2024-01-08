@@ -19,14 +19,14 @@ def main():
     # first, get all pkgs
     for pkg in cache.packages:
         i += 1
-        x = pkg.name
+        pkg.name
         # then get each version
         for ver in pkg.version_list:
             # get some version information
-            a = ver.file_list
-            b = ver.ver_str
-            c = ver.arch
-            d = ver.depends_listStr
+            ver.file_list
+            ver.ver_str
+            ver.arch
+            ver.depends_listStr
             dl = ver.depends_list
             # get all dependencies (a dict of string->list,
             # e.g. "depends:" -> [ver1,ver2,..]
@@ -37,10 +37,10 @@ def main():
                         # get all TargetVersions of
                         # the dependency object
                         for j in z.all_targets():
-                            f = j.file_list
-                            g = ver.ver_str
-                            h = ver.arch
-                            k = ver.depends_listStr
+                            j.file_list
+                            ver.ver_str
+                            ver.arch
+                            ver.depends_listStr
                             j = ver.depends_list
 
         print("\r%i/%i=%.3f%%    " % (i, all, (float(i) / float(all) * 100)))

@@ -28,8 +28,8 @@ def main():
         file, index = version.file_list.pop(0)
         if records.lookup((file, index)):
             # print records.filename
-            x = records.filename
-            y = records.long_desc
+            records.filename
+            records.long_desc
         print(
             "\r%i/%i=%.3f%%    "
             % (i, cache.package_count, (float(i) / float(cache.package_count) * 100))
