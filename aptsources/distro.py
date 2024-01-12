@@ -28,6 +28,7 @@ import logging
 import os
 import re
 import shlex
+import warnings
 from xml.etree.ElementTree import ElementTree
 
 from apt_pkg import gettext as _
@@ -308,6 +309,7 @@ class Distribution:
                 comps,
                 comment,
                 file=new_source.file,
+                parent=new_source,
                 pos=self.sourceslist.list.index(new_source) + 1,
             )
 
@@ -604,6 +606,10 @@ def get_distro(id=None, codename=None, description=None, release=None, is_like=[
     """
     # make testing easier
     if not (id and codename and description and release):
+        if id or codename or description or release:
+            warnings.warn(
+                "Provided only a subset of arguments", DeprecationWarning, stacklevel=2
+            )
         os_release = _OSRelease()
         os_result = []
         lsb_result = _lsb_release()

@@ -344,7 +344,7 @@ class DistInfo:
                                 )
                             )
                     except Exception:
-                        print("WARNING: Failed to read mirror file")
+                        print(f"WARNING: Failed to read mirror file {value}")
                         mirror_data = []
                     for line in mirror_data:
                         if line.startswith("#LOC:"):
