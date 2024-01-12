@@ -1,3 +1,30 @@
+python-apt (2.7.5) unstable; urgency=medium
+
+  * Improve development workflow and CI with pre-commit hooks:
+    - Remove obsolete .travis.yml
+    - Setup pre-commit with various formatting and mypy hooks and run it
+    - Add mypy.ini
+    - pre-commit: mypy: Only filter out sourceslist and distro in aptsources
+  * Build fixes:
+    - setup.py: Strip whitespace in version
+  * Fixes to deb822 support:
+    - Make sure we don't construct SourceEntry for .sources file
+    - Figure out file to add before deciding between deb822 and legacy
+    - Ensure deb822 keys are case-insensitive
+    - Pass parent for deb-src entries too
+  * Fixes to the test suite:
+    - tests: Ensure we parsed the correct main and child sources
+    - tests: Adjust test suite to pass all arguments to get_distro()
+      Fixing the test suite regressions that plagued (random) executions.
+  * Fixes for aptsources.distinfo to improve error handling for mirror files:
+    - data: Blankon: Use relative mirror file location
+    - distinfo: Include file name if we can't read mirror file
+  * Deprecations:
+    - aptsources: get_distro: Warn if only some arguments are provided. This
+      caused the test suite failures. It will soon become a ValueError.
+
+ -- Julian Andres Klode <jak@debian.org>  Fri, 12 Jan 2024 17:59:34 +0100
+
 python-apt (2.7.4) unstable; urgency=medium
 
   * aptsources: Fix path to Dir::Etc::SourcesList
