@@ -591,6 +591,21 @@ static PyObject *PkgDepCacheMarkedReinstall(PyObject *Self,PyObject *Args)
    return HandleErrors(PyBool_FromLong(res));
 }
 
+static PyObject *PkgDepCachePhasingApplied(PyObject *Self,PyObject *Args)
+{
+    pkgDepCache *depcache = GetCpp<pkgDepCache *>(Self);
+
+    bool res=false;
+    PyObject *PackageObj;
+
+    if (PyArg_ParseTuple(Args,"O!",&PyPackage_Type,&PackageObj) == 0)
+      return 0;
+
+    pkgCache::PkgIterator Pkg = GetCpp<pkgCache::PkgIterator>(PackageObj);
+    res = depcache->PhasingApplied(Pkg);
+
+    return HandleErrors(PyBool_FromLong(res));
+}
 
 static PyMethodDef PkgDepCacheMethods[] =
 {
@@ -630,6 +645,11 @@ static PyMethodDef PkgDepCacheMethods[] =
     "Go over the entire set of packages and try to keep each package\n"
     "marked for upgrade. If a conflict is generated then the package\n"
     "is restored."},
+   // Policy
+   {"phasing_applied",PkgDepCachePhasingApplied,METH_VARARGS,
+    "phasing_applied(pkg: apt_pkg.Package) -> bool\n\n"
+    "Check if the phased update is ready.\n"
+    "return false if this is a phased update that is not yet ready for us.\n"},
    // Manipulators
    {"mark_keep",PkgDepCacheMarkKeep,METH_VARARGS,
     "mark_keep(pkg: apt_pkg.Package)\n\n"
@@ -921,6 +941,20 @@ static PyObject *PkgProblemResolverClear(PyObject *Self,PyObject *Args)
    return HandleErrors(Py_None);
 }
 
+static PyObject *PkgProblemResolverKeepPhasedUpdates(PyObject *Self,PyObject *Args)
+{
+   bool res;
+   pkgProblemResolver *fixer = GetCpp<pkgProblemResolver *>(Self);
+   if (PyArg_ParseTuple(Args,"") == 0)
+      return 0;
+
+   Py_BEGIN_ALLOW_THREADS
+   res = fixer->KeepPhasedUpdates();
+   Py_END_ALLOW_THREADS
+
+   return HandleErrors(PyBool_FromLong(res));
+}
+
 
 static PyMethodDef PkgProblemResolverMethods[] =
 {
@@ -945,6 +979,10 @@ static PyMethodDef PkgProblemResolverMethods[] =
    {"resolve_by_keep", PkgProblemResolverResolveByKeep, METH_VARARGS,
     "resolve_by_keep() -> bool\n\n"
     "Try to resolve problems only by using keep."},
+   {"keep_phased_updates", PkgProblemResolverKeepPhasedUpdates, METH_VARARGS,
+    "keep_phased_updates() -> bool\n\n"
+    "Hold back upgrades to phased versions of already installed\n"
+    "packages, unless they are security updates."},
    {}
 };
 

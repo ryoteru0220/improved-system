@@ -1003,6 +1003,10 @@ static PyObject *VersionGetTranslatedDescription(PyObject *Self, void*) {
                     Ver.TranslatedDescription());
 }
 
+static PyObject *VersionGetIsSecurityUpdate(PyObject *Self, void*) {
+   return PyBool_FromLong(Version_GetVer(Self).IsSecurityUpdate());
+}
+
 static PyObject *VersionGetMultiArch(PyObject *Self, void*)
 {
 	return MkPyNumber(Version_GetVer(Self)->MultiArch);
@@ -1105,6 +1109,8 @@ static PyGetSetDef VersionGetSet[] = {
    {"translated_description",VersionGetTranslatedDescription,0,
     "An apt_pkg.Description object for the translated description if\n"
     "available or the untranslated fallback."},
+   {"is_security_update",VersionGetIsSecurityUpdate,0,
+    "Whether this version is a security update."},
    {"ver_str",VersionGetVerStr,0,
     "The version string."},
    {}
