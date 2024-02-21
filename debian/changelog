@@ -1,3 +1,10 @@
+python-apt (2.7.6) unstable; urgency=medium
+
+  [ Ravi Kant Sharma ]
+  * Expose the phased updates APIs in apt 2.7.11
+
+ -- Julian Andres Klode <jak@debian.org>  Wed, 21 Feb 2024 19:01:25 +0100
+
 python-apt (2.7.5) unstable; urgency=medium
 
   * Improve development workflow and CI with pre-commit hooks:
