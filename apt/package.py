@@ -474,6 +474,11 @@ class Version:
         return None
 
     @property
+    def is_security_update(self) -> bool:
+        """Return whether this version is a security update."""
+        return bool(self._cand.is_security_update)
+
+    @property
     def installed_size(self) -> int:
         """Return the size of the package when installed."""
         return self._cand.installed_size
@@ -1163,6 +1168,11 @@ class Package:
     def is_auto_installed(self) -> bool:
         """Return whether the package is marked as automatically installed."""
         return self._pcache._depcache.is_auto_installed(self._pkg)
+
+    @property
+    def phasing_applied(self) -> bool:
+        """Return ``True`` if the package update is being phased."""
+        return self._pcache._depcache.phasing_applied(self._pkg)
 
     # sizes
 

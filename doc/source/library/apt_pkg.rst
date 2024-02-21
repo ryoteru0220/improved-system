@@ -349,6 +349,10 @@ Managing the cache with :class:`DepCache`
 
         Return ``True`` if the package is marked for upgrade.
 
+    .. method:: phasing_applied(pkg: Package) -> bool
+
+        Return ``True`` if the package update is being phased.
+
     DepCache objects also provide several attributes containing information
     on the marked changes:
 
@@ -657,6 +661,11 @@ Resolving Dependencies with :class:`ProblemResolver`
     .. method:: resolve_by_keep() -> bool
 
         Try to resolve the problems without installing or removing packages.
+
+    .. method:: keep_phased_updates() -> bool
+
+        Hold back upgrades to phased versions of already installed
+        packages, unless they are security updates.
 
 :class:`Group` of packages with the same name
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -999,6 +1008,10 @@ Example:
 
         Return a :class:`Description` object for the translated description
         of this package version.
+
+    .. attribute:: is_security_update
+
+        Whether this version is a security update.
 
     .. attribute:: ver_str
 

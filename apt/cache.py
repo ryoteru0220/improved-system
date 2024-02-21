@@ -812,6 +812,12 @@ class ProblemResolver:
         self._resolver.resolve_by_keep()
         self._cache.cache_post_change()
 
+    def keep_phased_updates(self) -> None:
+        """Keep back phased updates."""
+        self._cache.cache_pre_change()
+        self._resolver.keep_phased_updates()
+        self._cache.cache_post_change()
+
 
 # ----------------------------- experimental interface
 
